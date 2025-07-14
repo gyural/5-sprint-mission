@@ -14,4 +14,7 @@ public interface ChannelService {
 	public void update(UUID id, String newChannelName, String newDescription);
 
 	boolean isEmpty(UUID id);
+
+	void deleteAll();
+
 }

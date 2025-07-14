@@ -53,4 +53,11 @@ public class JCFChannelService implements ChannelService {
 	public boolean isEmpty(UUID id) {
 		return data.get(id) == null;
 	}
+
+	@Override
+	public void deleteAll() {
+		data.clear();
+		userService.deleteAll();
+		messageService.deleteAll();
+	}
 }

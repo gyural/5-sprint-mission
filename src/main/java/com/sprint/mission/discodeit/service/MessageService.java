@@ -15,4 +15,7 @@ public interface MessageService {
 	Message read(UUID id);
 
 	List<Message> readAllByChannelId(UUID channelId);
+
+	void deleteAll();
+
 }
