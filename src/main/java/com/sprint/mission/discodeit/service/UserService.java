@@ -13,4 +13,6 @@ public interface UserService {
 
 	User read(UUID userId);
 
+	boolean isEmpty(UUID userId);
+
 }
