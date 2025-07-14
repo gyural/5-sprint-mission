@@ -16,9 +16,12 @@ public class JavaApplication {
 
 		// 2. ChannelService 테스트 실행
 		ChannelServiceTest channelServiceTest = new ChannelServiceTest();
-		// channelServiceTest.testCreateChannel();
+		channelServiceTest.testCreateChannel();
 		channelServiceTest.testReadChannel();
-		// channelServiceTest.testUpdateChannel();
-		// channelServiceTest.testDeleteChannel();
+		channelServiceTest.testUpdateChannel();
+		channelServiceTest.testDeleteChannel();
+
+		// 3. MessageService 테스트 실행
+		// MessageServiceTest messageServiceTest = new MessageServiceTest();
 	}
 }
