@@ -10,12 +10,14 @@ public interface MessageService {
 
 	void delete(UUID id);
 
+	void deleteAll();
+
+	void deleteByChannelId(UUID channelId);
+
 	void update(UUID id, String newContent);
 
 	Message read(UUID id);
 
 	List<Message> readAllByChannelId(UUID channelId);
-
-	void deleteAll();
 
 }
