@@ -21,7 +21,7 @@ public class UserServiceTest {
 
 		// Then
 		List<String> storedUserNameList
-		  = JCFUserService.data.values().stream().map(User::getUsername).toList();
+		  = userService.data.values().stream().map(User::getUsername).toList();
 
 		boolean isUser1Stored = storedUserNameList.contains(username1);
 		boolean isUser2Stored = storedUserNameList.contains(username2);
@@ -33,7 +33,7 @@ public class UserServiceTest {
 		}
 
 		// clear data after test
-		JCFUserService.data.clear();
+		userService.data.clear();
 	}
 
 	public void testReadUser() {
@@ -44,9 +44,9 @@ public class UserServiceTest {
 		User User2 = new User("testUser1");
 		User User3 = new User("testUser1");
 
-		JCFUserService.data.put(User1.getId(), User1);
-		JCFUserService.data.put(User2.getId(), User2);
-		JCFUserService.data.put(User3.getId(), User3);
+		userService.data.put(User1.getId(), User1);
+		userService.data.put(User2.getId(), User2);
+		userService.data.put(User3.getId(), User3);
 
 		// When
 		List<User> readAllResult = userService.readAll();
@@ -68,7 +68,7 @@ public class UserServiceTest {
 		}
 
 		// clear data after test
-		JCFUserService.data.clear();
+		userService.data.clear();
 	}
 
 	public void testUpdateUser() {
@@ -76,12 +76,12 @@ public class UserServiceTest {
 
 		// Given
 		User user1 = new User("testUser1");
-		JCFUserService.data.put(user1.getId(), user1);
+		userService.data.put(user1.getId(), user1);
 		String newUsername = "updatedUser1";
 		// When
 		userService.update(user1.getId(), newUsername);
 		// Then
-		User updatedUser = JCFUserService.data.get(user1.getId());
+		User updatedUser = userService.data.get(user1.getId());
 
 		if (updatedUser != null && updatedUser.getUsername().equals(newUsername)) {
 			System.out.println("user updated successfully✅");
@@ -90,7 +90,7 @@ public class UserServiceTest {
 		}
 
 		// clear data after test
-		JCFUserService.data.clear();
+		userService.data.clear();
 	}
 
 	public void testDeleteUser() {
@@ -98,11 +98,11 @@ public class UserServiceTest {
 
 		// Given
 		User user1 = new User("testUser1");
-		JCFUserService.data.put(user1.getId(), user1);
+		userService.data.put(user1.getId(), user1);
 		// When
 		userService.delete(user1.getId());
 		// Then
-		boolean isDeleted = JCFUserService.data.get(user1.getId()) == null;
+		boolean isDeleted = userService.data.get(user1.getId()) == null;
 		if (isDeleted) {
 			System.out.println("user deleted successfully✅");
 		} else {

@@ -9,7 +9,11 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 
 public class JCFUserService implements UserService {
-	public static final Map<UUID, User> data = new HashMap<>();
+	public final Map<UUID, User> data;
+
+	public JCFUserService() {
+		data = new HashMap<>();
+	}
 
 	@Override
 	public void create(String username) {
