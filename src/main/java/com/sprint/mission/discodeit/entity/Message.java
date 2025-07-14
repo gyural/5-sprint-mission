@@ -1,11 +1,13 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.util.UUID;
+
 public class Message extends Common {
 	private String content;
-	private String authorId; // Assuming this is a UUID in string format
-	private String channelId; // Assuming this is a UUID in string format
+	private UUID authorId; // Assuming this is a UUID in string format
+	private UUID channelId; // Assuming this is a UUID in string format
 
-	public Message(String content, String authorId, String channelId) {
+	public Message(String content, UUID authorId, UUID channelId) {
 		this.content = content;
 		this.authorId = authorId;
 		this.channelId = channelId;
@@ -19,19 +21,19 @@ public class Message extends Common {
 		this.content = content;
 	}
 
-	public String getAuthorId() {
+	public UUID getAuthorId() {
 		return authorId;
 	}
 
-	public void setAuthorId(String authorId) {
+	public void setAuthorId(UUID authorId) {
 		this.authorId = authorId;
 	}
 
-	public String getChannelId() {
+	public UUID getChannelId() {
 		return channelId;
 	}
 
-	public void setChannelId(String channelId) {
+	public void setChannelId(UUID channelId) {
 		this.channelId = channelId;
 	}
 }
