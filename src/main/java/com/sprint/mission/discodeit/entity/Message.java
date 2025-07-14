@@ -4,13 +4,15 @@ import java.util.UUID;
 
 public class Message extends Common {
 	private String content;
-	private UUID authorId; // Assuming this is a UUID in string format
-	private UUID channelId; // Assuming this is a UUID in string format
+	private UUID authorId; // Optinal
+	private UUID channelId;
+	private String authorName; // 유저가 채널을 나가도 메시지의 작성자는 남아있어야 하므로, authorId와 authorName을 분리
 
-	public Message(String content, UUID authorId, UUID channelId) {
+	public Message(String content, UUID authorId, UUID channelId, String authorName) {
 		this.content = content;
 		this.authorId = authorId;
 		this.channelId = channelId;
+		this.authorName = authorName;
 	}
 
 	public String getContent() {
@@ -35,5 +37,13 @@ public class Message extends Common {
 
 	public void setChannelId(UUID channelId) {
 		this.channelId = channelId;
+	}
+
+	public String getAuthorName() {
+		return authorName;
+	}
+
+	public void setAuthorName(String authorName) {
+		this.authorName = authorName;
 	}
 }
