@@ -46,4 +46,15 @@ public class Message extends Common {
 	public void setAuthorName(String authorName) {
 		this.authorName = authorName;
 	}
+
+	@Override
+	public String toString() {
+		return super.toString() + "\n" +
+		  "Message{" +
+		  "content='" + content + '\'' +
+		  ", authorId=" + authorId +
+		  ", channelId=" + channelId +
+		  ", authorName='" + authorName + '\'' +
+		  '}';
+	}
 }

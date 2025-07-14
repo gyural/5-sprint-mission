@@ -18,6 +18,8 @@ public interface MessageService {
 
 	Message read(UUID id);
 
+	List<Message> readAll();
+
 	List<Message> readAllByChannelId(UUID channelId);
 
 }
