@@ -27,7 +27,7 @@ public class UserServiceTest {
 		boolean isUser2Stored = storedUserNameList.contains(username2);
 
 		if (isUser1Stored && isUser2Stored) {
-			System.out.println("users created successfully.");
+			System.out.println("users created successfully✅");
 		} else {
 			throw new IllegalArgumentException("failed to create users.");
 		}
@@ -62,7 +62,7 @@ public class UserServiceTest {
 		  && readByUser3Id.getUsername().equals(User3.getUsername());
 
 		if (isSuccess) {
-			System.out.println("users read successfully.");
+			System.out.println("users read successfully✅");
 		} else {
 			throw new IllegalArgumentException("failed to read users.");
 		}
@@ -84,7 +84,7 @@ public class UserServiceTest {
 		User updatedUser = JCFUserService.data.get(user1.getId());
 
 		if (updatedUser != null && updatedUser.getUsername().equals(newUsername)) {
-			System.out.println("user updated successfully.");
+			System.out.println("user updated successfully✅");
 		} else {
 			throw new IllegalArgumentException("failed to update user.");
 		}
@@ -104,7 +104,7 @@ public class UserServiceTest {
 		// Then
 		boolean isDeleted = JCFUserService.data.get(user1.getId()) == null;
 		if (isDeleted) {
-			System.out.println("user deleted successfully.");
+			System.out.println("user deleted successfully✅");
 		} else {
 			throw new IllegalArgumentException("failed to delete user.");
 		}
