@@ -10,11 +10,12 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 public class JCFChannelService implements ChannelService {
-	public static final Map<UUID, Channel> data = new HashMap<>();
+	public final Map<UUID, Channel> data;
 	private final JCFUserService userService;
 	private final JCFMessageService messageService;
 
 	public JCFChannelService(JCFUserService userService, JCFMessageService messageService) {
+		data = new HashMap<>();
 		this.userService = userService;
 		this.messageService = messageService;
 	}

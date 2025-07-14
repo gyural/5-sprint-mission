@@ -28,12 +28,12 @@ public class ChannelServiceTest {
 
 		// Then
 		List<String> storedChannelNameList
-		  = JCFChannelService.data.values().stream().map(Channel::getName).toList();
+		  = channelService.data.values().stream().map(Channel::getName).toList();
 		boolean isChannel1Stored = storedChannelNameList.contains(channel1Name);
 		boolean isChannel2Stored = storedChannelNameList.contains(channe2Name);
 
 		List<String> storedChannelDescriptionList
-		  = JCFChannelService.data.values().stream().map(Channel::getDescription).toList();
+		  = channelService.data.values().stream().map(Channel::getDescription).toList();
 		boolean isChannel1DescriptionStored = storedChannelDescriptionList.contains(channel1Description);
 		boolean isChannel2DescriptionStored = storedChannelDescriptionList.contains(channel2Description);
 
@@ -47,7 +47,7 @@ public class ChannelServiceTest {
 		}
 
 		// clear data after test
-		JCFChannelService.data.clear();
+		channelService.data.clear();
 	}
 
 	public void testReadChannel() {
@@ -58,9 +58,9 @@ public class ChannelServiceTest {
 		Channel channel2 = new Channel("testChannel2", "This is a test channel 2");
 		Channel channel3 = new Channel("testChannel3", "This is a test channel 3");
 
-		JCFChannelService.data.put(channel1.getId(), channel1);
-		JCFChannelService.data.put(channel2.getId(), channel2);
-		JCFChannelService.data.put(channel3.getId(), channel3);
+		channelService.data.put(channel1.getId(), channel1);
+		channelService.data.put(channel2.getId(), channel2);
+		channelService.data.put(channel3.getId(), channel3);
 
 		// When
 		List<Channel> readAllResult = channelService.readAll();
@@ -81,7 +81,7 @@ public class ChannelServiceTest {
 		}
 
 		// clear data after test
-		JCFChannelService.data.clear();
+		channelService.data.clear();
 	}
 
 	public void testUpdateChannel() {
@@ -89,7 +89,7 @@ public class ChannelServiceTest {
 
 		// Given
 		Channel channel1 = new Channel("testChannel1", "This is a test channel 1");
-		JCFChannelService.data.put(channel1.getId(), channel1);
+		channelService.data.put(channel1.getId(), channel1);
 
 		String newChannelName = "updatedTestChannel1";
 		String newChannelDescription = "This is an updated test channel 1";
@@ -98,7 +98,7 @@ public class ChannelServiceTest {
 		channelService.update(channel1.getId(), newChannelName, newChannelDescription);
 
 		// Then
-		Channel targetChannel = JCFChannelService.data.get(channel1.getId());
+		Channel targetChannel = channelService.data.get(channel1.getId());
 		boolean isSuccess = targetChannel.getName().equals(newChannelName)
 		  && targetChannel.getDescription().equals(newChannelDescription);
 
@@ -109,7 +109,7 @@ public class ChannelServiceTest {
 		}
 
 		// clear data after test
-		JCFChannelService.data.clear();
+		channelService.data.clear();
 	}
 
 	public void testDeleteChannel() {
@@ -117,13 +117,13 @@ public class ChannelServiceTest {
 
 		// Given
 		Channel channel1 = new Channel("testChannel1", "This is a test channel 1");
-		JCFChannelService.data.put(channel1.getId(), channel1);
+		channelService.data.put(channel1.getId(), channel1);
 
 		// When
 		channelService.delete(channel1.getId());
 
 		// Then
-		boolean isSuccess = JCFChannelService.data.isEmpty();
+		boolean isSuccess = channelService.data.isEmpty();
 
 		if (isSuccess) {
 			System.out.println("channel deleted successfully✅");
@@ -132,6 +132,6 @@ public class ChannelServiceTest {
 		}
 
 		// clear data after test
-		JCFChannelService.data.clear();
+		channelService.data.clear();
 	}
 }
