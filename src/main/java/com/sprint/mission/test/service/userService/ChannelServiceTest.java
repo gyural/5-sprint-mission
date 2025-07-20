@@ -3,6 +3,8 @@ package com.sprint.mission.test.service.userService;
 import java.util.List;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.jsf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jsf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jsf.JCFUserService;
@@ -43,7 +45,7 @@ public class ChannelServiceTest {
 		if (isSuccess) {
 			System.out.println("channels created successfully✅");
 		} else {
-			throw new IllegalArgumentException("failed to create channels.");
+			throw new RuntimeException("failed to create channels.");
 		}
 
 		// clear data after test
@@ -77,7 +79,7 @@ public class ChannelServiceTest {
 		if (isSuccess) {
 			System.out.println("channels read successfully✅");
 		} else {
-			throw new IllegalArgumentException("failed to read channels.");
+			throw new RuntimeException("failed to read channels.");
 		}
 
 		// clear data after test
@@ -105,7 +107,7 @@ public class ChannelServiceTest {
 		if (isSuccess) {
 			System.out.println("channel updated successfully✅");
 		} else {
-			throw new IllegalArgumentException("failed to update channel.");
+			throw new RuntimeException("failed to update channel.");
 		}
 
 		// clear data after test
@@ -119,19 +121,33 @@ public class ChannelServiceTest {
 		Channel channel1 = new Channel("testChannel1", "This is a test channel 1");
 		channelService.data.put(channel1.getId(), channel1);
 
+		User member1 = new User("testUser1");
+		userService.data.put(member1.getId(), member1);
+
+		Message message1 = new Message
+		  ("This is a test message", member1.getId(), channel1.getId(), "testUser1");
+		Message message2 = new Message
+		  ("This is a test message", member1.getId(), channel1.getId(), "testUser1");
+		messageService.data.put(message1.getId(), message1);
+		messageService.data.put(message2.getId(), message2);
+
 		// When
 		channelService.delete(channel1.getId());
 
 		// Then
-		boolean isSuccess = channelService.data.isEmpty();
+		// 채널에 대한 데이터(User, Message)가 모두 삭제되었는지 확인
+		boolean isSuccess = channelService.data.isEmpty()
+		  && messageService.data.isEmpty();
 
 		if (isSuccess) {
 			System.out.println("channel deleted successfully✅");
 		} else {
-			throw new IllegalArgumentException("failed to delete channel.");
+			throw new RuntimeException("failed to delete channel.");
 		}
 
 		// clear data after test
 		channelService.data.clear();
+		userService.data.clear();
+		messageService.data.clear();
 	}
 }
