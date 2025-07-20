@@ -5,14 +5,22 @@ import java.util.List;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.alarm.AlarmService;
+import com.sprint.mission.discodeit.service.alarm.MessageAlarmService;
+import com.sprint.mission.discodeit.service.jsf.ChanneluserService;
 import com.sprint.mission.discodeit.service.jsf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jsf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jsf.JCFUserService;
 
 public class ChannelServiceTest {
 
+	private final ChanneluserService channelUserService = new ChanneluserService();
+	private final AlarmService alarmService = new AlarmService();
+	private final MessageAlarmService messageAlarmService = new MessageAlarmService(channelUserService, alarmService);
+
 	private final JCFUserService userService = new JCFUserService();
-	private final JCFMessageService messageService = new JCFMessageService(userService);
+	private final JCFMessageService messageService = new JCFMessageService(userService, messageAlarmService);
+
 	private final JCFChannelService channelService = new JCFChannelService(userService, messageService);
 
 	public void testCreateChannel() {
