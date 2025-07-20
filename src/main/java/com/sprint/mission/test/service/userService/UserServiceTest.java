@@ -29,7 +29,7 @@ public class UserServiceTest {
 		if (isUser1Stored && isUser2Stored) {
 			System.out.println("users created successfully✅");
 		} else {
-			throw new IllegalArgumentException("failed to create users.");
+			throw new RuntimeException("failed to create users.");
 		}
 
 		// clear data after test
@@ -64,7 +64,7 @@ public class UserServiceTest {
 		if (isSuccess) {
 			System.out.println("users read successfully✅");
 		} else {
-			throw new IllegalArgumentException("failed to read users.");
+			throw new RuntimeException("failed to read users.");
 		}
 
 		// clear data after test
@@ -86,7 +86,7 @@ public class UserServiceTest {
 		if (updatedUser != null && updatedUser.getUsername().equals(newUsername)) {
 			System.out.println("user updated successfully✅");
 		} else {
-			throw new IllegalArgumentException("failed to update user.");
+			throw new RuntimeException("failed to update user.");
 		}
 
 		// clear data after test
@@ -106,7 +106,7 @@ public class UserServiceTest {
 		if (isDeleted) {
 			System.out.println("user deleted successfully✅");
 		} else {
-			throw new IllegalArgumentException("failed to delete user.");
+			throw new RuntimeException("failed to delete user.");
 		}
 
 		// clear data after test
