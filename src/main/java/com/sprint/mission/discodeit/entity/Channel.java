@@ -10,11 +10,13 @@ public class Channel {
 	private Long updatedAt;
 	private String name;
 	private String description;
+	private ChannelType channelType;
 
-	public Channel(String name, String description) {
+	public Channel(ChannelType channelType, String name, String description) {
 		this.id = UUID.randomUUID();
 		this.createdAt = System.currentTimeMillis();
 		this.updatedAt = null;
+		this.channelType = channelType;
 		this.name = name;
 		this.description = description;
 	}
@@ -49,6 +51,10 @@ public class Channel {
 		this.updatedAt = System.currentTimeMillis();
 	}
 
+	public ChannelType getChannelType() {
+		return channelType;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -64,4 +70,19 @@ public class Channel {
 		return Objects.hashCode(id);
 	}
 
+	public void setChannelType(ChannelType channelType) {
+		this.channelType = channelType;
+	}
+
+	@Override
+	public String toString() {
+		return "Channel{" +
+		  "id=" + id +
+		  ", createdAt=" + createdAt +
+		  ", updatedAt=" + updatedAt +
+		  ", name='" + name + '\'' +
+		  ", description='" + description + '\'' +
+		  ", channelType=" + channelType +
+		  '}';
+	}
 }

@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 
 public class JCFChannelRepository implements ChannelRepository {
@@ -18,9 +19,10 @@ public class JCFChannelRepository implements ChannelRepository {
 	}
 
 	@Override
-	public void create(String name, String description) {
-		Channel newChannel = new Channel(name, description);
+	public Channel create(ChannelType channelType, String name, String description) {
+		Channel newChannel = new Channel(channelType, name, description);
 		data.put(newChannel.getId(), newChannel);
+		return newChannel;
 	}
 
 	@Override
@@ -43,12 +45,11 @@ public class JCFChannelRepository implements ChannelRepository {
 	}
 
 	@Override
-	public void update(UUID id, String newChannelName, String newDescription) {
+	public void update(UUID id, ChannelType channelType, String newChannelName, String newDescription) {
 		if (!data.containsKey(id)) {
 			throw new IllegalArgumentException("Channel with ID " + id + " not found");
 		}
 
-		data.get(id).setUpdatedAt(System.currentTimeMillis());
 		data.get(id).setName(newChannelName);
 		data.get(id).setDescription(newDescription);
 	}
