@@ -1,6 +1,10 @@
 package com.sprint.mission.discodeit.entity;
 
-public class User extends Common {
+import java.io.Serializable;
+
+public class User extends Common implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private String username;
 	private String email;
 	private String password;
@@ -37,7 +41,8 @@ public class User extends Common {
 
 	@Override
 	public String toString() {
-		return "User{" +
+		return super.toString() + "\n" +
+		  "User{" +
 		  "username='" + username + '\'' +
 		  ", email='" + email + '\'' +
 		  ", password='" + password + '\'' +

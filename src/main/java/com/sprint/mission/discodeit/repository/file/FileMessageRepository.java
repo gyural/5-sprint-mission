@@ -1,4 +1,153 @@
 package com.sprint.mission.discodeit.repository.file;
 
-public class FileMessageRepository {
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.repository.MessageRepository;
+
+public class FileMessageRepository implements MessageRepository {
+
+	private static final String DIR_NAME = "data";
+	private static final String FILE_NAME = DIR_NAME + "/message.ser";
+
+	public FileMessageRepository() {
+		try {
+			Path dirPath = Paths.get(DIR_NAME);
+			if (!Files.exists(dirPath)) {
+				Files.createDirectories(dirPath);
+			}
+			Path filePath = Paths.get(FILE_NAME);
+			if (!Files.exists(filePath)) {
+				try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+					 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+					oos.writeObject(new ArrayList<Message>());
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public Message create(String content, UUID channelId, UUID userId) {
+		Message newMessage = new Message(content, channelId, userId);
+		List<Message> messages = findAll();
+		messages = new ArrayList<>(messages);
+		messages.add(newMessage);
+
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(messages);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		return newMessage;
+	}
+
+	@Override
+	public void delete(UUID id) {
+		List<Message> messages = findAll();
+		int beforeSize = messages.size();
+		messages.removeIf(message -> message.getId().equals(id));
+
+		if (messages.size() == beforeSize) {
+			throw new IllegalArgumentException("Message with ID " + id + " not found");
+		}
+
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(messages);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void deleteAll() {
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(List.of()); // 빈 리스트로 덮어쓰기
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void deleteByChannelId(UUID channelId) {
+		List<Message> messages = findAll();
+		int beforeSize = messages.size();
+		messages.removeIf(message -> message.getChannelId().equals(channelId));
+
+		if (messages.size() == beforeSize) {
+			throw new IllegalArgumentException("No messages found for channel ID " + channelId);
+		}
+
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(messages);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+
+	@Override
+	public void update(UUID id, String newContent) {
+		List<Message> messages = findAll();
+		messages = new ArrayList<>(messages);
+		Message messageToUpdate = messages.stream()
+		  .filter(message -> message.getId().equals(id))
+		  .findFirst()
+		  .orElseThrow(() -> new IllegalArgumentException("Message with ID " + id + " not found"));
+
+		messageToUpdate.setContent(newContent);
+		messageToUpdate.setUpdatedAt(System.currentTimeMillis());
+
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(messages);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public Message find(UUID id) {
+		return findAll().stream()
+		  .filter(message -> message.getId().equals(id))
+		  .findFirst()
+		  .orElseThrow(() -> new IllegalArgumentException("Message with ID " + id + " not found"));
+	}
+
+	@Override
+	public List<Message> findAll() {
+		try (FileInputStream fis = new FileInputStream(FILE_NAME);
+			 ObjectInputStream ois = new ObjectInputStream(fis)) {
+			Object obj = ois.readObject();
+			if (obj instanceof List) {
+				return (List<Message>)obj;
+			}
+		} catch (Exception e) {
+			// 파일이 없거나 읽기 실패 시 빈 리스트 반환
+		}
+		return List.of();
+	}
+
+	@Override
+	public List<Message> findAllByChannelId(UUID channelId) {
+		return findAll().stream()
+		  .filter(message -> message.getChannelId().equals(channelId))
+		  .toList();
+	}
 }

@@ -1,6 +1,10 @@
 package com.sprint.mission.discodeit.entity;
 
-public class Channel extends Common {
+import java.io.Serializable;
+
+public class Channel extends Common implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private ChannelType channelType;
 	private String name;
 	private String description;
@@ -37,7 +41,8 @@ public class Channel extends Common {
 
 	@Override
 	public String toString() {
-		return "Channel{" +
+		return super.toString() + "\n" +
+		  "Channel{" +
 		  "channelType=" + channelType +
 		  ", name='" + name + '\'' +
 		  ", description='" + description + '\'' +

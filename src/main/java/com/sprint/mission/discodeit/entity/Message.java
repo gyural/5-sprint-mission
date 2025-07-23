@@ -1,8 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class Message extends Common {
+public class Message extends Common implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private String content;
 	private UUID authorId; // Optinal
 	private UUID channelId;
@@ -15,7 +18,7 @@ public class Message extends Common {
 		this.authorName = authorName;
 	}
 
-	public Message(String content, UUID authorId, UUID channelId) {
+	public Message(String content, UUID channelId, UUID authorId) {
 		this.content = content;
 		this.authorId = authorId;
 		this.channelId = channelId;
