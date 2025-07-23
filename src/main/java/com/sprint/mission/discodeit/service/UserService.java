@@ -6,11 +6,11 @@ import java.util.UUID;
 import com.sprint.mission.discodeit.entity.User;
 
 public interface UserService {
-	void create(String username);
+	User create(String username, String email, String password);
 
 	void delete(UUID userId);
 
-	void update(UUID userId, String newUsername);
+	void update(UUID userId, String newUsername, String newEmail, String newPassword);
 
 	User read(UUID userId);
 
