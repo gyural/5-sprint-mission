@@ -6,7 +6,7 @@ import java.util.UUID;
 import com.sprint.mission.discodeit.entity.Message;
 
 public interface MessageRepository {
-	void create(String content, UUID channelId, UUID userId);
+	Message create(String content, UUID channelId, UUID userId);
 
 	void delete(UUID id);
 
