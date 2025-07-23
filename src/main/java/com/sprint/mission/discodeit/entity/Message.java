@@ -15,6 +15,13 @@ public class Message extends Common {
 		this.authorName = authorName;
 	}
 
+	public Message(String content, UUID authorId, UUID channelId) {
+		this.content = content;
+		this.authorId = authorId;
+		this.channelId = channelId;
+		this.authorName = null;
+	}
+
 	public String getContent() {
 		return content;
 	}

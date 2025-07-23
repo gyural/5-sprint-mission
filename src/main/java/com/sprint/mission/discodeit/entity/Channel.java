@@ -1,10 +1,12 @@
 package com.sprint.mission.discodeit.entity;
 
 public class Channel extends Common {
+	private ChannelType channelType;
 	private String name;
 	private String description;
 
-	public Channel(String name, String description) {
+	public Channel(ChannelType channelType, String name, String description) {
+		this.channelType = channelType;
 		this.name = name;
 		this.description = description;
 	}
@@ -25,5 +27,20 @@ public class Channel extends Common {
 		this.description = description;
 	}
 
+	public ChannelType getChannelType() {
+		return channelType;
+	}
 
+	public void setChannelType(ChannelType channelType) {
+		this.channelType = channelType;
+	}
+
+	@Override
+	public String toString() {
+		return "Channel{" +
+		  "channelType=" + channelType +
+		  ", name='" + name + '\'' +
+		  ", description='" + description + '\'' +
+		  '}';
+	}
 }
