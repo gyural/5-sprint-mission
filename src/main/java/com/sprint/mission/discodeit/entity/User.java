@@ -1,9 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class User {
+public class User implements Serializable {
+	private static final long serialVersionUID = 1L;
 
 	private final UUID id;
 	private final Long createdAt;
@@ -59,18 +61,6 @@ public class User {
 	}
 
 	@Override
-	public String toString() {
-		return "User{" +
-		  "id=" + id +
-		  ", createdAt=" + createdAt +
-		  ", updatedAt=" + updatedAt +
-		  ", username='" + username + '\'' +
-		  ", email='" + email + '\'' +
-		  ", password='" + password + '\'' +
-		  '}';
-	}
-
-	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
@@ -85,6 +75,17 @@ public class User {
 		return Objects.hashCode(id);
 	}
 
+	@Override
+	public String toString() {
+		return "User{" +
+		  "id=" + id +
+		  ", createdAt=" + createdAt +
+		  ", updatedAt=" + updatedAt +
+		  ", username='" + username + '\'' +
+		  ", email='" + email + '\'' +
+		  ", password='" + password + '\'' +
+		  '}';
+	}
 }
 
 
