@@ -2,9 +2,13 @@ package com.sprint.mission.discodeit.entity;
 
 public class User extends Common {
 	private String username;
+	private String email;
+	private String password;
 
-	public User(String username) {
+	public User(String username, String email, String password) {
 		this.username = username;
+		this.email = email;
+		this.password = password;
 	}
 
 	public String getUsername() {
@@ -15,11 +19,28 @@ public class User extends Common {
 		this.username = username;
 	}
 
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
 	@Override
 	public String toString() {
-		return super.toString()+"\n" +
-		  "User{" +
+		return "User{" +
 		  "username='" + username + '\'' +
+		  ", email='" + email + '\'' +
+		  ", password='" + password + '\'' +
 		  '}';
 	}
 }

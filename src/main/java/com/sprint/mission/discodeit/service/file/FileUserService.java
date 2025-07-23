@@ -7,9 +7,10 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 
 public class FileUserService implements UserService {
-	@Override
-	public void create(String username) {
 
+	@Override
+	public User create(String username, String email, String password) {
+		return null;
 	}
 
 	@Override
@@ -18,7 +19,7 @@ public class FileUserService implements UserService {
 	}
 
 	@Override
-	public void update(UUID userId, String newUsername) {
+	public void update(UUID userId, String newUsername, String newEmail, String newPassword) {
 
 	}
 

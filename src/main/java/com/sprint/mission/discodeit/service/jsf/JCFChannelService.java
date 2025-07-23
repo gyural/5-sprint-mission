@@ -1,48 +1,40 @@
 package com.sprint.mission.discodeit.service.jsf;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 public class JCFChannelService implements ChannelService {
-	public final Map<UUID, Channel> data;
-	private final JCFUserService userService;
+
+	private final JCFChannelRepository channelRepository;
 	private final JCFMessageService messageService;
 
-	public JCFChannelService(JCFUserService userService, JCFMessageService messageService) {
-		data = new HashMap<>();
-		this.userService = userService;
+	public JCFChannelService(JCFMessageService messageService, JCFChannelRepository channelRepository) {
 		this.messageService = messageService;
+		this.channelRepository = channelRepository;
 	}
 
 	@Override
 	public void create(String name, String description) {
-		Channel newChannel = new Channel(name, description);
-		data.put(newChannel.getId(), newChannel);
+		channelRepository.create(name, description);
 	}
 
 	@Override
 	public Channel read(UUID id) {
-		return Optional.ofNullable(data.get(id))
-		  .orElseThrow(() -> new IllegalArgumentException("Channel with ID " + id + " not found"));
+		return channelRepository.find(id);
 	}
 
 	@Override
 	public List<Channel> readAll() {
-		return data.values().stream().toList();
+		return channelRepository.findAll();
 	}
 
 	@Override
 	public void delete(UUID id) {
-		if (!data.containsKey(id)) {
-			throw new IllegalArgumentException("Channel with ID " + id + " not found");
-		}
-		data.remove(id);
+		channelRepository.delete(id);
 
 		// 연관된 메시지도 삭제
 		messageService.deleteByChannelId(id);
@@ -50,25 +42,19 @@ public class JCFChannelService implements ChannelService {
 
 	@Override
 	public void update(UUID id, String newChannelName, String newDescription) {
-		if (!data.containsKey(id)) {
-			throw new IllegalArgumentException("Channel with ID " + id + " not found");
-		}
-
-		data.get(id).setUpdatedAt(System.currentTimeMillis());
-
-		data.get(id).setName(newChannelName);
-		data.get(id).setDescription(newDescription);
+		channelRepository.update(id, newChannelName, newDescription);
 	}
 
 	@Override
 	public boolean isEmpty(UUID id) {
-		return data.get(id) == null;
+		return channelRepository.isEmpty(id);
 	}
 
 	@Override
 	public void deleteAll() {
-		data.clear();
-		userService.deleteAll();
+		channelRepository.deleteAll();
+
+		// 연관된 메시지 삭제 (CASCADE DELETE)
 		messageService.deleteAll();
 	}
 }
