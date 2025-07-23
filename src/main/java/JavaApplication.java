@@ -34,18 +34,21 @@ public class JavaApplication {
 		JCFChannelRepository jcfChannelRepository = new JCFChannelRepository();
 		JCFMessageRepository jcfMessageRepository = new JCFMessageRepository();
 
+		UserService userService = new JCFUserService(jcfUserRepository);
+		MessageService messageService = new JCFMessageService(jcfMessageRepository, jcfChannelRepository, userService,
+		  null);
+		ChannelService channelService = new JCFChannelService(messageService, jcfChannelRepository);
+
 		// 서비스 초기화
 		// TODO Basic*Service 구현체를 초기화하세요.
-		JCFUserService jcfUserService = new JCFUserService(jcfUserRepository);
-		JCFMessageService jcfMessageService = new JCFMessageService(jcfMessageRepository, jcfChannelRepository,
-		  jcfUserService, null);
-		JCFChannelService jcfChannelService = new JCFChannelService(jcfMessageService, jcfChannelRepository);
 
 		// 셋업
-		User user = setupUser(jcfUserService);
+		User user = setupUser(userService);
 		System.out.println(user);
-		Channel channel = setupChannel(jcfChannelService);
+		Channel channel = setupChannel(channelService);
 		System.out.println(channel);
+		Message message = messageService.create("안녕하세요.", channel.getId(), user.getId());
+		System.out.println(message);
 		// // 테스트
 		// messageCreateTest(messageService, channel, user);
 	}
