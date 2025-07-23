@@ -1,70 +1,82 @@
 package com.sprint.mission.discodeit.service.jsf;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
 public class JCFUserService implements UserService {
-	public final Map<UUID, User> data;
 
-	public JCFUserService() {
-		data = new HashMap<>();
+	private final JCFUserRepository userRepository;
+
+	public JCFUserService(JCFUserRepository userRepository) {
+		this.userRepository = userRepository;
 	}
 
 	@Override
-	public void create(String username) {
+	public User create(String username, String password, String email) {
 		if (username == null || username.isEmpty()) {
 			throw new IllegalArgumentException("Username cannot be null or empty");
 		}
-		User user = new User(username);
-		data.put(user.getId(), user);
+		if (email == null || email.isEmpty()) {
+			throw new IllegalArgumentException("Email cannot be null or empty");
+		}
+		if (password == null || password.isEmpty()) {
+			throw new IllegalArgumentException("Password cannot be null or empty");
+		}
+
+		if (userRepository.findByUsername(username) != null) {
+			throw new IllegalArgumentException("Username already exists");
+		}
+
+		return userRepository.create(username, email, password);
+
 	}
 
 	@Override
 	public void delete(UUID userId) {
-		if (!data.containsKey(userId)) {
-			throw new IllegalArgumentException("User with ID " + userId + " not found");
-		}
-		data.remove(userId);
+		userRepository.delete(userId);
 	}
 
 	@Override
-	public void update(UUID userId, String newUsername) {
-		if (!data.containsKey(userId)) {
-			throw new IllegalArgumentException("User with ID " + userId + " not found");
-		}
+	public void update(UUID userId, String newUsername, String newEmail, String newPassword) {
 		if (newUsername == null || newUsername.isEmpty()) {
-			throw new IllegalArgumentException("New username cannot be null or empty");
+			throw new IllegalArgumentException("Username cannot be null or empty");
+		}
+		if (newEmail == null || newEmail.isEmpty()) {
+			throw new IllegalArgumentException("Email cannot be null or empty");
+		}
+		if (newPassword == null || newPassword.isEmpty()) {
+			throw new IllegalArgumentException("Password cannot be null or empty");
 		}
 
-		User user = data.get(userId);
-		user.setUsername(newUsername);
+		if (userRepository.findByUsername(newUsername) != null) {
+			throw new IllegalArgumentException("Username already exists");
+		}
+
+		userRepository.update(userId, newUsername, newEmail, newPassword);
 	}
 
 	@Override
 	public User read(UUID userId) {
-		if (!data.containsKey(userId)) {
-			throw new IllegalArgumentException("User with ID " + userId + " not found");
-		}
-		return data.get(userId);
+		return userRepository.find(userId);
 	}
 
 	@Override
 	public List<User> readAll() {
-		return data.values().stream().toList();
+		return userRepository.findAll();
 	}
 
 	@Override
 	public boolean isEmpty(UUID userId) {
-		return data.get(userId) == null;
+		return userRepository.isEmpty(userId);
 	}
 
 	@Override
 	public void deleteAll() {
-		data.clear();
+		userRepository.deleteAll();
 	}
+
 }
