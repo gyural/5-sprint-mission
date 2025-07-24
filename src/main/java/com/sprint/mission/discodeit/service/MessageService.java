@@ -22,4 +22,5 @@ public interface MessageService {
 
 	List<Message> readAllByChannelId(UUID channelId);
 
+	boolean isEmpty(UUID channelId);
 }
