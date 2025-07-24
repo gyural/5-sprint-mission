@@ -1,8 +1,10 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class User extends Common implements Serializable {
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private String username;

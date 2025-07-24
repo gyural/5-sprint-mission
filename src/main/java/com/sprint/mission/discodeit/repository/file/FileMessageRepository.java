@@ -85,12 +85,13 @@ public class FileMessageRepository implements MessageRepository {
 
 	@Override
 	public void deleteByChannelId(UUID channelId) {
-		List<Message> messages = findAll();
+		List<Message> messages = new ArrayList<>(findAll());
 		int beforeSize = messages.size();
 		messages.removeIf(message -> message.getChannelId().equals(channelId));
 
 		if (messages.size() == beforeSize) {
-			throw new IllegalArgumentException("No messages found for channel ID " + channelId);
+			return; // 채널 ID에 해당하는 메시지가 없으면 아무 작업도 하지 않음
+			// throw new IllegalArgumentException("No messages found for channel ID " + channelId);
 		}
 
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
@@ -149,5 +150,11 @@ public class FileMessageRepository implements MessageRepository {
 		return findAll().stream()
 		  .filter(message -> message.getChannelId().equals(channelId))
 		  .toList();
+	}
+
+	@Override
+	public boolean isEmpty(UUID messageId) {
+		return findAll().stream()
+		  .noneMatch(message -> message.getId().equals(messageId));
 	}
 }

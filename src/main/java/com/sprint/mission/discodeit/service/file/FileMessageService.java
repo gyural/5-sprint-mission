@@ -7,14 +7,15 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
 import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 
 public class FileMessageService implements MessageService {
 
 	private final FileMessageRepository messageRepository;
-	private final FileUserService userService;
+	private final UserService userService;
 	private final FileChannelRepository channelRepository;
 
-	public FileMessageService(FileMessageRepository messageRepository, FileUserService userService,
+	public FileMessageService(FileMessageRepository messageRepository, UserService userService,
 	  FileChannelRepository channelRepository) {
 		this.messageRepository = messageRepository;
 		this.userService = userService;
@@ -77,5 +78,10 @@ public class FileMessageService implements MessageService {
 	@Override
 	public List<Message> readAllByChannelId(UUID channelId) {
 		return messageRepository.findAllByChannelId(channelId);
+	}
+
+	@Override
+	public boolean isEmpty(UUID channelId) {
+		return messageRepository.isEmpty(channelId);
 	}
 }

@@ -45,10 +45,11 @@ public class FileChannelService implements ChannelService {
 
 	@Override
 	public void delete(UUID id) {
-		channelRepository.delete(id);
-
 		// 연관된 메시지도 삭제
 		messageRepository.deleteByChannelId(id);
+
+		channelRepository.delete(id);
+
 	}
 
 	@Override
