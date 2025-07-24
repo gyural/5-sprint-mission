@@ -67,7 +67,7 @@ public class JCFMessageService implements MessageService {
 	}
 
 	@Override
-	public void deleteByChannelId(UUID channelId) {
+	public void deleteAllByChannelId(UUID channelId) {
 		if (channelId == null || channelRepository.isEmpty(channelId)) {
 			throw new IllegalArgumentException("Channel ID cannot be null or empty");
 		}

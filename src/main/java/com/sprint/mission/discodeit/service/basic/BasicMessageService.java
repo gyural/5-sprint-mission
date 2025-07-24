@@ -49,7 +49,7 @@ public class BasicMessageService implements MessageService {
 	}
 
 	@Override
-	public void deleteByChannelId(UUID channelId) {
+	public void deleteAllByChannelId(UUID channelId) {
 		if (channelRepository.isEmpty(channelId)) {
 			throw new IllegalArgumentException("Channel ID cannot be null or empty");
 		}
