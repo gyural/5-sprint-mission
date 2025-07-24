@@ -12,7 +12,7 @@ public interface MessageService {
 
 	void deleteAll();
 
-	void deleteByChannelId(UUID channelId);
+	void deleteAllByChannelId(UUID channelId);
 
 	void update(UUID id, String newContent);
 
