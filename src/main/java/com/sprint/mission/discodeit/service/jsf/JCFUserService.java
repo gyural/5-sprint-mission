@@ -43,7 +43,6 @@ public class JCFUserService implements UserService {
 
 		User user = data.get(userId);
 		user.setUsername(newUsername);
-		user.setUpdatedAt(System.currentTimeMillis());
 	}
 
 	@Override

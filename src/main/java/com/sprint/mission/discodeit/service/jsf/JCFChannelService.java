@@ -54,8 +54,6 @@ public class JCFChannelService implements ChannelService {
 			throw new IllegalArgumentException("Channel with ID " + id + " not found");
 		}
 
-		data.get(id).setUpdatedAt(System.currentTimeMillis());
-
 		data.get(id).setName(newChannelName);
 		data.get(id).setDescription(newDescription);
 	}
