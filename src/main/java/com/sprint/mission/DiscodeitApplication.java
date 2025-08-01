@@ -4,6 +4,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import com.sprint.mission.discodeit.dto.ChannelCreateDTO;
+import com.sprint.mission.discodeit.dto.ChannelUpdateDTO;
+import com.sprint.mission.discodeit.dto.MessageCreateDTO;
+import com.sprint.mission.discodeit.dto.MessageUpdateDTO;
+import com.sprint.mission.discodeit.dto.UserCreateDTO;
+import com.sprint.mission.discodeit.dto.UserUpdateDTO;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
@@ -21,23 +27,25 @@ import com.sprint.mission.discodeit.service.basic.BasicUserService;
 @SpringBootApplication
 public class DiscodeitApplication {
 	static User setupUser(UserService userService) {
-		User user = userService.create("woody", "woody@codeit.com", "woody1234");
-		return user;
+
+		return userService.create(
+		  UserCreateDTO.builder().username("woody").email("woody@codeit.com").password("woody1234").build());
 	}
 
 	static Channel setupChannel(ChannelService channelService) {
-		Channel channel = channelService.create(ChannelType.PUBLIC, "공지", "공지 채널입니다.");
-		return channel;
+		return channelService.create(
+		  ChannelCreateDTO.builder().channelType(ChannelType.PUBLIC).description("공지 채널입니다.").name("공지").build());
 	}
 
 	static Message setupMessage(MessageService messageService, Channel channel, User author) {
-		Message message = messageService.create("안녕하세요.", channel.getId(), author.getId());
-		return message;
+		return messageService.create(
+		  MessageCreateDTO.builder().channelId(channel.getId()).content("안녕하세요").userId(author.getId()).build());
 	}
 
 	static void channelCreateTest(ChannelService channelService) {
 		System.out.print("ChannelCreateTest.......................");
-		Channel channel = channelService.create(ChannelType.PUBLIC, "공지", "공지 채널입니다.");
+		Channel channel = channelService.create(
+		  ChannelCreateDTO.builder().channelType(ChannelType.PUBLIC).description("공지 채널입니다.").name("공지").build());
 
 		boolean isCreated = !channelService.isEmpty(channel.getId());
 
@@ -65,7 +73,12 @@ public class DiscodeitApplication {
 		String newName = "업데이트된 채널";
 		String newDescription = "업데이트된 채널 설명";
 
-		channelService.update(channel.getId(), channel.getChannelType(), newName, newDescription);
+		channelService.update(ChannelUpdateDTO.builder()
+		  .id(channel.getId())
+		  .channelType(channel.getChannelType())
+		  .name(newName)
+		  .description(newDescription)
+		  .build());
 
 		Channel channelToValidate = channelService.read(channel.getId());
 		boolean isUpdated = channelToValidate.getName().equals(newName) &&
@@ -88,7 +101,8 @@ public class DiscodeitApplication {
 
 	static void userCreateTest(UserService userService) {
 		System.out.print("UserCreateTest.......................");
-		User user = userService.create("newUser", "newUser@codeit.com", "newUser1234");
+		User user = userService.create(
+		  UserCreateDTO.builder().username("newUser").email("newUser@codeit.com").password("newUser1234").build());
 
 		boolean isCreated = userService.read(user.getId()) != null;
 
@@ -117,7 +131,12 @@ public class DiscodeitApplication {
 		String newEmail = "updateEmail@codeit.com";
 		String newPassword = "updatedPassword1234";
 
-		userService.update(user.getId(), newUsername, newEmail, newPassword);
+		userService.update(UserUpdateDTO.builder()
+		  .userId(user.getId())
+		  .newUsername(newUsername)
+		  .newEmail(newEmail)
+		  .newPassword(newPassword)
+		  .build());
 
 		User userToValidate = userService.read(user.getId());
 		boolean isUpdated = userToValidate.getUsername().equals(newUsername) &&
@@ -142,12 +161,13 @@ public class DiscodeitApplication {
 
 	static void messageCreateTest(MessageService messageService, Channel channel, User author) {
 		System.out.print("MessageCreateTest.......................");
-		Message message = messageService.create("안녕하세요.", channel.getId(), author.getId());
+		Message message = messageService.create(
+		  MessageCreateDTO.builder().channelId(channel.getId()).content("안녕하세요").userId(author.getId()).build());
 
 		Message storedMessage = messageService.read(message.getId());
 
 		boolean isCreated = messageService.read(message.getId()) != null &&
-		  storedMessage.getContent().equals("안녕하세요.") &&
+		  storedMessage.getContent().equals("안녕하세요") &&
 		  storedMessage.getChannelId().equals(channel.getId()) &&
 		  storedMessage.getAuthorId().equals(author.getId());
 
@@ -174,7 +194,7 @@ public class DiscodeitApplication {
 		System.out.print("MessageUpdateTest.......................");
 
 		String newContent = "업데이트된 메시지 내용";
-		messageService.update(message.getId(), newContent);
+		messageService.update(MessageUpdateDTO.builder().id(message.getId()).newContent(newContent).build());
 
 		Message updatedMessage = messageService.read(message.getId());
 		boolean isUpdated = updatedMessage.getContent().equals(newContent);

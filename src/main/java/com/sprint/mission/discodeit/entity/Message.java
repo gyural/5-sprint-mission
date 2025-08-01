@@ -2,10 +2,14 @@ package com.sprint.mission.discodeit.entity;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import lombok.Getter;
+import lombok.NonNull;
 
 @Getter
 public class Message implements Serializable {
@@ -13,40 +17,39 @@ public class Message implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private final UUID id;
-	private final Long createdAt;
-	private Long updatedAt;
+	private final Instant createdAt;
+	private Instant updatedAt;
 	private String content;
-	private UUID authorId; // Optinal
-	private UUID channelId;
 	private String authorName; // 유저가 채널을 나가도 메시지의 작성자는 남아있어야 하므로, authorId와 authorName을 분리
-
-	public void setContent(String content) {
-		this.content = content;
-		this.updatedAt = System.currentTimeMillis();
-	}
+	// Foreign key
+	private final UUID authorId;
+	private final UUID channelId;
+	private final List<UUID> attachmentIds;
 
 	public Message(String content, UUID channelId, UUID authorId) {
 		this.id = UUID.randomUUID();
-		this.createdAt = System.currentTimeMillis();
-		this.updatedAt = null;
+		this.createdAt = Instant.now();
 		this.content = content;
 		this.authorId = authorId;
 		this.channelId = channelId;
+		this.attachmentIds = new ArrayList<>();
 	}
 
-	public Message(String content, UUID authorId, UUID channelId, String authorName) {
+	public Message(String content, @NonNull UUID authorId, @NonNull UUID channelId, String authorName) {
 		this.id = UUID.randomUUID();
-		this.createdAt = System.currentTimeMillis();
+		this.createdAt = Instant.now();
 		this.updatedAt = null;
 		this.content = content;
 		this.authorId = authorId;
 		this.channelId = channelId;
 		this.authorName = authorName;
+		this.attachmentIds = new ArrayList<>();
+
 	}
 
-	public void setAuthorId(UUID authorId) {
-		this.authorId = authorId;
-		this.updatedAt = System.currentTimeMillis();
+	public void setContent(String content) {
+		this.content = content;
+		this.updatedAt = Instant.now();
 	}
 
 	@Override
