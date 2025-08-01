@@ -1,4 +1,6 @@
-package com.sprint.mission.discodeit.dto;
+package com.sprint.mission.discodeit.domain.dto;
+
+import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,9 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserCreateDTO {
-	private String username;
-	private String email;
-	private String password;
-
+public class MessageUpdateDTO {
+	private UUID id;
+	private String newContent;
 }

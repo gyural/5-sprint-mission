@@ -5,9 +5,9 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.dto.MessageCreateDTO;
-import com.sprint.mission.discodeit.dto.MessageUpdateDTO;
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.domain.dto.MessageCreateDTO;
+import com.sprint.mission.discodeit.domain.dto.MessageUpdateDTO;
+import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
 import com.sprint.mission.discodeit.service.MessageService;

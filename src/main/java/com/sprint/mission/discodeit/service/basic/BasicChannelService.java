@@ -7,10 +7,10 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.sprint.mission.discodeit.dto.ChannelCreateDTO;
-import com.sprint.mission.discodeit.dto.ChannelUpdateDTO;
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.domain.dto.ChannelCreateDTO;
+import com.sprint.mission.discodeit.domain.dto.ChannelUpdateDTO;
+import com.sprint.mission.discodeit.domain.entity.Channel;
+import com.sprint.mission.discodeit.domain.entity.ChannelType;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.service.ChannelService;

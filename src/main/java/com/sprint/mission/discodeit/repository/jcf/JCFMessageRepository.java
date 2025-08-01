@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
 public class JCFMessageRepository implements MessageRepository {

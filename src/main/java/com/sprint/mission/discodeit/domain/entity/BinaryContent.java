@@ -1,10 +1,10 @@
-package com.sprint.mission.discodeit.entity;
+package com.sprint.mission.discodeit.domain.entity;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.sprint.mission.enums.ContentType;
+import com.sprint.mission.discodeit.domain.enums.ContentType;
 
 import lombok.Getter;
 

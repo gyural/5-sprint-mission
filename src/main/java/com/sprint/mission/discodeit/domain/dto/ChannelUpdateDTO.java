@@ -1,8 +1,8 @@
-package com.sprint.mission.discodeit.dto;
+package com.sprint.mission.discodeit.domain.dto;
 
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.domain.entity.ChannelType;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

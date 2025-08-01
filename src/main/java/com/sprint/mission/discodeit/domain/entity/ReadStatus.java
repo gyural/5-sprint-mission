@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.entity;
+package com.sprint.mission.discodeit.domain.entity;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.NonNull;
 
 @Getter
-public class UserStatus implements Serializable {
+public class ReadStatus implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
 
@@ -18,22 +18,18 @@ public class UserStatus implements Serializable {
 	private Instant updatedAt;
 
 	// Foreign key
-	private final UUID userId; // 유저 ID
+	private final UUID userId;
+	private final UUID channelId;
 
-	public UserStatus(
-	  @NonNull UUID userId
-	) {
+	public ReadStatus(@NonNull UUID userId, @NonNull UUID channelId) {
 		this.id = UUID.randomUUID();
 		this.createdAt = Instant.now();
 		this.userId = userId;
-	}
-
-	public boolean isOnline() {
-		return updatedAt != null &&
-		  Instant.now().minusSeconds(5 * 60).isBefore(updatedAt);
+		this.channelId = channelId;
 	}
 
 	public void setUpdatedAt() {
 		this.updatedAt = Instant.now();
 	}
+
 }
