@@ -5,6 +5,9 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
+import lombok.Getter;
+
+@Getter
 public class Message implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
@@ -16,6 +19,11 @@ public class Message implements Serializable {
 	private UUID authorId; // Optinal
 	private UUID channelId;
 	private String authorName; // 유저가 채널을 나가도 메시지의 작성자는 남아있어야 하므로, authorId와 authorName을 분리
+
+	public void setContent(String content) {
+		this.content = content;
+		this.updatedAt = System.currentTimeMillis();
+	}
 
 	public Message(String content, UUID channelId, UUID authorId) {
 		this.id = UUID.randomUUID();
@@ -36,42 +44,9 @@ public class Message implements Serializable {
 		this.authorName = authorName;
 	}
 
-	public String getContent() {
-		return content;
-	}
-
-	public void setContent(String content) {
-		this.content = content;
-		this.updatedAt = System.currentTimeMillis();
-	}
-
-	public UUID getAuthorId() {
-		return authorId;
-	}
-
 	public void setAuthorId(UUID authorId) {
 		this.authorId = authorId;
 		this.updatedAt = System.currentTimeMillis();
-	}
-
-	public UUID getChannelId() {
-		return channelId;
-	}
-
-	public UUID getId() {
-		return id;
-	}
-
-	public Long getCreatedAt() {
-		return createdAt;
-	}
-
-	public Long getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public String getAuthorName() {
-		return authorName;
 	}
 
 	@Override

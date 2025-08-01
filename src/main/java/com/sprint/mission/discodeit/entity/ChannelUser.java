@@ -2,6 +2,9 @@ package com.sprint.mission.discodeit.entity;
 
 import java.util.UUID;
 
+import lombok.Getter;
+
+@Getter
 public class ChannelUser {
 	private UUID channelId;
 	private UUID userId;
@@ -13,16 +16,8 @@ public class ChannelUser {
 		this.isActive = false; // 기본값으로 활성화 상태로 설정
 	}
 
-	public UUID getChannelId() {
-		return channelId;
-	}
-
 	public void setChannelId(UUID channelId) {
 		this.channelId = channelId;
-	}
-
-	public UUID getUserId() {
-		return userId;
 	}
 
 	public boolean isActive() {

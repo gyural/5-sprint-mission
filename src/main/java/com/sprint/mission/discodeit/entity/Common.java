@@ -4,6 +4,9 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.UUID;
 
+import lombok.Getter;
+
+@Getter
 public class Common implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
@@ -18,24 +21,12 @@ public class Common implements Serializable {
 		this.updatedAt = null;
 	}
 
-	public UUID getId() {
-		return id;
-	}
-
 	public void setId(UUID id) {
 		this.id = id;
 	}
 
-	public Long getCreatedAt() {
-		return createdAt;
-	}
-
 	public void setCreatedAt(Long createdAt) {
 		this.createdAt = createdAt;
-	}
-
-	public Long getUpdatedAt() {
-		return updatedAt;
 	}
 
 	public void setUpdatedAt(Long updatedAt) {

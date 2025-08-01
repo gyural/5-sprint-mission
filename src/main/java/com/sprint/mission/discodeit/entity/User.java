@@ -5,6 +5,9 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
+import lombok.Getter;
+
+@Getter
 public class User implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
@@ -16,18 +19,6 @@ public class User implements Serializable {
 	private String email;
 	private String password;
 
-	public UUID getId() {
-		return id;
-	}
-
-	public Long getCreatedAt() {
-		return createdAt;
-	}
-
-	public Long getUpdatedAt() {
-		return updatedAt;
-	}
-
 	public User(String username, String email, String password) {
 		this.id = UUID.randomUUID();
 		this.createdAt = System.currentTimeMillis();
@@ -37,25 +28,13 @@ public class User implements Serializable {
 		this.password = password;
 	}
 
-	public String getUsername() {
-		return username;
-	}
-
 	public void setUsername(String username) {
 		this.username = username;
 		this.updatedAt = System.currentTimeMillis();
 	}
 
-	public String getEmail() {
-		return email;
-	}
-
 	public void setEmail(String email) {
 		this.email = email;
-	}
-
-	public String getPassword() {
-		return password;
 	}
 
 	public void setPassword(String password) {
