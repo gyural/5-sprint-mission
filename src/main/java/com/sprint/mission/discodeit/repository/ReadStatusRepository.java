@@ -3,7 +3,7 @@ package com.sprint.mission.discodeit.repository;
 import java.util.List;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.domain.entity.ReadStatus;
 
 public interface ReadStatusRepository {
 

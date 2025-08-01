@@ -15,7 +15,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
 @Repository

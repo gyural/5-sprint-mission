@@ -7,9 +7,9 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.sprint.mission.discodeit.dto.UserCreateDTO;
-import com.sprint.mission.discodeit.dto.UserUpdateDTO;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
+import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
+import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
