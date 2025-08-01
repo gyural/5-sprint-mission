@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import com.sprint.mission.discodeit.dto.ChannelCreateDTO;
+import com.sprint.mission.discodeit.dto.ChannelUpdateDTO;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
@@ -21,7 +23,11 @@ public class JCFChannelService implements ChannelService {
 	}
 
 	@Override
-	public Channel create(ChannelType channelType, String name, String description) {
+	public Channel create(ChannelCreateDTO dto) {
+		String name = dto.getName();
+		String description = dto.getDescription();
+		ChannelType channelType = dto.getChannelType();
+
 		if (name == null || name.isEmpty()) {
 			throw new IllegalArgumentException("Channel name cannot be null or empty");
 		}
@@ -56,7 +62,16 @@ public class JCFChannelService implements ChannelService {
 	}
 
 	@Override
-	public void update(UUID id, ChannelType newChannelType, String newChannelName, String newDescription) {
+	public void update(ChannelUpdateDTO dto) {
+		String newChannelName = dto.getName();
+		String newDescription = dto.getDescription();
+		ChannelType newChannelType = dto.getChannelType();
+		UUID id = dto.getId();
+
+		if (id == null) {
+			throw new IllegalArgumentException("Channel ID cannot be null");
+		}
+
 		if (newChannelName == null || newChannelName.isEmpty()) {
 			throw new IllegalArgumentException("Channel name cannot be null or empty");
 		}

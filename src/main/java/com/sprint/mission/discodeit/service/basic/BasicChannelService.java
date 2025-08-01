@@ -2,10 +2,13 @@ package com.sprint.mission.discodeit.service.basic;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.sprint.mission.discodeit.dto.ChannelCreateDTO;
+import com.sprint.mission.discodeit.dto.ChannelUpdateDTO;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -22,7 +25,11 @@ public class BasicChannelService implements ChannelService {
 	private final MessageRepository messageRepository;
 
 	@Override
-	public Channel create(ChannelType channelType, String name, String description) {
+	public Channel create(ChannelCreateDTO dto) {
+		String name = dto.getName();
+		String description = dto.getDescription();
+		ChannelType channelType = dto.getChannelType();
+
 		if (name == null || name.isEmpty()) {
 			throw new IllegalArgumentException("Channel name cannot be null or empty");
 		}
@@ -56,7 +63,14 @@ public class BasicChannelService implements ChannelService {
 	}
 
 	@Override
-	public void update(UUID id, ChannelType newChannelType, String newChannelName, String newDescription) {
+	public void update(ChannelUpdateDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("ChannelUpdateDTO cannot be null"));
+
+		UUID id = dto.getId();
+		String newChannelName = dto.getName();
+		String newDescription = dto.getDescription();
+		ChannelType newChannelType = dto.getChannelType();
+
 		if (newChannelName == null || newChannelName.isEmpty()) {
 			throw new IllegalArgumentException("Channel name cannot be null or empty");
 		}

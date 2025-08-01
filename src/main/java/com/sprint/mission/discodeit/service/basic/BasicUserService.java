@@ -2,10 +2,13 @@ package com.sprint.mission.discodeit.service.basic;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.sprint.mission.discodeit.dto.UserCreateDTO;
+import com.sprint.mission.discodeit.dto.UserUpdateDTO;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
@@ -19,7 +22,11 @@ public class BasicUserService implements UserService {
 	private final UserRepository userRepository;
 
 	@Override
-	public User create(String username, String email, String password) {
+	public User create(UserCreateDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserCreateDTO cannot be null"));
+		String username = dto.getUsername();
+		String email = dto.getEmail();
+		String password = dto.getPassword();
 
 		if (username == null || username.isEmpty()) {
 			throw new IllegalArgumentException("Username cannot be null or empty");
@@ -40,7 +47,12 @@ public class BasicUserService implements UserService {
 	}
 
 	@Override
-	public void update(UUID userId, String newUsername, String newEmail, String newPassword) {
+	public void update(UserUpdateDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserUpdateDTO cannot be null"));
+		UUID userId = dto.getUserId();
+		String newUsername = dto.getNewUsername();
+		String newEmail = dto.getNewEmail();
+		String newPassword = dto.getNewPassword();
 
 		if (newUsername == null || newUsername.isEmpty()) {
 			throw new IllegalArgumentException("New username cannot be null or empty");

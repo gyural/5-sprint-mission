@@ -2,10 +2,13 @@ package com.sprint.mission.discodeit.service.basic;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.sprint.mission.discodeit.dto.MessageCreateDTO;
+import com.sprint.mission.discodeit.dto.MessageUpdateDTO;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -23,7 +26,11 @@ public class BasicMessageService implements MessageService {
 	private final ChannelRepository channelRepository;
 
 	@Override
-	public Message create(String content, UUID channelId, UUID userId) {
+	public Message create(MessageCreateDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("MessageCreateDTO cannot be null"));
+		String content = dto.getContent();
+		UUID channelId = dto.getChannelId();
+		UUID userId = dto.getUserId();
 
 		if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content cannot be null or empty");
@@ -57,7 +64,11 @@ public class BasicMessageService implements MessageService {
 	}
 
 	@Override
-	public void update(UUID id, String newContent) {
+	public void update(MessageUpdateDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("MessageUpdateDTO cannot be null"));
+		UUID id = dto.getId();
+		String newContent = dto.getNewContent();
+
 		if (newContent == null || newContent.isEmpty()) {
 			throw new IllegalArgumentException("New content cannot be null or empty");
 		}
