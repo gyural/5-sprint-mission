@@ -13,10 +13,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.stereotype.Repository;
+
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 
+@Repository
 public class FileChannelRepository implements ChannelRepository {
 
 	private static final String DIR_NAME = "data";
