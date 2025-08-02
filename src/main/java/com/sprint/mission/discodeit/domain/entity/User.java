@@ -20,13 +20,17 @@ public class User implements Serializable {
 	private String email;
 	private String password;
 
-	public User(String username, String email, String password) {
+	// Foreign key
+	private final UUID profileId;
+
+	public User(String username, String email, String password, UUID profileId) {
 		this.id = UUID.randomUUID();
 		this.createdAt = Instant.now();
 		this.updatedAt = null;
 		this.username = username;
 		this.email = email;
 		this.password = password;
+		this.profileId = profileId;
 	}
 
 	public void setUsername(String username) {
@@ -36,10 +40,12 @@ public class User implements Serializable {
 
 	public void setEmail(String email) {
 		this.email = email;
+		this.updatedAt = Instant.now();
 	}
 
 	public void setPassword(String password) {
 		this.password = password;
+		this.updatedAt = Instant.now();
 	}
 
 	@Override

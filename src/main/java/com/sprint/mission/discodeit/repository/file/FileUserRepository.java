@@ -44,9 +44,16 @@ public class FileUserRepository implements UserRepository {
 	}
 
 	@Override
-	public User save(User user) {
-		List<User> users = findAll();
+
+	public User create(User user) {
+		Optional.ofNullable(user).orElseThrow(() -> new IllegalArgumentException("User cannot be null"));
 		String username = user.getUsername();
+		String email = user.getEmail();
+		String password = user.getPassword();
+		UUID profileId = user.getProfileId();
+
+		User newUser = new User(username, email, password, profileId);
+		List<User> users = findAll();
 
 		if (users.stream().anyMatch(u -> u.getUsername().equals(username))) {
 			throw new IllegalArgumentException("Username already exists");
@@ -74,6 +81,31 @@ public class FileUserRepository implements UserRepository {
 		if (users.size() == beforeSize) {
 			throw new IllegalArgumentException("User with ID " + userId + " not found");
 		}
+
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(users);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void update(UUID userId, User user) {
+		Optional.ofNullable(user).orElseThrow(() -> new IllegalArgumentException("User cannot be null"));
+		String newUsername = user.getUsername();
+		String newEmail = user.getEmail();
+		String newPassword = user.getPassword();
+
+		List<User> users = findAll();
+		User userToUpdate = users.stream()
+		  .filter(u -> u.getId().equals(userId))
+		  .findFirst()
+		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
+
+		userToUpdate.setUsername(newUsername);
+		userToUpdate.setEmail(newEmail);
+		userToUpdate.setPassword(newPassword);
 
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {

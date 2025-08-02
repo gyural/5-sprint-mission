@@ -7,7 +7,7 @@ import com.sprint.mission.discodeit.domain.entity.UserStatus;
 
 public interface UserStatusRepository {
 
-	public UserStatus create(UUID userId);
+	public UserStatus create(UserStatus userStatus);
 
 	public UserStatus find(UUID id);
 

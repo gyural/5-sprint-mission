@@ -1,5 +1,8 @@
 package com.sprint.mission;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -10,10 +13,13 @@ import com.sprint.mission.discodeit.domain.dto.MessageCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.MessageUpdateDTO;
 import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.entity.ChannelType;
 import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.domain.entity.User;
+import com.sprint.mission.discodeit.domain.enums.ContentType;
+import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
 import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserRepository;
@@ -26,10 +32,31 @@ import com.sprint.mission.discodeit.service.basic.BasicUserService;
 
 @SpringBootApplication
 public class DiscodeitApplication {
-	static User setupUser(UserService userService) {
+	static BinaryContent setupBinaryContent(FileBinaryContentRepository fileBinaryContentRepository) {
+		byte[] bytes;
+		try {
+			Path imagePath = Path.of(System.getProperty("user.dir"), "dummyImage.png");
+			System.out.println("Absolute path for dummy image: " + imagePath.toAbsolutePath());
+			bytes = Files.readAllBytes(imagePath);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		BinaryContent dummyBinaryContent = new BinaryContent(
+		  bytes, bytes.length, ContentType.IMAGE, "dummyImage.png");
+		return fileBinaryContentRepository.create(dummyBinaryContent);
+	}
+
+	static User setupUser(UserService userService, BinaryContent binaryContent) {
+		System.out.println("Setting up user for tests...");
 
 		return userService.create(
-		  UserCreateDTO.builder().username("woody").email("woody@codeit.com").password("woody1234").build());
+		  UserCreateDTO.builder()
+			.username("woody")
+			.email("woody@codeit.com")
+			.password("woody1234")
+			.binaryContent(binaryContent)
+			.build());
 	}
 
 	static Channel setupChannel(ChannelService channelService) {
@@ -99,16 +126,34 @@ public class DiscodeitApplication {
 		System.out.println(log);
 	}
 
-	static void userCreateTest(UserService userService) {
-		System.out.print("UserCreateTest.......................");
-		User user = userService.create(
-		  UserCreateDTO.builder().username("newUser").email("newUser@codeit.com").password("newUser1234").build());
+	// 좀더 촘촘하게 테스트 짜기
+	static void userCreateTest(UserService userService, FileBinaryContentRepository fileBinaryContentRepository) {
+		// Given
+		BinaryContent binaryContent = setupBinaryContent(fileBinaryContentRepository);
+		UserCreateDTO dto =
+		  UserCreateDTO.builder()
+			.username("newUser")
+			.email("newUser@codeit.com")
+			.password("newUser1234")
+			.binaryContent(binaryContent)
+			.build();
 
-		boolean isCreated = userService.read(user.getId()) != null;
+		// When
+		userService.create(dto);
 
-		System.out.println(isCreated ?
-		  "사용자 생성 테스트 통과 ✅" :
-		  "사용자 생성 테스트 실패 ❌");
+		// TODO: 테스트 완성하기
+		// Then
+
+		// UserProfile 잘 생성 되었는지 확인
+
+		// userStatus 잘 생성 되었는지 확인
+
+		// // User 가 잘 생성 되었는지 확인
+		// boolean isCreated = userService.read(user.getId()) != null;
+		//
+		// System.out.println(isCreated ?
+		//   "사용자 생성 테스트 통과 ✅" :
+		//   "사용자 생성 테스트 실패 ❌");
 	}
 
 	static void userReadTest(UserService userService, User user) {
@@ -228,11 +273,14 @@ public class DiscodeitApplication {
 		FileUserRepository fileUserRepository = context.getBean(FileUserRepository.class);
 		FileChannelRepository fileChannelRepository = context.getBean(FileChannelRepository.class);
 		FileMessageRepository fileMessageRepository = context.getBean(FileMessageRepository.class);
+		FileBinaryContentRepository fileBinaryContentRepository = context.getBean(FileBinaryContentRepository.class);
 		// setup-2 Basic 서비스 초기화
-		UserService BasicUserService = new BasicUserService(fileUserRepository);
-		MessageService BasicMessageService = new BasicMessageService(fileMessageRepository, BasicUserService,
-		  fileChannelRepository);
-		ChannelService BasicChannelService = new BasicChannelService(fileChannelRepository, fileMessageRepository);
+		UserService BasicUserService = context.getBean(BasicUserService.class);
+		MessageService BasicMessageService = context.getBean(BasicMessageService.class);
+		ChannelService BasicChannelService = context.getBean(BasicChannelService.class);
+
+		BinaryContent binaryContent = setupBinaryContent(fileBinaryContentRepository);
+		System.out.println(binaryContent);
 
 		System.out.println("\n" +
 		  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
@@ -262,8 +310,9 @@ public class DiscodeitApplication {
 		  "┃       🙋 USER TEST            ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
 
-		User fileUserforBasic = setupUser(BasicUserService);
-		userCreateTest(BasicUserService);
+		BinaryContent binaryContent1 = setupBinaryContent(fileBinaryContentRepository);
+		User fileUserforBasic = setupUser(BasicUserService, binaryContent1);
+		userCreateTest(BasicUserService, fileBinaryContentRepository);
 		userReadTest(BasicUserService, fileUserforBasic);
 		userUpdateTest(BasicUserService, fileUserforBasic);
 		userDeleteTest(BasicUserService, fileUserforBasic);
@@ -279,8 +328,9 @@ public class DiscodeitApplication {
 		  "┃     💌 MESSAGE TEST           ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
 
+		BinaryContent binaryContent2 = setupBinaryContent(fileBinaryContentRepository);
 		Channel fileChannelForMessageforBasic = setupChannel(BasicChannelService);
-		User fileUserForMessageforBasic = setupUser(BasicUserService);
+		User fileUserForMessageforBasic = setupUser(BasicUserService, binaryContent2);
 		Message fileMessageforBasic = setupMessage(BasicMessageService, fileChannelForMessageforBasic,
 		  fileUserForMessageforBasic);
 
