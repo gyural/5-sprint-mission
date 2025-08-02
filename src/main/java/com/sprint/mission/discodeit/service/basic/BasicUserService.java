@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -9,8 +8,12 @@ import org.springframework.stereotype.Service;
 
 import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
+import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 public class BasicUserService implements UserService {
 
 	private final UserRepository userRepository;
+	private final BinaryContentRepository binaryContentRepository;
+	private final UserStatusRepository userStatusRepository;
 
 	@Override
 	public User create(UserCreateDTO dto) {
@@ -38,7 +43,14 @@ public class BasicUserService implements UserService {
 			throw new IllegalArgumentException("Password cannot be null or empty");
 		}
 
-		return userRepository.save(new User(username, email, password));
+		// 1) Profile insert
+		BinaryContent profileImage = binaryContentRepository.create(dto.getBinaryContent());
+		// 2) User insert
+		User newUser = userRepository.create(new User(username, email, password, profileImage.getId()));
+		// 3) UserStatus insert
+		userStatusRepository.create(new UserStatus(newUser.getId()));
+
+		return newUser;
 	}
 
 	@Override
@@ -54,6 +66,9 @@ public class BasicUserService implements UserService {
 		String newEmail = dto.getNewEmail();
 		String newPassword = dto.getNewPassword();
 
+		if (userId == null) {
+			throw new IllegalArgumentException("User ID cannot be null");
+		}
 		if (newUsername == null || newUsername.isEmpty()) {
 			throw new IllegalArgumentException("New username cannot be null or empty");
 		}
@@ -65,19 +80,15 @@ public class BasicUserService implements UserService {
 		}
 
 		User targetUser = userRepository.find(userId)
-		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
+		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " does not exist"));
 
-		targetUser.setUsername(newUsername);
-		targetUser.setEmail(newEmail);
-		targetUser.setPassword(newPassword);
-
-		userRepository.save(targetUser);
+		userRepository.update(userId, targetUser);
 	}
 
 	@Override
 	public User read(UUID userId) {
 		return userRepository.find(userId)
-		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
+		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " does not exist"));
 	}
 
 	@Override

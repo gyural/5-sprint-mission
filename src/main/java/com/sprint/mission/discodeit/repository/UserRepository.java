@@ -10,9 +10,12 @@ import com.sprint.mission.discodeit.domain.entity.User;
 
 @Repository
 public interface UserRepository {
-	User save(User user);
+
+	User create(User user);
 
 	void delete(UUID userId);
+
+	void update(UUID userId, User user);
 
 	Optional<User> find(UUID userId);
 

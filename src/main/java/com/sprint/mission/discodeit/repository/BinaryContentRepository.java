@@ -3,14 +3,14 @@ package com.sprint.mission.discodeit.repository;
 import java.util.List;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.domain.enums.ContentType;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 
 public interface BinaryContentRepository {
-	public BinaryContentRepository create(byte[] content, Long size, ContentType contentType, String filename);
+	public BinaryContent create(BinaryContent binaryContent);
 
-	public BinaryContentRepository find(UUID id);
+	public BinaryContent find(UUID id);
 
-	public List<BinaryContentRepository> findAll();
+	public List<BinaryContent> findAll();
 
 	public void delete(UUID id);
 

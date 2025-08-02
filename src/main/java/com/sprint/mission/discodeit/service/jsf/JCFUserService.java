@@ -40,7 +40,7 @@ public class JCFUserService implements UserService {
 			throw new IllegalArgumentException("Username already exists");
 		}
 
-		return userRepository.save(new User(username, email, password));
+		return userRepository.create(new User(username, email, password, null));
 
 	}
 
@@ -72,13 +72,17 @@ public class JCFUserService implements UserService {
 		targetUser.setEmail(newEmail);
 		targetUser.setPassword(newPassword);
 
-		userRepository.save(targetUser);
+		if (userRepository.findByUsername(newUsername) != null) {
+			throw new IllegalArgumentException("Username already exists");
+		}
+
+		userRepository.update(userId, targetUser);
 	}
 
 	@Override
 	public User read(UUID userId) {
 		return userRepository.find(userId)
-		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
+		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 	}
 
 	@Override
