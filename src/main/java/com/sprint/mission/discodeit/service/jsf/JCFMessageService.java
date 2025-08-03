@@ -26,7 +26,8 @@ public class JCFMessageService implements MessageService {
 		if (userId == null || userService.isEmpty(userId)) {
 			throw new IllegalArgumentException("User ID cannot be null or empty");
 		}
-		Message newMessage = new Message(content, userId, channelId, userService.read(userId).getUsername());
+
+		Message newMessage = new Message(content, channelId, userId, userService.read(userId).getUsername());
 		data.put(newMessage.getId(), newMessage);
 	}
 
@@ -38,11 +39,6 @@ public class JCFMessageService implements MessageService {
 
 		return data.get(id);
 
-	}
-
-	@Override
-	public List<Message> readAll() {
-		return data.values().stream().toList();
 	}
 
 	@Override
@@ -92,11 +88,4 @@ public class JCFMessageService implements MessageService {
 		  .filter(message -> message.getChannelId().equals(channelId)).toList();
 	}
 
-	@Override
-	public String toString() {
-		return "JCFMessageService{" +
-		  "data=" + data +
-		  ", userService=" + userService +
-		  '}';
-	}
 }
