@@ -88,6 +88,7 @@ public class JCFMessageService implements MessageService {
 
 		Message message = data.get(id);
 		message.setContent(newContent);
+		message.setUpdatedAt(System.currentTimeMillis());
 	}
 
 	@Override
