@@ -5,7 +5,7 @@ import java.util.List;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.jsf.JCFUserService;
 
-public class UserServiceTest {
+public class userServiceTest {
 
 	private final JCFUserService userService = new JCFUserService();
 

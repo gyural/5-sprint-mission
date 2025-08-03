@@ -10,18 +10,17 @@ import com.sprint.mission.discodeit.service.MessageService;
 
 public class JCFMessageService implements MessageService {
 	public static final Map<UUID, Message> data = new HashMap<>();
-	private final JCFUserService userService;
-
-	public JCFMessageService(JCFUserService userService) {
-		this.userService = userService;
-	}
+	private final JCFUserService userService = new JCFUserService();
+	private final JCFChannelService channelService = new JCFChannelService();
 
 	@Override
 	public void create(String content, UUID channelId, UUID userId) {
 		if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content cannot be null or empty");
 		}
-
+		if (channelId == null || channelService.isEmpty(channelId)) {
+			throw new IllegalArgumentException("Channel ID cannot be null or empty");
+		}
 		if (userId == null || userService.isEmpty(userId)) {
 			throw new IllegalArgumentException("User ID cannot be null or empty");
 		}
@@ -50,23 +49,6 @@ public class JCFMessageService implements MessageService {
 	}
 
 	@Override
-	public void deleteAll() {
-		data.clear();
-	}
-
-	@Override
-	public void deleteByChannelId(UUID channelId) {
-		if (channelId == null) {
-			throw new IllegalArgumentException("Channel ID cannot be null or empty");
-		}
-
-		List<Message> messagesToDelete = readAllByChannelId(channelId);
-		for (Message message : messagesToDelete) {
-			delete(message.getId());
-		}
-	}
-
-	@Override
 	public void update(UUID id, String newContent) {
 		if (!data.containsKey(id)) {
 			throw new IllegalArgumentException("Message with ID " + id + " not found");
@@ -87,4 +69,10 @@ public class JCFMessageService implements MessageService {
 		  .filter(message -> message.getChannelId().equals(channelId)).toList();
 	}
 
+	@Override
+	public void deleteAll() {
+		data.clear();
+		userService.deleteAll();
+		channelService.deleteAll();
+	}
 }

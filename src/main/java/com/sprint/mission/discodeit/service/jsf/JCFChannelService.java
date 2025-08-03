@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.jsf;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,14 +9,9 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 public class JCFChannelService implements ChannelService {
-	public static final Map<UUID, Channel> data = new HashMap<>();
-	private final JCFUserService userService;
-	private final JCFMessageService messageService;
-
-	public JCFChannelService(JCFUserService userService, JCFMessageService messageService) {
-		this.userService = userService;
-		this.messageService = messageService;
-	}
+	private static final Map<UUID, Channel> data = new HashMap<>();
+	private final JCFUserService userService = new JCFUserService();
+	private final JCFMessageService messageService = new JCFMessageService();
 
 	@Override
 	public void create(String name, String description) {
@@ -32,11 +26,6 @@ public class JCFChannelService implements ChannelService {
 	}
 
 	@Override
-	public List<Channel> readAll() {
-		return data.values().stream().toList();
-	}
-
-	@Override
 	public void delete(UUID id) {
 		if (!data.containsKey(id)) {
 			throw new IllegalArgumentException("Channel with ID " + id + " not found");
@@ -44,7 +33,8 @@ public class JCFChannelService implements ChannelService {
 		data.remove(id);
 
 		// 연관된 메시지도 삭제
-		messageService.deleteByChannelId(id);
+		messageService.readAllByChannelId(id)
+		  .forEach(message -> messageService.delete(message.getId()));
 	}
 
 	@Override
