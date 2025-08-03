@@ -11,12 +11,12 @@ import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.basic.BasicChannelService;
-import com.sprint.mission.discodeit.service.basic.BasicMessageService;
-import com.sprint.mission.discodeit.service.basic.BasicUserService;
 import com.sprint.mission.discodeit.service.file.FileChannelService;
 import com.sprint.mission.discodeit.service.file.FileMessageService;
 import com.sprint.mission.discodeit.service.file.FileUserService;
+import com.sprint.mission.discodeit.service.jsf.JCFChannelService;
+import com.sprint.mission.discodeit.service.jsf.JCFMessageService;
+import com.sprint.mission.discodeit.service.jsf.JCFUserService;
 
 public class JavaApplication {
 	static User setupUser(UserService userService) {
@@ -287,14 +287,13 @@ public class JavaApplication {
 
 		System.out.println("\n" +
 		  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-		  "🗂️ [JCF] 저장소 기반 Basic Service 테스트 시작\n" +
+		  "🗂️ [JCF] 저장소 기반 테스트 시작\n" +
 		  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-		UserService jcfUserService = new BasicUserService(jcfUserRepository);
-		MessageService jcfMessageService = new BasicMessageService(jcfMessageRepository, jcfUserService,
-		  jcfChannelRepository
-		);
-		ChannelService jcfChannelService = new BasicChannelService(jcfChannelRepository, jcfMessageRepository);
+		UserService jcfUserService = new JCFUserService(jcfUserRepository);
+		MessageService jcfMessageService = new JCFMessageService(jcfMessageRepository, jcfChannelRepository,
+		  jcfUserService);
+		ChannelService jcfChannelService = new JCFChannelService(jcfMessageService, jcfChannelRepository);
 
 		// 💥💥💥 Channel Test Start 💥💥💥
 		System.out.println("\n" +
@@ -349,75 +348,5 @@ public class JavaApplication {
 		  "┃ ✅ END [JCF] MESSAGE TEST     ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
 		clearAll(jcfChannelService, jcfUserService, jcfMessageService);
-
-		// ============================
-		// 💾 FILE 저장소 테스트 시작
-		// ============================
-
-		System.out.println("\n" +
-		  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-		  "💾 [FILE] 저장소 기반 BasicService 테스트 시작\n" +
-		  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-		UserService BasicfileUserService = new BasicUserService(fileUserRepository);
-		MessageService BasicfileMessageService = new BasicMessageService(fileMessageRepository, fileUserService,
-		  fileChannelRepository);
-		ChannelService BasicfileChannelService = new BasicChannelService(fileChannelRepository, fileMessageRepository);
-
-		// 💥💥💥 Channel Test Start 💥💥💥
-		System.out.println("\n" +
-		  "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃    💾 [FILE] 📡 CHANNEL TEST  ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-
-		Channel fileChannelforBasic = setupChannel(fileChannelService);
-		channelCreateTest(fileChannelService);
-		channelReadTest(fileChannelService, fileChannelforBasic);
-		channelUpdateTest(fileChannelService, fileChannelforBasic);
-		channelDeleteTest(fileChannelService, fileChannelforBasic);
-
-		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃ ✅ END [FILE] CHANNEL TEST    ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		clearAll(fileChannelService, fileUserService, fileMessageService);
-
-		// 🧑‍💻🧑‍💻🧑‍💻 User Test Start 🧑‍💻🧑‍💻🧑‍💻
-		System.out.println("\n" +
-		  "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃      💾 [FILE] 🙋 USER TEST   ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-
-		User fileUserforBasic = setupUser(fileUserService);
-		userCreateTest(fileUserService);
-		userReadTest(fileUserService, fileUserforBasic);
-		userUpdateTest(fileUserService, fileUserforBasic);
-		userDeleteTest(fileUserService, fileUserforBasic);
-
-		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃ ✅ END [FILE] USER TEST       ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		clearAll(fileChannelService, fileUserService, fileMessageService);
-
-		// 💌💌💌 Message Test Start 💌💌💌
-		System.out.println("\n" +
-		  "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃    💾 [FILE] 💌 MESSAGE TEST  ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-
-		Channel fileChannelForMessageforBasic = setupChannel(fileChannelService);
-		User fileUserForMessageforBasic = setupUser(fileUserService);
-		Message fileMessageforBasic = setupMessage(fileMessageService, fileChannelForMessageforBasic,
-		  fileUserForMessageforBasic);
-
-		messageCreateTest(fileMessageService, fileChannelForMessageforBasic, fileUserForMessageforBasic);
-		messageReadTest(fileMessageService, fileMessageforBasic);
-		messageUpdateTest(fileMessageService, fileMessageforBasic);
-		messageDeleteTest(fileMessageService, fileMessageforBasic);
-
-		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃ ✅ END [FILE] MESSAGE TEST    ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		clearAll(fileChannelService, fileUserService, fileMessageService);
-
 	}
 }
