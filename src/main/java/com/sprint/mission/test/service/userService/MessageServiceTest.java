@@ -43,7 +43,7 @@ public class MessageServiceTest {
 		if (isMessageStored) {
 			System.out.println("message created successfully✅");
 		} else {
-			throw new RuntimeException("failed to create message.");
+			throw new IllegalArgumentException("failed to create message.");
 		}
 
 		// clear data after test
@@ -79,7 +79,7 @@ public class MessageServiceTest {
 		if (isSuccess) {
 			System.out.println("message read successfully✅");
 		} else {
-			throw new RuntimeException("failed to read message.");
+			throw new IllegalArgumentException("failed to read message.");
 		}
 
 		// clear data after test
@@ -114,7 +114,7 @@ public class MessageServiceTest {
 		if (isSuccess) {
 			System.out.println("message updated successfully✅");
 		} else {
-			throw new RuntimeException("failed to update message.");
+			throw new IllegalArgumentException("failed to update message.");
 		}
 
 		// clear data after test
@@ -145,7 +145,7 @@ public class MessageServiceTest {
 		if (isDeleted) {
 			System.out.println("message deleted successfully✅");
 		} else {
-			throw new RuntimeException("failed to delete message.");
+			throw new IllegalArgumentException("failed to delete message.");
 		}
 
 		// clear data after test
