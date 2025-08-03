@@ -34,8 +34,7 @@ public class JCFMessageRepository implements MessageRepository {
 	@Override
 	public void deleteAll() {
 		if (data.isEmpty()) {
-			return;
-			// throw new IllegalArgumentException("No messages to delete");
+			throw new IllegalArgumentException("No messages to delete");
 		}
 		data.clear();
 	}

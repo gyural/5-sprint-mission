@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.alarm.MessageAlarmService;
 
 public class JCFMessageService implements MessageService {
 
@@ -15,13 +16,14 @@ public class JCFMessageService implements MessageService {
 	private final JCFChannelRepository channelRepository;
 
 	private final UserService userService;
-	// private final MessageAlarmService messageAlarmService;
+	private final MessageAlarmService messageAlarmService;
 
 	public JCFMessageService(JCFMessageRepository messageRepository, JCFChannelRepository channelRepository,
-	  UserService userService) {
+	  UserService userService, MessageAlarmService messageAlarmService) {
 		this.messageRepository = messageRepository;
 		this.channelRepository = channelRepository;
 		this.userService = userService;
+		this.messageAlarmService = messageAlarmService;
 	}
 
 	@Override
@@ -95,8 +97,4 @@ public class JCFMessageService implements MessageService {
 		return messageRepository.findAllByChannelId(channelId);
 	}
 
-	@Override
-	public boolean isEmpty(UUID channelId) {
-		return messageRepository.isEmpty(channelId);
-	}
 }
