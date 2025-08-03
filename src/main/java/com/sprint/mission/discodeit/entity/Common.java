@@ -15,7 +15,7 @@ public class Common implements Serializable {
 	public Common() {
 		this.id = UUID.randomUUID();
 		this.createdAt = System.currentTimeMillis();
-		this.updatedAt = null;
+		this.updatedAt = this.createdAt;
 	}
 
 	public UUID getId() {

@@ -49,7 +49,7 @@ public class FileMessageService implements MessageService {
 	}
 
 	@Override
-	public void deleteAllByChannelId(UUID channelId) {
+	public void deleteByChannelId(UUID channelId) {
 		if (channelRepository.isEmpty(channelId)) {
 			throw new IllegalArgumentException("Channel ID cannot be null or empty");
 		}
