@@ -10,10 +10,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 
@@ -41,12 +41,12 @@ public class FileChannelRepository implements ChannelRepository {
 	}
 
 	@Override
-	public Channel save(Channel channel) {
+	public Channel create(ChannelType channelType, String name, String description) {
 
-		List<Channel> channels = new ArrayList<>(findAll());
-		channels.removeIf(c -> c.getId().equals(channel.getId())); // 기존 id 삭제
+		Channel newChannel = new Channel(channelType, name, description);
+		List<Channel> channels = findAll();
 		channels = new java.util.ArrayList<>(channels);
-		channels.add(channel);
+		channels.add(newChannel);
 
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
@@ -55,15 +55,16 @@ public class FileChannelRepository implements ChannelRepository {
 			throw new RuntimeException(e);
 		}
 
-		return channel;
+		return newChannel;
 	}
 
 	@Override
-	public Optional<Channel> find(UUID id) {
+	public Channel find(UUID id) {
 		List<Channel> channels = findAll();
 		return channels.stream()
 		  .filter(channel -> channel.getId().equals(id))
-		  .findFirst();
+		  .findFirst()
+		  .orElseThrow(() -> new IllegalArgumentException("해당 id의 Channel이 없습니다: " + id));
 	}
 
 	@Override
@@ -99,6 +100,26 @@ public class FileChannelRepository implements ChannelRepository {
 	}
 
 	@Override
+	public void update(UUID id, ChannelType channelType, String newChannelName, String newDescription) {
+		List<Channel> channels = findAll();
+		channels = new java.util.ArrayList<>(channels);
+		Channel channelToUpdate = channels.stream()
+		  .filter(channel -> channel.getId().equals(id))
+		  .findFirst()
+		  .orElseThrow(() -> new IllegalArgumentException("해당 id의 Channel이 없습니다: " + id));
+
+		channelToUpdate.setName(newChannelName);
+		channelToUpdate.setDescription(newDescription);
+
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(channels);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
 	public boolean isEmpty(UUID id) {
 		List<Channel> channels = findAll();
 		boolean isEmpty = channels.stream().anyMatch(channel -> channel.getId().equals(id));
@@ -115,10 +136,5 @@ public class FileChannelRepository implements ChannelRepository {
 			throw new RuntimeException(e);
 		}
 
-	}
-
-	@Override
-	public Long count() {
-		return findAll().isEmpty() ? 0L : (long)findAll().size();
 	}
 }

@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.file;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Channel;
@@ -31,13 +30,12 @@ public class FileChannelService implements ChannelService {
 		if (channelType == null) {
 			throw new IllegalArgumentException("Channel type cannot be null");
 		}
-		return channelRepository.save(new Channel(channelType, name, description));
+		return channelRepository.create(channelType, name, description);
 	}
 
 	@Override
 	public Channel read(UUID id) {
-		return channelRepository.find(id).orElseThrow(()
-		  -> new NoSuchElementException("Channel with ID " + id + " not found"));
+		return channelRepository.find(id);
 	}
 
 	@Override
@@ -65,13 +63,8 @@ public class FileChannelService implements ChannelService {
 		if (newChannelType == null) {
 			throw new IllegalArgumentException("Channel type cannot be null");
 		}
-		Channel channel = channelRepository.find(id).orElseThrow(()
-		  -> new NoSuchElementException("Channel with ID " + id + " not found"));
-		channel.setChannelType(newChannelType);
-		channel.setName(newChannelName);
-		channel.setDescription(newDescription);
 
-		channelRepository.save(channel);
+		channelRepository.update(id, newChannelType, newChannelName, newDescription);
 	}
 
 	@Override

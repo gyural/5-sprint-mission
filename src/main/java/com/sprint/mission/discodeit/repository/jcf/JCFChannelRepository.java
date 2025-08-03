@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 
 public class JCFChannelRepository implements ChannelRepository {
@@ -18,14 +19,16 @@ public class JCFChannelRepository implements ChannelRepository {
 	}
 
 	@Override
-	public Channel save(Channel channel) {
-		data.put(channel.getId(), channel);
-		return channel;
+	public Channel create(ChannelType channelType, String name, String description) {
+		Channel newChannel = new Channel(channelType, name, description);
+		data.put(newChannel.getId(), newChannel);
+		return newChannel;
 	}
 
 	@Override
-	public Optional<Channel> find(UUID id) {
-		return Optional.ofNullable(data.get(id));
+	public Channel find(UUID id) {
+		return Optional.ofNullable(data.get(id))
+		  .orElseThrow(() -> new IllegalArgumentException("Channel with ID " + id + " not found"));
 	}
 
 	@Override
@@ -42,6 +45,16 @@ public class JCFChannelRepository implements ChannelRepository {
 	}
 
 	@Override
+	public void update(UUID id, ChannelType channelType, String newChannelName, String newDescription) {
+		if (!data.containsKey(id)) {
+			throw new IllegalArgumentException("Channel with ID " + id + " not found");
+		}
+
+		data.get(id).setName(newChannelName);
+		data.get(id).setDescription(newDescription);
+	}
+
+	@Override
 	public boolean isEmpty(UUID id) {
 		return data.get(id) == null;
 	}
@@ -49,10 +62,5 @@ public class JCFChannelRepository implements ChannelRepository {
 	@Override
 	public void deleteAll() {
 		data.clear();
-	}
-
-	@Override
-	public Long count() {
-		return (long)data.size();
 	}
 }

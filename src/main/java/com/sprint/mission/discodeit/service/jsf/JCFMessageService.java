@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.jsf;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Message;
@@ -43,13 +42,12 @@ public class JCFMessageService implements MessageService {
 		// 2. 채널에 참여한 사용자들에게 알림을 전송
 		// messageAlarmService.sendMessageAlarm(newMessage);
 
-		return messageRepository.save(new Message(content, channelId, userId));
+		return messageRepository.create(content, channelId, userId);
 	}
 
 	@Override
 	public Message read(UUID id) {
-		return messageRepository.find(id)
-		  .orElseThrow(() -> new NoSuchElementException("Message not found with ID: " + id));
+		return messageRepository.find(id);
 	}
 
 	@Override
@@ -88,12 +86,8 @@ public class JCFMessageService implements MessageService {
 			throw new IllegalArgumentException("Message ID cannot be null or empty");
 		}
 
-		Message targetMessage = messageRepository.find(id)
-		  .orElseThrow(() -> new NoSuchElementException("Message not found with ID: " + id));
-		targetMessage.setContent(newContent);
-
 		// 메시지 내용 수정
-		messageRepository.save(targetMessage);
+		messageRepository.update(id, newContent);
 	}
 
 	@Override

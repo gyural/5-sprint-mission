@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Message;
@@ -41,17 +40,16 @@ public class FileUserRepository implements UserRepository {
 	}
 
 	@Override
-	public User save(User user) {
+	public User create(String username, String email, String password) {
+		User newUser = new User(username, email, password);
 		List<User> users = findAll();
-		String username = user.getUsername();
 
-		if (users.stream().anyMatch(u -> u.getUsername().equals(username))) {
+		if (users.stream().anyMatch(user -> user.getUsername().equals(username))) {
 			throw new IllegalArgumentException("Username already exists");
 		}
 
 		users = new ArrayList<>(users);
-		users.removeIf(u -> u.getId().equals(user.getId())); // 중복된 ID 제거
-		users.add(user);
+		users.add(newUser);
 
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
@@ -59,7 +57,7 @@ public class FileUserRepository implements UserRepository {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		return user;
+		return newUser;
 	}
 
 	@Override
@@ -81,10 +79,31 @@ public class FileUserRepository implements UserRepository {
 	}
 
 	@Override
-	public Optional<User> find(UUID userId) {
+	public void update(UUID userId, String newUsername, String newEmail, String newPassword) {
+		List<User> users = findAll();
+		User userToUpdate = users.stream()
+		  .filter(user -> user.getId().equals(userId))
+		  .findFirst()
+		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
+
+		userToUpdate.setUsername(newUsername);
+		userToUpdate.setEmail(newEmail);
+		userToUpdate.setPassword(newPassword);
+
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(users);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public User find(UUID userId) {
 		return findAll().stream()
 		  .filter(user -> user.getId().equals(userId))
-		  .findFirst();
+		  .findFirst()
+		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 	}
 
 	@Override
@@ -117,10 +136,5 @@ public class FileUserRepository implements UserRepository {
 			throw new RuntimeException(e);
 		}
 
-	}
-
-	@Override
-	public Long count() {
-		return findAll().isEmpty() ? 0L : (long)findAll().size();
 	}
 }

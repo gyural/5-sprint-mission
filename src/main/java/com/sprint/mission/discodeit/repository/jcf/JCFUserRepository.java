@@ -18,7 +18,9 @@ public class JCFUserRepository implements UserRepository {
 	}
 
 	@Override
-	public User save(User user) {
+	public User create(String username, String email, String password) {
+
+		User user = new User(username, email, password);
 		data.put(user.getId(), user);
 		return user;
 	}
@@ -32,8 +34,16 @@ public class JCFUserRepository implements UserRepository {
 	}
 
 	@Override
-	public Optional<User> find(UUID userId) {
-		return Optional.ofNullable(data.get(userId));
+	public void update(UUID userId, String newUsername, String newEmail, String newPassword) {
+		data.get(userId).setUsername(newUsername);
+		data.get(userId).setEmail(newEmail);
+		data.get(userId).setPassword(newPassword);
+	}
+
+	@Override
+	public User find(UUID userId) {
+		return Optional.ofNullable(data.get(userId))
+		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 	}
 
 	@Override
@@ -57,10 +67,5 @@ public class JCFUserRepository implements UserRepository {
 		  .filter(user -> user.getUsername().equals(username))
 		  .findFirst()
 		  .orElse(null);
-	}
-
-	@Override
-	public Long count() {
-		return (long)data.size();
 	}
 }

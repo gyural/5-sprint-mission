@@ -1,13 +1,12 @@
 package com.sprint.mission.discodeit.repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Message;
 
 public interface MessageRepository {
-	Message save(Message message);
+	Message create(String content, UUID channelId, UUID userId);
 
 	void delete(UUID id);
 
@@ -15,13 +14,13 @@ public interface MessageRepository {
 
 	void deleteByChannelId(UUID channelId);
 
-	Optional<Message> find(UUID id);
+	void update(UUID id, String newContent);
+
+	Message find(UUID id);
 
 	List<Message> findAll();
 
 	List<Message> findAllByChannelId(UUID channelId);
 
 	boolean isEmpty(UUID channelId);
-
-	Long count();
 }

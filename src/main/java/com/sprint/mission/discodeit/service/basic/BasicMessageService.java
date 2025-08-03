@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Message;
@@ -36,7 +35,7 @@ public class BasicMessageService implements MessageService {
 			throw new IllegalArgumentException("User ID cannot be null or empty");
 		}
 
-		return messageRepository.save(new Message(content, channelId, userId));
+		return messageRepository.create(content, channelId, userId);
 	}
 
 	@Override
@@ -63,17 +62,12 @@ public class BasicMessageService implements MessageService {
 			throw new IllegalArgumentException("New content cannot be null or empty");
 		}
 
-		Message targetMessage = messageRepository.find(id)
-		  .orElseThrow(() -> new IllegalArgumentException("Message with ID " + id + " not found"));
-		targetMessage.setContent(newContent);
-
-		messageRepository.save(targetMessage);
+		messageRepository.update(id, newContent);
 	}
 
 	@Override
 	public Message read(UUID id) {
-		return messageRepository.find(id)
-		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
+		return messageRepository.find(id);
 	}
 
 	@Override
