@@ -9,11 +9,10 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
 
 public class JCFMessageService implements MessageService {
-	public final Map<UUID, Message> data;
+	public static final Map<UUID, Message> data = new HashMap<>();
 	private final JCFUserService userService;
 
 	public JCFMessageService(JCFUserService userService) {
-		data = new HashMap<>();
 		this.userService = userService;
 	}
 
