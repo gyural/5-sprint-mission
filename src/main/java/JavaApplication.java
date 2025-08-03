@@ -2,15 +2,15 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
-import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
-import com.sprint.mission.discodeit.repository.file.FileUserRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.file.FileChannelService;
-import com.sprint.mission.discodeit.service.file.FileMessageService;
-import com.sprint.mission.discodeit.service.file.FileUserService;
+import com.sprint.mission.discodeit.service.jsf.JCFChannelService;
+import com.sprint.mission.discodeit.service.jsf.JCFMessageService;
+import com.sprint.mission.discodeit.service.jsf.JCFUserService;
 
 public class JavaApplication {
 	static User setupUser(UserService userService) {
@@ -29,27 +29,17 @@ public class JavaApplication {
 	}
 
 	public static void main(String[] args) {
-		//JCF 레포지토리 초기화
-		// JCFUserRepository jcfUserRepository = new JCFUserRepository();
-		// JCFChannelRepository jcfChannelRepository = new JCFChannelRepository();
-		// JCFMessageRepository jcfMessageRepository = new JCFMessageRepository();
-		// 서비스 JCF Service로 초기화
-		// UserService userService = new JCFUserService(jcfUserRepository);
-		// MessageService messageService = new JCFMessageService(jcfMessageRepository, jcfChannelRepository, userService,
-		//   null);
-		// ChannelService channelService = new JCFChannelService(messageService, jcfChannelRepository);
+		// 레포지토리 초기화
+		JCFUserRepository jcfUserRepository = new JCFUserRepository();
+		JCFChannelRepository jcfChannelRepository = new JCFChannelRepository();
+		JCFMessageRepository jcfMessageRepository = new JCFMessageRepository();
 
-		// File 레포지토리 초기화
-		FileUserRepository fileUserRepository = new FileUserRepository();
-		FileChannelRepository fileChannelRepository = new FileChannelRepository();
-		FileMessageRepository fileMessageRepository = new FileMessageRepository();
+		UserService userService = new JCFUserService(jcfUserRepository);
+		MessageService messageService = new JCFMessageService(jcfMessageRepository, jcfChannelRepository, userService,
+		  null);
+		ChannelService channelService = new JCFChannelService(messageService, jcfChannelRepository);
 
-		// 서비스 초기화 File Service로 초기화
-		FileUserService userService = new FileUserService(fileUserRepository);
-		MessageService messageService = new FileMessageService(fileMessageRepository, userService,
-		  fileChannelRepository);
-		ChannelService channelService = new FileChannelService(fileChannelRepository, fileMessageRepository);
-
+		// 서비스 초기화
 		// TODO Basic*Service 구현체를 초기화하세요.
 
 		// 셋업

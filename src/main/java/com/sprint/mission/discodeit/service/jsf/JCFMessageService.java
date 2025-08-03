@@ -94,7 +94,7 @@ public class JCFMessageService implements MessageService {
 
 	@Override
 	public List<Message> readAllByChannelId(UUID channelId) {
-		return messageRepository.findAllByChannelId(channelId);
+		return messageRepository.readAllByChannelId(channelId);
 	}
 
 }

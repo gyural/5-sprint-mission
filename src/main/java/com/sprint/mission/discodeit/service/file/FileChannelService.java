@@ -5,75 +5,42 @@ import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
-import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
-import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 public class FileChannelService implements ChannelService {
 
-	private final FileChannelRepository channelRepository;
-	private final FileMessageRepository messageRepository;
-
-	public FileChannelService(FileChannelRepository channelRepository, FileMessageRepository messageRepository) {
-		this.channelRepository = channelRepository;
-		this.messageRepository = messageRepository;
-	}
-
 	@Override
 	public Channel create(ChannelType channelType, String name, String description) {
-		if (name == null || name.isEmpty()) {
-			throw new IllegalArgumentException("Channel name cannot be null or empty");
-		}
-		if (description == null || description.isEmpty()) {
-			throw new IllegalArgumentException("Channel description cannot be null or empty");
-		}
-		if (channelType == null) {
-			throw new IllegalArgumentException("Channel type cannot be null");
-		}
-		return channelRepository.create(channelType, name, description);
+		return null;
 	}
 
 	@Override
 	public Channel read(UUID id) {
-		return channelRepository.find(id);
+		return null;
 	}
 
 	@Override
 	public List<Channel> readAll() {
-		return channelRepository.findAll();
+		return List.of();
 	}
 
 	@Override
 	public void delete(UUID id) {
-		channelRepository.delete(id);
 
-		// 연관된 메시지도 삭제
-		messageRepository.deleteByChannelId(id);
 	}
 
 	@Override
-	public void update(UUID id, ChannelType newChannelType, String newChannelName, String newDescription) {
-		if (newChannelName == null || newChannelName.isEmpty()) {
-			throw new IllegalArgumentException("Channel name cannot be null or empty");
-		}
-		if (newDescription == null || newDescription.isEmpty()) {
-			throw new IllegalArgumentException("Channel description cannot be null or empty");
-		}
-		if (newChannelType == null) {
-			throw new IllegalArgumentException("Channel type cannot be null");
-		}
+	public void update(UUID id, ChannelType channelType, String newChannelName, String newDescription) {
 
-		channelRepository.update(id, newChannelType, newChannelName, newDescription);
 	}
 
 	@Override
 	public boolean isEmpty(UUID id) {
-		return channelRepository.isEmpty(id);
+		return false;
 	}
 
 	@Override
 	public void deleteAll() {
-		channelRepository.deleteAll();
-		messageRepository.deleteAll();
+
 	}
 }
