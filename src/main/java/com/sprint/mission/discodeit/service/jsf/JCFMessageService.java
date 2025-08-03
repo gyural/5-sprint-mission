@@ -7,7 +7,6 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.alarm.MessageAlarmService;
 
 public class JCFMessageService implements MessageService {
@@ -15,11 +14,11 @@ public class JCFMessageService implements MessageService {
 	private final JCFMessageRepository messageRepository;
 	private final JCFChannelRepository channelRepository;
 
-	private final UserService userService;
+	private final JCFUserService userService;
 	private final MessageAlarmService messageAlarmService;
 
 	public JCFMessageService(JCFMessageRepository messageRepository, JCFChannelRepository channelRepository,
-	  UserService userService, MessageAlarmService messageAlarmService) {
+	  JCFUserService userService, MessageAlarmService messageAlarmService) {
 		this.messageRepository = messageRepository;
 		this.channelRepository = channelRepository;
 		this.userService = userService;
@@ -41,10 +40,11 @@ public class JCFMessageService implements MessageService {
 		}
 
 		// 1. 데이터 저장
+		Message newMessage = messageRepository.create(content, channelId, userId);
 		// 2. 채널에 참여한 사용자들에게 알림을 전송
-		// messageAlarmService.sendMessageAlarm(newMessage);
+		messageAlarmService.sendMessageAlarm(newMessage);
 
-		return messageRepository.create(content, channelId, userId);
+		return newMessage;
 	}
 
 	@Override

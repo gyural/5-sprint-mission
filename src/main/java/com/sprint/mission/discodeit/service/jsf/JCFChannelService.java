@@ -7,14 +7,13 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
 
 public class JCFChannelService implements ChannelService {
 
 	private final JCFChannelRepository channelRepository;
-	private final MessageService messageService;
+	private final JCFMessageService messageService;
 
-	public JCFChannelService(MessageService messageService, JCFChannelRepository channelRepository) {
+	public JCFChannelService(JCFMessageService messageService, JCFChannelRepository channelRepository) {
 		this.messageService = messageService;
 		this.channelRepository = channelRepository;
 	}
