@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.repository.jcf;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Message;
@@ -17,10 +18,9 @@ public class JCFMessageRepository implements MessageRepository {
 	}
 
 	@Override
-	public Message create(String content, UUID channelId, UUID userId) {
-		Message newMessage = new Message(content, channelId, userId);
-		data.put(newMessage.getId(), newMessage);
-		return newMessage;
+	public Message save(Message message) {
+		data.put(message.getId(), message);
+		return message;
 	}
 
 	@Override
@@ -46,19 +46,8 @@ public class JCFMessageRepository implements MessageRepository {
 	}
 
 	@Override
-	public void update(UUID id, String newContent) {
-		if (!data.containsKey(id)) {
-			throw new IllegalArgumentException("Message with ID " + id + " not found");
-		}
-		data.get(id).setContent(newContent);
-	}
-
-	@Override
-	public Message find(UUID id) {
-		if (!data.containsKey(id)) {
-			throw new IllegalArgumentException("Message with ID " + id + " not found");
-		}
-		return data.get(id);
+	public Optional<Message> find(UUID id) {
+		return Optional.ofNullable(data.get(id));
 	}
 
 	@Override
@@ -75,5 +64,10 @@ public class JCFMessageRepository implements MessageRepository {
 
 	public boolean isEmpty(UUID id) {
 		return !data.containsKey(id);
+	}
+
+	@Override
+	public Long count() {
+		return (long)data.size();
 	}
 }

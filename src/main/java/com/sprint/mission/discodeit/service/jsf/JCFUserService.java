@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.jsf;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.User;
@@ -31,7 +32,7 @@ public class JCFUserService implements UserService {
 			throw new IllegalArgumentException("Username already exists");
 		}
 
-		return userRepository.create(username, email, password);
+		return userRepository.save(new User(username, email, password));
 
 	}
 
@@ -51,17 +52,19 @@ public class JCFUserService implements UserService {
 		if (newPassword == null || newPassword.isEmpty()) {
 			throw new IllegalArgumentException("Password cannot be null or empty");
 		}
+		User targetUser = userRepository.find(userId)
+		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
+		targetUser.setUsername(newUsername);
+		targetUser.setEmail(newEmail);
+		targetUser.setPassword(newPassword);
 
-		if (userRepository.findByUsername(newUsername) != null) {
-			throw new IllegalArgumentException("Username already exists");
-		}
-
-		userRepository.update(userId, newUsername, newEmail, newPassword);
+		userRepository.save(targetUser);
 	}
 
 	@Override
 	public User read(UUID userId) {
-		return userRepository.find(userId);
+		return userRepository.find(userId)
+		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
 	}
 
 	@Override

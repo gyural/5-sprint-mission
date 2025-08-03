@@ -63,12 +63,14 @@ public class JavaApplication {
 
 		String newName = "업데이트된 채널";
 		String newDescription = "업데이트된 채널 설명";
+		int beforeUpdateCount = channelService.readAll().size();
 
 		channelService.update(channel.getId(), channel.getChannelType(), newName, newDescription);
 
 		Channel channelToValidate = channelService.read(channel.getId());
 		boolean isUpdated = channelToValidate.getName().equals(newName) &&
-		  channelToValidate.getDescription().equals(newDescription);
+		  channelToValidate.getDescription().equals(newDescription) &&
+		  channelService.readAll().size() == beforeUpdateCount;
 
 		System.out.println(isUpdated ?
 		  "채널 업데이트 테스트 통과 ✅" :
@@ -115,12 +117,14 @@ public class JavaApplication {
 		String newUsername = "updatedUser";
 		String newEmail = "updateEmail@codeit.com";
 		String newPassword = "updatedPassword1234";
+		int beforeUpdateCount = userService.readAll().size();
 
 		userService.update(user.getId(), newUsername, newEmail, newPassword);
 
 		User userToValidate = userService.read(user.getId());
 		boolean isUpdated = userToValidate.getUsername().equals(newUsername) &&
-		  userToValidate.getEmail().equals(newEmail);
+		  userToValidate.getEmail().equals(newEmail) &&
+		  beforeUpdateCount == userService.readAll().size();
 
 		System.out.println(isUpdated ?
 		  "사용자 업데이트 테스트 통과 ✅" :
@@ -171,12 +175,13 @@ public class JavaApplication {
 
 	static void messageUpdateTest(MessageService messageService, Message message) {
 		System.out.print("MessageUpdateTest.......................");
-
 		String newContent = "업데이트된 메시지 내용";
 		messageService.update(message.getId(), newContent);
+		int beforeUpdateCount = messageService.readAll().size();
 
 		Message updatedMessage = messageService.read(message.getId());
-		boolean isUpdated = updatedMessage.getContent().equals(newContent);
+		boolean isUpdated = updatedMessage.getContent().equals(newContent) &&
+		  messageService.readAll().size() == beforeUpdateCount;
 
 		System.out.println(isUpdated ?
 		  "메시지 업데이트 테스트 통과 ✅" :

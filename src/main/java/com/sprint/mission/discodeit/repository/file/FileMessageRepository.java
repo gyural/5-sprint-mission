@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Message;
@@ -39,11 +40,11 @@ public class FileMessageRepository implements MessageRepository {
 	}
 
 	@Override
-	public Message create(String content, UUID channelId, UUID userId) {
-		Message newMessage = new Message(content, channelId, userId);
-		List<Message> messages = findAll();
-		messages = new ArrayList<>(messages);
-		messages.add(newMessage);
+	public Message save(Message message) {
+		List<Message> messages = new ArrayList<>(findAll());
+		// 중복된 ID가 있을 경우 제거
+		messages.removeIf(existingMessage -> existingMessage.getId().equals(message.getId()));
+		messages.add(message);
 
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
@@ -52,7 +53,7 @@ public class FileMessageRepository implements MessageRepository {
 			throw new RuntimeException(e);
 		}
 
-		return newMessage;
+		return message;
 	}
 
 	@Override
@@ -104,30 +105,10 @@ public class FileMessageRepository implements MessageRepository {
 	}
 
 	@Override
-	public void update(UUID id, String newContent) {
-		List<Message> messages = findAll();
-		messages = new ArrayList<>(messages);
-		Message messageToUpdate = messages.stream()
-		  .filter(message -> message.getId().equals(id))
-		  .findFirst()
-		  .orElseThrow(() -> new IllegalArgumentException("Message with ID " + id + " not found"));
-
-		messageToUpdate.setContent(newContent);
-
-		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
-			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-			oos.writeObject(messages);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Override
-	public Message find(UUID id) {
+	public Optional<Message> find(UUID id) {
 		return findAll().stream()
 		  .filter(message -> message.getId().equals(id))
-		  .findFirst()
-		  .orElseThrow(() -> new IllegalArgumentException("Message with ID " + id + " not found"));
+		  .findFirst();
 	}
 
 	@Override
@@ -155,5 +136,10 @@ public class FileMessageRepository implements MessageRepository {
 	public boolean isEmpty(UUID messageId) {
 		return findAll().stream()
 		  .noneMatch(message -> message.getId().equals(messageId));
+	}
+
+	@Override
+	public Long count() {
+		return findAll().isEmpty() ? 0L : (long)findAll().size();
 	}
 }
