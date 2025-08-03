@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.file;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.User;
@@ -28,7 +29,7 @@ public class FileUserService implements UserService {
 			throw new IllegalArgumentException("Password cannot be null or empty");
 		}
 
-		return userRepository.create(username, email, password);
+		return userRepository.save(new User(username, email, password));
 	}
 
 	@Override
@@ -49,12 +50,20 @@ public class FileUserService implements UserService {
 			throw new IllegalArgumentException("New password cannot be null or empty");
 		}
 
-		userRepository.update(userId, newUsername, newEmail, newPassword);
+		User targetUser = userRepository.find(userId)
+		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found")
+		  );
+		targetUser.setUsername(newUsername);
+		targetUser.setEmail(newEmail);
+		targetUser.setPassword(newPassword);
+
+		userRepository.save(targetUser);
 	}
 
 	@Override
 	public User read(UUID userId) {
-		return userRepository.find(userId);
+		return userRepository.find(userId)
+		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
 	}
 
 	@Override
