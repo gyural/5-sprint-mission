@@ -7,17 +7,14 @@ import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.alarm.MessageAlarmService;
 
 public class JCFMessageService implements MessageService {
 	public final Map<UUID, Message> data;
 	private final JCFUserService userService;
-	private final MessageAlarmService messageAlarmService;
 
-	public JCFMessageService(JCFUserService userService, MessageAlarmService messageAlarmService) {
+	public JCFMessageService(JCFUserService userService) {
 		data = new HashMap<>();
 		this.userService = userService;
-		this.messageAlarmService = messageAlarmService;
 	}
 
 	@Override
@@ -31,8 +28,6 @@ public class JCFMessageService implements MessageService {
 		}
 		Message newMessage = new Message(content, userId, channelId, userService.read(userId).getUsername());
 		data.put(newMessage.getId(), newMessage);
-
-		messageAlarmService.sendMessageAlarm(newMessage);
 	}
 
 	@Override
