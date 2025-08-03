@@ -48,9 +48,4 @@ public class JCFChannelService implements ChannelService {
 		data.get(id).setName(newChannelName);
 		data.get(id).setDescription(newDescription);
 	}
-
-	@Override
-	public boolean isEmpty(UUID id) {
-		return data.get(id) == null;
-	}
 }

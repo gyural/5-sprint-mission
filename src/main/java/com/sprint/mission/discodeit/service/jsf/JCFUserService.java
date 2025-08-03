@@ -35,7 +35,7 @@ public class JCFUserService implements UserService {
 		if (newUsername == null || newUsername.isEmpty()) {
 			throw new IllegalArgumentException("New username cannot be null or empty");
 		}
-
+		
 		User user = data.get(userId);
 		user.setUsername(newUsername);
 		user.setUpdatedAt(System.currentTimeMillis());
@@ -49,8 +49,4 @@ public class JCFUserService implements UserService {
 		return data.get(userId);
 	}
 
-	@Override
-	public boolean isEmpty(UUID userId) {
-		return data.get(userId) == null;
-	}
 }

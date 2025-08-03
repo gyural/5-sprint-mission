@@ -6,13 +6,13 @@ import java.util.UUID;
 import com.sprint.mission.discodeit.entity.Message;
 
 public interface MessageService {
-	void create(String content, UUID channelId, UUID userId);
+	void create(String content, Long channelId, String userId);
 
 	void delete(UUID id);
 
 	void update(UUID id, String newContent);
 
-	Message read(UUID id);
+	void read(UUID id);
 
 	List<Message> readAllByChannelId(UUID channelId);
 }
