@@ -9,7 +9,7 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
 
 public class JCFMessageService implements MessageService {
-	public static final Map<UUID, Message> data = new HashMap<>();
+	private static final Map<UUID, Message> data = new HashMap<>();
 	private final JCFUserService userService = new JCFUserService();
 	private final JCFChannelService channelService = new JCFChannelService();
 
@@ -69,10 +69,4 @@ public class JCFMessageService implements MessageService {
 		  .filter(message -> message.getChannelId().equals(channelId)).toList();
 	}
 
-	@Override
-	public void deleteAll() {
-		data.clear();
-		userService.deleteAll();
-		channelService.deleteAll();
-	}
 }

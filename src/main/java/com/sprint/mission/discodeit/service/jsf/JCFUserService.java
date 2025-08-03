@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.jsf;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -9,7 +8,7 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 
 public class JCFUserService implements UserService {
-	public static final Map<UUID, User> data = new HashMap<>();
+	private static final Map<UUID, User> data = new HashMap<>();
 
 	@Override
 	public void create(String username) {
@@ -51,17 +50,7 @@ public class JCFUserService implements UserService {
 	}
 
 	@Override
-	public List<User> readAll() {
-		return data.values().stream().toList();
-	}
-
-	@Override
 	public boolean isEmpty(UUID userId) {
 		return data.get(userId) == null;
-	}
-
-	@Override
-	public void deleteAll() {
-		data.clear();
 	}
 }

@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.User;
@@ -14,10 +13,6 @@ public interface UserService {
 
 	User read(UUID userId);
 
-	List<User> readAll();
-
 	boolean isEmpty(UUID userId);
-
-	void deleteAll();
 
 }
