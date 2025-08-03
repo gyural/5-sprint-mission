@@ -17,7 +17,7 @@ public class Message implements Serializable {
 	private UUID channelId;
 	private String authorName; // 유저가 채널을 나가도 메시지의 작성자는 남아있어야 하므로, authorId와 authorName을 분리
 
-	public Message(String content, UUID channelId, UUID authorId) {
+	public Message(String content, UUID authorId, UUID channelId) {
 		this.id = UUID.randomUUID();
 		this.createdAt = System.currentTimeMillis();
 		this.updatedAt = null;
