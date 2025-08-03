@@ -1,32 +1,27 @@
 package com.sprint.mission.discodeit.service.jsf;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
-import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.alarm.MessageAlarmService;
 
 public class JCFMessageService implements MessageService {
-
-	private final JCFMessageRepository messageRepository;
-	private final JCFChannelRepository channelRepository;
-
+	public final Map<UUID, Message> data;
 	private final JCFUserService userService;
 	private final MessageAlarmService messageAlarmService;
 
-	public JCFMessageService(JCFMessageRepository messageRepository, JCFChannelRepository channelRepository,
-	  JCFUserService userService, MessageAlarmService messageAlarmService) {
-		this.messageRepository = messageRepository;
-		this.channelRepository = channelRepository;
+	public JCFMessageService(JCFUserService userService, MessageAlarmService messageAlarmService) {
+		data = new HashMap<>();
 		this.userService = userService;
 		this.messageAlarmService = messageAlarmService;
 	}
 
 	@Override
-	public Message create(String content, UUID channelId, UUID userId) {
+	public void create(String content, UUID channelId, UUID userId) {
 		if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content cannot be null or empty");
 		}
@@ -34,67 +29,78 @@ public class JCFMessageService implements MessageService {
 		if (userId == null || userService.isEmpty(userId)) {
 			throw new IllegalArgumentException("User ID cannot be null or empty");
 		}
+		Message newMessage = new Message(content, userId, channelId, userService.read(userId).getUsername());
+		data.put(newMessage.getId(), newMessage);
 
-		if (channelId == null || channelRepository.isEmpty(channelId)) {
-			throw new IllegalArgumentException("Channel ID cannot be null or empty");
-		}
-
-		// 1. 데이터 저장
-		Message newMessage = messageRepository.create(content, channelId, userId);
-		// 2. 채널에 참여한 사용자들에게 알림을 전송
 		messageAlarmService.sendMessageAlarm(newMessage);
-
-		return newMessage;
 	}
 
 	@Override
 	public Message read(UUID id) {
-		return messageRepository.find(id);
+		if (!data.containsKey(id)) {
+			throw new IllegalArgumentException("Message with ID " + id + " not found");
+		}
+
+		return data.get(id);
+
 	}
 
 	@Override
 	public List<Message> readAll() {
-		return messageRepository.findAll();
+		return data.values().stream().toList();
 	}
 
 	@Override
 	public void delete(UUID id) {
-		messageRepository.delete(id);
+		if (!data.containsKey(id)) {
+			throw new IllegalArgumentException("Message with ID " + id + " not found");
+		}
+
+		data.remove(id);
 	}
 
 	@Override
 	public void deleteAll() {
-		messageRepository.deleteAll();
-
+		data.clear();
 	}
 
 	@Override
 	public void deleteByChannelId(UUID channelId) {
-		if (channelId == null || channelRepository.isEmpty(channelId)) {
+		if (channelId == null) {
 			throw new IllegalArgumentException("Channel ID cannot be null or empty");
 		}
-		// 채널에 속한 모든 메시지를 삭제
-		messageRepository.deleteByChannelId(channelId);
+
+		List<Message> messagesToDelete = readAllByChannelId(channelId);
+		for (Message message : messagesToDelete) {
+			delete(message.getId());
+		}
 	}
 
 	@Override
 	public void update(UUID id, String newContent) {
+		if (!data.containsKey(id)) {
+			throw new IllegalArgumentException("Message with ID " + id + " not found");
+		}
 
 		if (newContent == null || newContent.isEmpty()) {
-			throw new IllegalArgumentException("Content cannot be null or empty");
+			throw new IllegalArgumentException("New content cannot be null or empty");
 		}
 
-		if (id == null || messageRepository.isEmpty(id)) {
-			throw new IllegalArgumentException("Message ID cannot be null or empty");
-		}
-
-		// 메시지 내용 수정
-		messageRepository.update(id, newContent);
+		Message message = data.get(id);
+		message.setContent(newContent);
 	}
 
 	@Override
 	public List<Message> readAllByChannelId(UUID channelId) {
-		return messageRepository.readAllByChannelId(channelId);
+		return data.values().stream()
+		  .filter(message -> message.getChannelId().equals(channelId)).toList();
 	}
 
+	@Override
+	public String toString() {
+		return "JCFMessageService{" +
+		  "data=" + data +
+		  ", userService=" + userService +
+		  '}';
+	}
 }

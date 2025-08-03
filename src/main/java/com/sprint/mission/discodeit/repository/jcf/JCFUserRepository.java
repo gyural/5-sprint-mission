@@ -35,9 +35,13 @@ public class JCFUserRepository implements UserRepository {
 
 	@Override
 	public void update(UUID userId, String newUsername, String newEmail, String newPassword) {
+		// 일반 데이터 수정
 		data.get(userId).setUsername(newUsername);
 		data.get(userId).setEmail(newEmail);
 		data.get(userId).setPassword(newPassword);
+
+		// 메타 데이터 수정
+		data.get(userId).setUpdatedAt(System.currentTimeMillis());
 	}
 
 	@Override

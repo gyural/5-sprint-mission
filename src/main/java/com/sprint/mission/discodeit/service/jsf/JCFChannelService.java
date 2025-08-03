@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 
@@ -19,18 +18,8 @@ public class JCFChannelService implements ChannelService {
 	}
 
 	@Override
-	public Channel create(ChannelType channelType, String name, String description) {
-		if (name == null || name.isEmpty()) {
-			throw new IllegalArgumentException("Channel name cannot be null or empty");
-		}
-		if (description == null || description.isEmpty()) {
-			throw new IllegalArgumentException("Channel description cannot be null or empty");
-		}
-		if (channelType == null) {
-			throw new IllegalArgumentException("Channel type cannot be null");
-		}
-
-		return channelRepository.create(channelType, name, description);
+	public void create(String name, String description) {
+		channelRepository.create(name, description);
 	}
 
 	@Override
@@ -52,18 +41,9 @@ public class JCFChannelService implements ChannelService {
 	}
 
 	@Override
-	public void update(UUID id, ChannelType newChannelType, String newChannelName, String newDescription) {
-		if (newChannelName == null || newChannelName.isEmpty()) {
-			throw new IllegalArgumentException("Channel name cannot be null or empty");
-		}
-		if (newDescription == null || newDescription.isEmpty()) {
-			throw new IllegalArgumentException("Channel description cannot be null or empty");
-		}
-		if (newChannelType == null) {
-			throw new IllegalArgumentException("Channel type cannot be null");
-		}
+	public void update(UUID id, String newChannelName, String newDescription) {
 
-		channelRepository.update(id, newChannelType, newChannelName, newDescription);
+		channelRepository.update(id, newChannelName, newDescription);
 	}
 
 	@Override

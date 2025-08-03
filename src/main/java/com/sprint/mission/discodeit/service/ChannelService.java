@@ -4,10 +4,9 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.ChannelType;
 
 public interface ChannelService {
-	public Channel create(ChannelType channelType, String name, String description);
+	public void create(String name, String description);
 
 	public Channel read(UUID id);
 
@@ -15,7 +14,7 @@ public interface ChannelService {
 
 	public void delete(UUID id);
 
-	public void update(UUID id, ChannelType channelType, String newChannelName, String newDescription);
+	public void update(UUID id, String newChannelName, String newDescription);
 
 	boolean isEmpty(UUID id);
 

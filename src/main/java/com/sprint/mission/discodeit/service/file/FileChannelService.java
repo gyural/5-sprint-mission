@@ -4,14 +4,13 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 public class FileChannelService implements ChannelService {
 
 	@Override
-	public Channel create(ChannelType channelType, String name, String description) {
-		return null;
+	public void create(String name, String description) {
+
 	}
 
 	@Override
@@ -30,7 +29,7 @@ public class FileChannelService implements ChannelService {
 	}
 
 	@Override
-	public void update(UUID id, ChannelType channelType, String newChannelName, String newDescription) {
+	public void update(UUID id, String newChannelName, String newDescription) {
 
 	}
 

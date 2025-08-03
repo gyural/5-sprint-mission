@@ -9,8 +9,8 @@ import com.sprint.mission.discodeit.service.MessageService;
 public class FileMessageService implements MessageService {
 
 	@Override
-	public Message create(String content, UUID channelId, UUID userId) {
-		return null;
+	public void create(String content, UUID channelId, UUID userId) {
+
 	}
 
 	@Override
