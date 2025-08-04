@@ -22,6 +22,8 @@ import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.domain.enums.ContentType;
+import com.sprint.mission.discodeit.domain.request.UserLoginRequest;
+import com.sprint.mission.discodeit.domain.response.UserLoginResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
@@ -32,6 +34,7 @@ import com.sprint.mission.discodeit.repository.file.FileUserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.basic.AuthService;
 import com.sprint.mission.discodeit.service.basic.BasicChannelService;
 import com.sprint.mission.discodeit.service.basic.BasicMessageService;
 import com.sprint.mission.discodeit.service.basic.BasicUserService;
@@ -73,6 +76,8 @@ public class DiscodeitApplication {
 		  MessageCreateDTO.builder().channelId(channel.getId()).content("안녕하세요").userId(author.getId()).build());
 	}
 
+	// TODO: 사용자 생성 테스트
+	// - 공개 비공개 채널 검증
 	static void channelCreateTest(ChannelService channelService) {
 		System.out.print("ChannelCreateTest.......................");
 		Channel channel = channelService.create(
@@ -353,6 +358,25 @@ public class DiscodeitApplication {
 		messageService.deleteAll();
 	}
 
+	static void authLoginTest(User user, AuthService authService) {
+		System.out.print("AuthLoginTest.......................");
+
+		// Given
+		UserLoginRequest successRequest = UserLoginRequest.builder()
+		  .username("woody")
+		  .password("woody1234")
+		  .build();
+
+		UserLoginResponse successResponse = authService.login(successRequest);
+
+		boolean isValid = successResponse.isSuccess() && successResponse.getUser() != null &&
+		  successResponse.getUser().getUsername().equals(successRequest.getUsername());
+
+		System.out.println(isValid ?
+		  "로그인 테스트 통과 ✅" :
+		  "로그인 테스트 실패 ❌");
+	}
+
 	public static void main(String[] args) {
 		ConfigurableApplicationContext context = SpringApplication.run(DiscodeitApplication.class, args);
 
@@ -366,6 +390,9 @@ public class DiscodeitApplication {
 		UserService BasicUserService = context.getBean(BasicUserService.class);
 		MessageService BasicMessageService = context.getBean(BasicMessageService.class);
 		ChannelService BasicChannelService = context.getBean(BasicChannelService.class);
+
+		// setup-3 service 초기화
+		AuthService authService = context.getBean(AuthService.class);
 
 		BinaryContent binaryContent = setupBinaryContent(fileBinaryContentRepository);
 		System.out.println(binaryContent);
@@ -438,6 +465,17 @@ public class DiscodeitApplication {
 		  "┃ ✅ END MESSAGE TEST           ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
 		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+
+		// 💌💌💌 Message Test Start 💌💌💌
+		System.out.println("\n" +
+		  "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
+		  "┃     🙋 USER LOGIN TEST        ┃\n" +
+		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+		User fileUserForLogin = setupUser(BasicUserService, binaryContent2);
+		authLoginTest(fileUserForLogin, authService);
+		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
+		  "┃ ✅ END USER LOGIN TEST        ┃\n" +
+		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
 
 	}
 }
