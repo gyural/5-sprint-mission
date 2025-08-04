@@ -6,18 +6,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
+import com.sprint.mission.discodeit.domain.dto.UserReadDTO;
 import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
 import com.sprint.mission.discodeit.domain.entity.User;
+import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 public class JCFUserService implements UserService {
 
 	private final JCFUserRepository userRepository;
-
-	public JCFUserService(JCFUserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
+	private final UserStatusRepository userStatusRepository;
 
 	@Override
 	public User create(UserCreateDTO dto) {
@@ -40,7 +43,7 @@ public class JCFUserService implements UserService {
 			throw new IllegalArgumentException("Username already exists");
 		}
 
-		return userRepository.create(new User(username, email, password, null));
+		return userRepository.save(new User(username, email, password, null));
 
 	}
 
@@ -57,14 +60,14 @@ public class JCFUserService implements UserService {
 		String newEmail = dto.getNewEmail();
 		String newPassword = dto.getNewPassword();
 
-		if (newUsername == null || newUsername.isEmpty()) {
-			throw new IllegalArgumentException("Username cannot be null or empty");
+		if (newUsername.isEmpty()) {
+			throw new IllegalArgumentException("Username cannot be empty");
 		}
-		if (newEmail == null || newEmail.isEmpty()) {
-			throw new IllegalArgumentException("Email cannot be null or empty");
+		if (newEmail.isEmpty()) {
+			throw new IllegalArgumentException("Email cannot be empty");
 		}
-		if (newPassword == null || newPassword.isEmpty()) {
-			throw new IllegalArgumentException("Password cannot be null or empty");
+		if (newPassword.isEmpty()) {
+			throw new IllegalArgumentException("Password cannot be empty");
 		}
 		User targetUser = userRepository.find(userId)
 		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
@@ -72,17 +75,26 @@ public class JCFUserService implements UserService {
 		targetUser.setEmail(newEmail);
 		targetUser.setPassword(newPassword);
 
-		if (userRepository.findByUsername(newUsername) != null) {
-			throw new IllegalArgumentException("Username already exists");
-		}
-
-		userRepository.update(userId, targetUser);
+		userRepository.save(targetUser);
 	}
 
 	@Override
-	public User read(UUID userId) {
-		return userRepository.find(userId)
+	public UserReadDTO read(UUID userId) {
+		User user = userRepository.find(userId)
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
+
+		UserStatus status = userStatusRepository.findByUserId(userId).orElseThrow(
+		  () -> new NoSuchElementException("UserStatus for user ID " + userId + " not found"));
+
+		return UserReadDTO.builder()
+		  .id(user.getId())
+		  .createdAt(user.getCreatedAt())
+		  .updatedAt(user.getUpdatedAt())
+		  .username(user.getUsername())
+		  .email(user.getEmail())
+		  .profileId(user.getProfileId())
+		  .isOnline(status.isOnline())
+		  .build();
 	}
 
 	@Override

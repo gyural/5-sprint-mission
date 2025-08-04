@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
+import com.sprint.mission.discodeit.domain.dto.UserReadDTO;
 import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
 import com.sprint.mission.discodeit.domain.entity.User;
 
@@ -14,7 +15,7 @@ public interface UserService {
 
 	void update(UserUpdateDTO dto);
 
-	User read(UUID userId);
+	UserReadDTO read(UUID userId);
 
 	List<User> readAll();
 

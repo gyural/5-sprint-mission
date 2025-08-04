@@ -21,7 +21,7 @@ public class User implements Serializable {
 	private String password;
 
 	// Foreign key
-	private final UUID profileId;
+	private UUID profileId;
 
 	public User(String username, String email, String password, UUID profileId) {
 		this.id = UUID.randomUUID();
@@ -45,6 +45,11 @@ public class User implements Serializable {
 
 	public void setPassword(String password) {
 		this.password = password;
+		this.updatedAt = Instant.now();
+	}
+
+	public void setProfileId(UUID profileId) {
+		this.profileId = profileId;
 		this.updatedAt = Instant.now();
 	}
 

@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.domain.dto;
 
 import java.util.UUID;
 
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,5 +18,6 @@ public class UserUpdateDTO {
 	private String newUsername;
 	private String newEmail;
 	private String newPassword;
+	private BinaryContent newProfileImage;
 
 }

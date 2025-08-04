@@ -1,26 +1,29 @@
 package com.sprint.mission.discodeit.service.file;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
+import com.sprint.mission.discodeit.domain.dto.UserReadDTO;
 import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
 import com.sprint.mission.discodeit.domain.entity.User;
+import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 public class FileUserService implements UserService {
 
 	private final FileUserRepository userRepository;
-
-	public FileUserService(FileUserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
+	private final UserStatusRepository userStatusRepository;
 
 	@Override
 	public User create(UserCreateDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserCreateDTO cannot be null"));
 		String username = dto.getUsername();
 		String email = dto.getEmail();
 		String password = dto.getPassword();
@@ -35,7 +38,7 @@ public class FileUserService implements UserService {
 			throw new IllegalArgumentException("Password cannot be null or empty");
 		}
 
-		return userRepository.create(new User(username, email, password, null));
+		return userRepository.save(new User(username, email, password, null));
 	}
 
 	@Override
@@ -64,13 +67,30 @@ public class FileUserService implements UserService {
 		User targetUser = userRepository.find(userId)
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 
-		userRepository.update(userId, targetUser);
+		targetUser.setUsername(newUsername);
+		targetUser.setEmail(newEmail);
+		targetUser.setPassword(newPassword);
+
+		userRepository.save(targetUser);
 	}
 
 	@Override
-	public User read(UUID userId) {
-		return userRepository.find(userId)
+	public UserReadDTO read(UUID userId) {
+		User user = userRepository.find(userId)
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
+
+		UserStatus status = userStatusRepository.findByUserId(userId).orElseThrow(
+		  () -> new NoSuchElementException("UserStatus for user ID " + userId + " not found"));
+
+		return UserReadDTO.builder()
+		  .id(user.getId())
+		  .createdAt(user.getCreatedAt())
+		  .updatedAt(user.getUpdatedAt())
+		  .username(user.getUsername())
+		  .email(user.getEmail())
+		  .profileId(user.getProfileId())
+		  .isOnline(status.isOnline())
+		  .build();
 	}
 
 	@Override

@@ -7,15 +7,13 @@ import com.sprint.mission.discodeit.domain.entity.ReadStatus;
 
 public interface ReadStatusRepository {
 
-	public ReadStatus create(UUID userId, UUID channelId);
+	public ReadStatus save(UUID userId, UUID channelId);
 
 	public ReadStatus find(UUID id);
 
 	public List<ReadStatus> findAll();
 
 	public void delete(UUID id);
-
-	public void update(UUID id);
 
 	boolean isEmpty(UUID id);
 

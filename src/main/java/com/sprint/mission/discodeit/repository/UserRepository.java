@@ -11,11 +11,9 @@ import com.sprint.mission.discodeit.domain.entity.User;
 @Repository
 public interface UserRepository {
 
-	User create(User user);
+	User save(User user);
 
 	void delete(UUID userId);
-
-	void update(UUID userId, User user);
 
 	Optional<User> find(UUID userId);
 
@@ -26,4 +24,9 @@ public interface UserRepository {
 	void deleteAll();
 
 	Long count(); // 추가된 메소드: 전체 사용자 수를 반환하는 메소드
+
+	Optional<User> findByUsername(String username);
+
+	Optional<User> findByEmail(String username);
+
 }

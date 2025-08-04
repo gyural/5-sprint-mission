@@ -2,6 +2,7 @@ package com.sprint.mission;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,17 +13,22 @@ import com.sprint.mission.discodeit.domain.dto.ChannelUpdateDTO;
 import com.sprint.mission.discodeit.domain.dto.MessageCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.MessageUpdateDTO;
 import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
+import com.sprint.mission.discodeit.domain.dto.UserReadDTO;
 import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.entity.ChannelType;
 import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.domain.entity.User;
+import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.domain.enums.ContentType;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
 import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -32,11 +38,11 @@ import com.sprint.mission.discodeit.service.basic.BasicUserService;
 
 @SpringBootApplication
 public class DiscodeitApplication {
+
 	static BinaryContent setupBinaryContent(FileBinaryContentRepository fileBinaryContentRepository) {
 		byte[] bytes;
 		try {
 			Path imagePath = Path.of(System.getProperty("user.dir"), "dummyImage.png");
-			System.out.println("Absolute path for dummy image: " + imagePath.toAbsolutePath());
 			bytes = Files.readAllBytes(imagePath);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -44,12 +50,10 @@ public class DiscodeitApplication {
 
 		BinaryContent dummyBinaryContent = new BinaryContent(
 		  bytes, bytes.length, ContentType.IMAGE, "dummyImage.png");
-		return fileBinaryContentRepository.create(dummyBinaryContent);
+		return fileBinaryContentRepository.save(dummyBinaryContent);
 	}
 
 	static User setupUser(UserService userService, BinaryContent binaryContent) {
-		System.out.println("Setting up user for tests...");
-
 		return userService.create(
 		  UserCreateDTO.builder()
 			.username("woody")
@@ -126,66 +130,139 @@ public class DiscodeitApplication {
 		System.out.println(log);
 	}
 
-	// 좀더 촘촘하게 테스트 짜기
-	static void userCreateTest(UserService userService, FileBinaryContentRepository fileBinaryContentRepository) {
+	/**
+	 * 사용자 생성 테스트
+	 * - 프로필 이미지가 있는 경우와 없는 경우를 모두 테스트
+	 */
+	static void userCreateTest(
+	  UserService userService,
+	  FileBinaryContentRepository fileBinaryContentRepository,
+	  UserStatusRepository userStatusRepository) {
+		System.out.print("userCreateTest.......................");
+
 		// Given
-		BinaryContent binaryContent = setupBinaryContent(fileBinaryContentRepository);
-		UserCreateDTO dto =
+		BinaryContent userProfileImage = setupBinaryContent(fileBinaryContentRepository);
+		UserCreateDTO dtoWithProfileImage =
 		  UserCreateDTO.builder()
-			.username("newUser")
-			.email("newUser@codeit.com")
+			.username("newUser1")
+			.email("newUser1@codeit.com")
 			.password("newUser1234")
-			.binaryContent(binaryContent)
+			.binaryContent(userProfileImage)
+			.build();
+		UserCreateDTO dtoWithNoProfileImage =
+		  UserCreateDTO.builder()
+			.username("newUser2")
+			.email("newUser2@codeit.com")
+			.password("newUser1234")
 			.build();
 
 		// When
-		userService.create(dto);
+		User u1 = userService.create(dtoWithProfileImage);
+		User u2 = userService.create(dtoWithNoProfileImage);
 
-		// TODO: 테스트 완성하기
 		// Then
+		UserReadDTO userWithProfile = userService.read(u1.getId());
+		UserReadDTO userWithNoProfile = userService.read(u2.getId());
 
+		// 1. UserProfile가 생성 여부 확인
 		// UserProfile 잘 생성 되었는지 확인
+		boolean isProfileCreated = userWithProfile.getProfileId() != null &&
+		  userWithProfile.getProfileId().equals(userProfileImage.getId()) &&
+		  !fileBinaryContentRepository.isEmpty(userWithProfile.getProfileId());
+		if (!isProfileCreated) {
+			System.out.println("UserWithProfile 생성 실패 ❌");
+			return;
+		}
+		// UserProfile 없이 생성 되었는지 확인
+		boolean isNonProfileUserCreated = userWithNoProfile.getProfileId() == null;
+		if (!isNonProfileUserCreated) {
+			System.out.println("UserNoProfile 생성 실패 ❌");
+			return;
+		}
+		// 2. userStatus 잘 생성 되었는지 확인
+		List<UserStatus> userStatusList = userStatusRepository.findAll();
 
-		// userStatus 잘 생성 되었는지 확인
+		boolean isUserStatusCreate = userStatusList.stream()
+		  .anyMatch(userStatus -> userStatus.getUserId().equals(u1.getId()))
+		  && userStatusList.stream()
+		  .anyMatch(userStatus -> userStatus.getUserId().equals(u2.getId()));
 
-		// // User 가 잘 생성 되었는지 확인
-		// boolean isCreated = userService.read(user.getId()) != null;
-		//
-		// System.out.println(isCreated ?
-		//   "사용자 생성 테스트 통과 ✅" :
-		//   "사용자 생성 테스트 실패 ❌");
+		if (!isUserStatusCreate) {
+			System.out.println("userStatus 생성 실패 ❌");
+			return;
+		}
+		// 3. User 일반 필드 잘 생성 되었는지 확인
+		boolean isCreated = u1.getUsername().equals(dtoWithProfileImage.getUsername()) &&
+		  u1.getEmail().equals(dtoWithProfileImage.getEmail()) &&
+		  u1.getPassword().equals(dtoWithProfileImage.getPassword()) &&
+		  u2.getUsername().equals(dtoWithNoProfileImage.getUsername()) &&
+		  u2.getEmail().equals(dtoWithNoProfileImage.getEmail()) &&
+		  u2.getPassword().equals(dtoWithNoProfileImage.getPassword());
+		System.out.println(isCreated ?
+		  "사용자 생성 테스트 통과 ✅" :
+		  "사용자 생성 테스트 실패 ❌");
 	}
 
+	/**
+	 * 사용자 생성 테스트
+	 * - username, email 중복 검증 확인
+	 */
+	static void userCreateDuplicateTest(UserService userService) {
+
+	}
+
+	/**
+	 * 사용자 조회 테스트
+	 * - password는 제외하고 online 정보가 잘 조회되는지 확인
+	 */
 	static void userReadTest(UserService userService, User user) {
 		System.out.print("UserReadTest.......................");
-		User readUser = userService.read(user.getId());
+		UserReadDTO readUser = userService.read(user.getId());
 
 		boolean isValid = readUser.getId().equals(user.getId()) &&
+		  readUser.getCreatedAt().equals(user.getCreatedAt()) &&
 		  readUser.getUsername().equals(user.getUsername()) &&
-		  readUser.getEmail().equals(user.getEmail());
+		  readUser.getEmail().equals(user.getEmail()) &&
+		  readUser.getIsOnline() != null;
+		// 프로필 이미지가 있는 경우
+		if (user.getProfileId() != null) {
+			isValid = isValid && readUser.getProfileId().equals(user.getProfileId());
+		} else {
+			isValid = isValid && readUser.getProfileId() == null;
+		}
 
 		System.out.println(isValid ?
 		  "사용자 조회 테스트 통과 ✅" :
 		  "사용자 조회 테스트 실패 ❌");
 	}
 
-	static void userUpdateTest(UserService userService, User user) {
+	/**
+	 * 사용자 갱신 테스트
+	 * - 프로필 이미지를 대체할 수 있는지도 확인
+	 */
+	static void userUpdateTest(UserService userService, User user,
+	  FileBinaryContentRepository fileBinaryContentRepository) {
 		System.out.print("UserUpdateTest.......................");
 
 		String newUsername = "updatedUser";
 		String newEmail = "updateEmail@codeit.com";
 		String newPassword = "updatedPassword1234";
+		BinaryContent newProfileImage = setupBinaryContent(fileBinaryContentRepository);
 
 		userService.update(UserUpdateDTO.builder()
 		  .userId(user.getId())
 		  .newUsername(newUsername)
 		  .newEmail(newEmail)
 		  .newPassword(newPassword)
+		  .newProfileImage(newProfileImage)
 		  .build());
 
-		User userToValidate = userService.read(user.getId());
+		UserReadDTO userToValidate = userService.read(user.getId());
+
 		boolean isUpdated = userToValidate.getUsername().equals(newUsername) &&
-		  userToValidate.getEmail().equals(newEmail);
+		  userToValidate.getEmail().equals(newEmail) &&
+		  userToValidate.getProfileId().equals(newProfileImage.getId()) &&
+		  fileBinaryContentRepository.find(newProfileImage.getId()).isPresent();
 
 		System.out.println(isUpdated ?
 		  "사용자 업데이트 테스트 통과 ✅" :
@@ -193,12 +270,22 @@ public class DiscodeitApplication {
 
 	}
 
-	static void userDeleteTest(UserService userService, User user) {
+	/**
+	 * 사용자 삭제 테스트
+	 * - 사용자 삭제 후, 관련된 데이터도 삭제되는지 확인
+	 * @param userService
+	 * @param user
+	 */
+	static void userDeleteTest(UserService userService, User user, UserStatusRepository userStatusRepository,
+	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("UserDeleteTest.......................");
-
+		// when
 		userService.delete(user.getId());
 
-		String log = userService.isEmpty(user.getId()) ?
+		// then
+		String log = userService.isEmpty(user.getId()) &&
+		  userStatusRepository.findByUserId(user.getId()).isEmpty() &&
+		  binaryContentRepository.find(user.getProfileId()).isEmpty() ?
 		  "사용자 삭제 테스트 통과 ✅" :
 		  "사용자 삭제 테스트 실패 ❌";
 		System.out.println(log);
@@ -274,6 +361,7 @@ public class DiscodeitApplication {
 		FileChannelRepository fileChannelRepository = context.getBean(FileChannelRepository.class);
 		FileMessageRepository fileMessageRepository = context.getBean(FileMessageRepository.class);
 		FileBinaryContentRepository fileBinaryContentRepository = context.getBean(FileBinaryContentRepository.class);
+		FileUserStatusRepository userStatusRepository = context.getBean(FileUserStatusRepository.class);
 		// setup-2 Basic 서비스 초기화
 		UserService BasicUserService = context.getBean(BasicUserService.class);
 		MessageService BasicMessageService = context.getBean(BasicMessageService.class);
@@ -311,11 +399,18 @@ public class DiscodeitApplication {
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
 
 		BinaryContent binaryContent1 = setupBinaryContent(fileBinaryContentRepository);
-		User fileUserforBasic = setupUser(BasicUserService, binaryContent1);
-		userCreateTest(BasicUserService, fileBinaryContentRepository);
-		userReadTest(BasicUserService, fileUserforBasic);
-		userUpdateTest(BasicUserService, fileUserforBasic);
-		userDeleteTest(BasicUserService, fileUserforBasic);
+
+		userCreateTest(BasicUserService, fileBinaryContentRepository, userStatusRepository);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+
+		userReadTest(BasicUserService, setupUser(BasicUserService, binaryContent1));
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+
+		userUpdateTest(BasicUserService, setupUser(BasicUserService, binaryContent1), fileBinaryContentRepository);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+		userDeleteTest(BasicUserService, setupUser(BasicUserService, binaryContent1), userStatusRepository,
+		  fileBinaryContentRepository);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
 
 		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
 		  "┃ ✅ END USER TEST              ┃\n" +
