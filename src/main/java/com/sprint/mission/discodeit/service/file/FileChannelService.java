@@ -1,13 +1,17 @@
 package com.sprint.mission.discodeit.service.file;
 
+import static com.sprint.mission.discodeit.domain.dto.ReadChannelResponse.*;
+import static com.sprint.mission.discodeit.domain.enums.ChannelType.*;
+
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.domain.dto.ChannelCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.ChannelUpdateDTO;
+import com.sprint.mission.discodeit.domain.dto.ReadChannelResponse;
 import com.sprint.mission.discodeit.domain.entity.Channel;
-import com.sprint.mission.discodeit.domain.entity.ChannelType;
+import com.sprint.mission.discodeit.domain.enums.ChannelType;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
 import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -23,10 +27,9 @@ public class FileChannelService implements ChannelService {
 	}
 
 	@Override
-	public Channel create(ChannelCreateDTO dto) {
+	public Channel createPublic(ChannelCreateDTO dto) {
 		String name = dto.getName();
 		String description = dto.getDescription();
-		ChannelType channelType = dto.getChannelType();
 
 		if (name == null || name.isEmpty()) {
 			throw new IllegalArgumentException("Channel name cannot be null or empty");
@@ -34,21 +37,44 @@ public class FileChannelService implements ChannelService {
 		if (description == null || description.isEmpty()) {
 			throw new IllegalArgumentException("Channel description cannot be null or empty");
 		}
-		if (channelType == null) {
-			throw new IllegalArgumentException("Channel type cannot be null");
+
+		return channelRepository.save(new Channel(PUBLIC, name, description));
+	}
+
+	public Channel createPrivate(ChannelCreateDTO dto) {
+		String name = dto.getName();
+		String description = dto.getDescription();
+
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Channel name cannot be null or empty");
 		}
-		return channelRepository.save(new Channel(channelType, name, description));
+		if (description == null || description.isEmpty()) {
+			throw new IllegalArgumentException("Channel description cannot be null or empty");
+		}
+
+		return channelRepository.save(new Channel(PRIVATE, name, description));
 	}
 
 	@Override
-	public Channel read(UUID id) {
-		return channelRepository.find(id).orElseThrow(()
-		  -> new NoSuchElementException("Channel with ID " + id + " not found"));
+	public ReadChannelResponse read(UUID id) {
+		Channel channel = channelRepository.find(id)
+		  .orElseThrow(() -> new NoSuchElementException("Channel with ID " + id + " not found"));
+
+		return ReadChannelResponse.builder()
+		  .id(channel.getId())
+		  .name(channel.getName())
+		  .description(channel.getDescription())
+		  .channelType(channel.getChannelType())
+		  .createdAt(channel.getCreatedAt())
+		  .updatedAt(channel.getUpdatedAt())
+		  .build();
 	}
 
 	@Override
-	public List<Channel> readAll() {
-		return channelRepository.findAll();
+	public List<ReadChannelResponse> findAllByUserId(UUID userId) {
+		return channelRepository.findAll().stream()
+		  .map(c -> toReadChannelResponse(c, c.getCreatedAt(), List.of()))
+		  .toList();
 	}
 
 	@Override

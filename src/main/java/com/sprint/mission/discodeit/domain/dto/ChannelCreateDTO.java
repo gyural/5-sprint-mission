@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.domain.dto;
 
-import com.sprint.mission.discodeit.domain.entity.ChannelType;
+import java.util.List;
+
+import com.sprint.mission.discodeit.domain.entity.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,8 +15,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ChannelCreateDTO {
 
-	private ChannelType channelType;
 	private String name;
 	private String description;
+	private List<User> members;
 
 }

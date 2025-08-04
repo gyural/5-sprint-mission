@@ -47,6 +47,10 @@ public class Message implements Serializable {
 
 	}
 
+	public Instant getLastEditedAt() {
+		return updatedAt != null ? updatedAt : createdAt;
+	}
+
 	public void setContent(String content) {
 		this.content = content;
 		this.updatedAt = Instant.now();

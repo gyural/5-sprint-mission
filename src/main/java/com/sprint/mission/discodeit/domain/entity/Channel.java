@@ -6,6 +6,8 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.sprint.mission.discodeit.domain.enums.ChannelType;
+
 import lombok.Getter;
 
 @Getter

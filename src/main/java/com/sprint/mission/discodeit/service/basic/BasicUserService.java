@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -59,10 +58,7 @@ public class BasicUserService implements UserService {
 		  profileImage != null ? binaryContentRepository.save(profileImage).getId() : null
 		);
 
-		// 3. userStatus 초기화
-		userStatusRepository.save(new UserStatus(newUser.getId()));
-
-		// 4. 데이터 저장
+		// 3. 데이터 저장
 		return userRepository.save(newUser);
 	}
 
@@ -72,9 +68,7 @@ public class BasicUserService implements UserService {
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " does not exist"));
 
 		// 1. User Status 삭제
-		UserStatus userStatus = userStatusRepository.findByUserId(userId)
-		  .orElseThrow(() -> new NoSuchElementException("UserStatus for user ID " + userId + " not found"));
-		userStatusRepository.delete(userStatus.getId());
+		userStatusRepository.deleteByUserId(userId);
 		// 2. Profile Image 삭제
 		if (binaryContentRepository.find(targetUser.getProfileId()).isPresent()) {
 			binaryContentRepository.delete(targetUser.getProfileId());
@@ -124,8 +118,10 @@ public class BasicUserService implements UserService {
 		User user = userRepository.find(userId)
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 
-		UserStatus status = userStatusRepository.findByUserId(userId).orElseThrow(
-		  () -> new NoSuchElementException("UserStatus for user ID " + userId + " not found"));
+		List<UserStatus> status = userStatusRepository.findByUserId(userId);
+
+		boolean isOnline = status.stream()
+		  .anyMatch(UserStatus::isOnline);
 
 		return UserReadDTO.builder()
 		  .id(user.getId())
@@ -134,7 +130,7 @@ public class BasicUserService implements UserService {
 		  .username(user.getUsername())
 		  .email(user.getEmail())
 		  .profileId(user.getProfileId())
-		  .isOnline(status.isOnline())
+		  .isOnline(isOnline)
 		  .build();
 	}
 

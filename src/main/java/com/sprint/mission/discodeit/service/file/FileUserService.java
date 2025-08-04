@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.file;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -79,8 +78,10 @@ public class FileUserService implements UserService {
 		User user = userRepository.find(userId)
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 
-		UserStatus status = userStatusRepository.findByUserId(userId).orElseThrow(
-		  () -> new NoSuchElementException("UserStatus for user ID " + userId + " not found"));
+		List<UserStatus> status = userStatusRepository.findByUserId(userId);
+
+		boolean isOnline = status.stream()
+		  .anyMatch(UserStatus::isOnline);
 
 		return UserReadDTO.builder()
 		  .id(user.getId())
@@ -89,7 +90,7 @@ public class FileUserService implements UserService {
 		  .username(user.getUsername())
 		  .email(user.getEmail())
 		  .profileId(user.getProfileId())
-		  .isOnline(status.isOnline())
+		  .isOnline(isOnline)
 		  .build();
 	}
 
