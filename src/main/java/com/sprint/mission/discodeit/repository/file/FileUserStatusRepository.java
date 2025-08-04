@@ -65,10 +65,17 @@ public class FileUserStatusRepository implements UserStatusRepository {
 	}
 
 	@Override
-	public Optional<UserStatus> findByUserId(UUID userId) {
+	public List<UserStatus> findByUserId(UUID userId) {
 		return findAll().stream()
 		  .filter(u -> u.getUserId().equals(userId))
-		  .findFirst();
+		  .toList();
+	}
+
+	@Override
+	public List<UserStatus> findByChannelId(UUID channelId) {
+		return findAll().stream()
+		  .filter(u -> u.getChannelId().equals(channelId))
+		  .toList();
 	}
 
 	@Override
@@ -114,6 +121,38 @@ public class FileUserStatusRepository implements UserStatusRepository {
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 			oos.writeObject(new ArrayList<UserStatus>());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void deleteByUserId(UUID userId) {
+		List<UserStatus> userStatusList = new ArrayList<>(findAll());
+		int beforeSize = userStatusList.size();
+		userStatusList.removeIf(u -> u.getUserId().equals(userId));
+
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(userStatusList);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void deleteByChannelId(UUID channelId) {
+		List<UserStatus> userStatusList = new ArrayList<>(findAll());
+		int beforeSize = userStatusList.size();
+		userStatusList.removeIf(u -> u.getChannelId().equals(channelId));
+
+		// if (userStatusList.size() == beforeSize) {
+		// 	throw new IllegalArgumentException("UserStatus with Channel ID " + channelId + " not found");
+		// }
+
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(userStatusList);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

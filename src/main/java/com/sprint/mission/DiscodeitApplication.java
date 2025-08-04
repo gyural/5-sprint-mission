@@ -1,7 +1,10 @@
 package com.sprint.mission;
 
+import static com.sprint.mission.discodeit.domain.enums.ChannelType.*;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.boot.SpringApplication;
@@ -12,12 +15,12 @@ import com.sprint.mission.discodeit.domain.dto.ChannelCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.ChannelUpdateDTO;
 import com.sprint.mission.discodeit.domain.dto.MessageCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.MessageUpdateDTO;
+import com.sprint.mission.discodeit.domain.dto.ReadChannelResponse;
 import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.UserReadDTO;
 import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.Channel;
-import com.sprint.mission.discodeit.domain.entity.ChannelType;
 import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
@@ -25,6 +28,8 @@ import com.sprint.mission.discodeit.domain.enums.ContentType;
 import com.sprint.mission.discodeit.domain.request.UserLoginRequest;
 import com.sprint.mission.discodeit.domain.response.UserLoginResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
@@ -66,9 +71,9 @@ public class DiscodeitApplication {
 			.build());
 	}
 
-	static Channel setupChannel(ChannelService channelService) {
-		return channelService.create(
-		  ChannelCreateDTO.builder().channelType(ChannelType.PUBLIC).description("공지 채널입니다.").name("공지").build());
+	static Channel setupPUblicChannel(ChannelService channelService) {
+		return channelService.createPublic(
+		  ChannelCreateDTO.builder().description("공지 채널입니다.").name("공지").build());
 	}
 
 	static Message setupMessage(MessageService messageService, Channel channel, User author) {
@@ -76,31 +81,162 @@ public class DiscodeitApplication {
 		  MessageCreateDTO.builder().channelId(channel.getId()).content("안녕하세요").userId(author.getId()).build());
 	}
 
-	// TODO: 사용자 생성 테스트
-	// - 공개 비공개 채널 검증
-	static void channelCreateTest(ChannelService channelService) {
+	static void channelCreateTest(ChannelService channelService, UserStatusRepository userStatusRepository,
+	  UserRepository userRepository) {
 		System.out.print("ChannelCreateTest.......................");
-		Channel channel = channelService.create(
-		  ChannelCreateDTO.builder().channelType(ChannelType.PUBLIC).description("공지 채널입니다.").name("공지").build());
 
-		boolean isCreated = !channelService.isEmpty(channel.getId());
+		// Given & When
 
-		System.out.println(isCreated ?
+		// 1. Member List 생성
+		int size = 5;
+		for (int i = 1; i <= size; i++) {
+			userRepository.save(
+			  new User("member" + i, "member" + i + "@codeit.com", "member1234", null)
+			);
+		}
+		List<User> memberList = userRepository.findAll();
+
+		// 2. public 채널과 private 채널을 생성
+		Channel publicChannel = channelService.createPublic(
+		  ChannelCreateDTO.builder().description("공개 공지 채널입니다.").name("공개 공지").build());
+
+		Channel privateChannel = channelService.createPrivate(
+		  ChannelCreateDTO.builder().members(memberList).build());
+
+		// Then
+		// 1. UserStatus가 생성되었는지 확인
+		List<UserStatus> userStatusList = userStatusRepository.findAll();
+		boolean isMemberStatusCreated = memberList.stream()
+		  .allMatch(member -> userStatusList.stream()
+			.anyMatch(userStatus -> userStatus.getUserId().equals(member.getId())));
+		// 2. 채널이 잘 생성되었는지 확인
+		boolean isSuccess = !channelService.isEmpty(publicChannel.getId()) &&
+		  !channelService.isEmpty(privateChannel.getId()) &&
+		  publicChannel.getChannelType() == PUBLIC &&
+		  privateChannel.getChannelType() == PRIVATE &&
+		  publicChannel.getName().equals("공개 공지") &&
+		  publicChannel.getDescription().equals("공개 공지 채널입니다.") &&
+		  isMemberStatusCreated;
+
+		System.out.println(isSuccess ?
 		  "채널 생성 테스트 통과 ✅" :
 		  "채널 생성 테스트 실패 ❌");
 	}
 
-	static void channelReadTest(ChannelService channelService, Channel channel) {
+	static void channelReadTest(ChannelService channelService, UserRepository userRepository,
+	  MessageRepository messageRepository) {
 		System.out.print("channelReadTest.......................");
-		Channel readChannel = channelService.read(channel.getId());
 
-		boolean isValid = readChannel.getId().equals(channel.getId()) &&
-		  readChannel.getName().equals(channel.getName()) &&
-		  readChannel.getDescription().equals(channel.getDescription());
+		// Given & When
+
+		// 1.  MemberList 생성
+		int size = 5;
+		for (int i = 1; i <= size; i++) {
+			userRepository.save(
+			  new User("member" + i, "member" + i + "@codeit.com", "member1234", null)
+			);
+		}
+		List<User> memberList = userRepository.findAll();
+
+		// 2. public 채널과 private 채널을 생성
+		Channel publicChannel = channelService.createPublic(
+		  ChannelCreateDTO.builder().description("공개 공지 채널입니다.").name("공개 공지").build());
+
+		Channel privateChannel = channelService.createPrivate(
+		  ChannelCreateDTO.builder().members(memberList).build());
+
+		// 3. Message 생성
+		messageRepository.save(
+		  new Message(
+			"안녕하세요", memberList.get(0).getId(), privateChannel.getId(), memberList.get(0).getUsername())
+		);
+		Message lastMessage = messageRepository.findAllByChannelId(privateChannel.getId()).get(0);
+
+		ReadChannelResponse readPublicChannel = channelService.read(publicChannel.getId());
+		ReadChannelResponse readPrivateChannel = channelService.read(privateChannel.getId());
+
+		boolean isPublicChannelValid = readPublicChannel.getId().equals(publicChannel.getId()) &&
+		  readPublicChannel.getName().equals(publicChannel.getName()) &&
+		  readPublicChannel.getDescription().equals(publicChannel.getDescription());
+
+		boolean isMemberIdListValid = !readPrivateChannel.getMembersIDList().isEmpty() &&
+		  new HashSet<>(readPrivateChannel.getMembersIDList()).containsAll(
+			memberList.stream().map(User::getId).toList());
+		// TODO FALSe
+		boolean isPrivateChannelValid =
+		  readPrivateChannel.getMembersIDList().size() == memberList.size() &&
+			readPrivateChannel.getChannelType() == privateChannel.getChannelType() &&
+			readPrivateChannel.getId().equals(privateChannel.getId()) &&
+			readPrivateChannel.getLastMessageAt()
+			  .equals(lastMessage.getUpdatedAt() == null ? lastMessage.getCreatedAt() : lastMessage.getUpdatedAt());
+
+		boolean isValid = isPublicChannelValid &&
+		  isPrivateChannelValid &&
+		  isMemberIdListValid;
 
 		System.out.println(isValid ?
 		  "채널 조회 테스트 통과 ✅" :
 		  "채널 조회 테스트 실패 ❌");
+	}
+
+	// TODO: 채널 전체 조회 테스트
+	static void channelReadAllTest(UserRepository userRepository, MessageRepository messageRepository,
+	  ChannelService channelService, Channel channel) {
+		System.out.print("channelReadAllTest.......................");
+
+		// Given: 유저 2명 생성
+		User user1 = userRepository.save(new User("user1", "user1@codeit.com", "pw1", null));
+		User user2 = userRepository.save(new User("user2", "user2@codeit.com", "pw2", null));
+		User userNoChannel = userRepository.save(new User("user3", "user3@codeit.com", "pw3", null));
+
+		// PUBLIC 채널 생성
+		Channel publicChannel = channelService.createPublic(
+		  ChannelCreateDTO.builder().name("공지").description("공지 채널").build());
+
+		// PRIVATE 채널 생성 (user1, user2 참여)
+		List<User> members = List.of(user1, user2);
+		Channel privateChannel = channelService.createPrivate(
+		  ChannelCreateDTO.builder().members(members).build());
+
+		// 각 채널에 메시지 생성
+		Message pubMsg = messageRepository.save(
+		  new Message("public msg", user1.getId(), publicChannel.getId(), user1.getUsername()));
+		Message privMsg = messageRepository.save(
+		  new Message("private msg", user2.getId(), privateChannel.getId(), user2.getUsername()));
+
+		// When:
+		List<ReadChannelResponse> channelsReqByPublicUser = channelService.findAllByUserId(userNoChannel.getId());
+		List<ReadChannelResponse> channelsReqByPrivateUser = channelService.findAllByUserId(user1.getId());
+
+		// Then: PUBLIC 채널은 항상 포함, PRIVATE 채널은 참여자만 조회됨
+		boolean hasPublic = channelsReqByPublicUser.stream().anyMatch(c -> c.getId().equals(publicChannel.getId()));
+		boolean hasNoPrivate = channelsReqByPublicUser.stream()
+		  .noneMatch(c -> c.getId().equals(privateChannel.getId()));
+		boolean hasPrivate = channelsReqByPrivateUser.stream().anyMatch(c -> c.getId().equals(privateChannel.getId()));
+
+		// 최근 메시지 시간 검증
+		ReadChannelResponse pubResp = channelsReqByPublicUser.stream()
+		  .filter(c -> c.getId().equals(publicChannel.getId()))
+		  .findFirst()
+		  .orElse(null);
+		ReadChannelResponse privResp = channelsReqByPrivateUser.stream()
+		  .filter(c -> c.getId().equals(privateChannel.getId()))
+		  .findFirst()
+		  .orElse(null);
+
+		boolean pubMsgTimeValid = pubResp != null && pubResp.getLastMessageAt().equals(pubMsg.getCreatedAt());
+		boolean privMsgTimeValid = privResp != null && privResp.getLastMessageAt().equals(privMsg.getCreatedAt());
+
+		// PRIVATE 채널 참여자 id 검증
+		boolean privMembersValid = privResp != null &&
+		  new HashSet<>(privResp.getMembersIDList()).containsAll(List.of(user1.getId(), user2.getId()));
+
+		boolean isValid =
+		  hasPublic && hasPrivate && hasNoPrivate && pubMsgTimeValid && privMsgTimeValid && privMembersValid;
+
+		System.out.println(isValid ?
+		  "채널 전체 조회 테스트 통과 ✅" :
+		  "채널 전체 조회 테스트 실패 ❌");
 	}
 
 	static void channelUpdateTest(ChannelService channelService, Channel channel) {
@@ -116,7 +252,7 @@ public class DiscodeitApplication {
 		  .description(newDescription)
 		  .build());
 
-		Channel channelToValidate = channelService.read(channel.getId());
+		ReadChannelResponse channelToValidate = channelService.read(channel.getId());
 		boolean isUpdated = channelToValidate.getName().equals(newName) &&
 		  channelToValidate.getDescription().equals(newDescription);
 
@@ -141,8 +277,7 @@ public class DiscodeitApplication {
 	 */
 	static void userCreateTest(
 	  UserService userService,
-	  FileBinaryContentRepository fileBinaryContentRepository,
-	  UserStatusRepository userStatusRepository) {
+	  FileBinaryContentRepository fileBinaryContentRepository) {
 		System.out.print("userCreateTest.......................");
 
 		// Given
@@ -184,19 +319,8 @@ public class DiscodeitApplication {
 			System.out.println("UserNoProfile 생성 실패 ❌");
 			return;
 		}
-		// 2. userStatus 잘 생성 되었는지 확인
-		List<UserStatus> userStatusList = userStatusRepository.findAll();
 
-		boolean isUserStatusCreate = userStatusList.stream()
-		  .anyMatch(userStatus -> userStatus.getUserId().equals(u1.getId()))
-		  && userStatusList.stream()
-		  .anyMatch(userStatus -> userStatus.getUserId().equals(u2.getId()));
-
-		if (!isUserStatusCreate) {
-			System.out.println("userStatus 생성 실패 ❌");
-			return;
-		}
-		// 3. User 일반 필드 잘 생성 되었는지 확인
+		// 2. User 일반 필드 잘 생성 되었는지 확인
 		boolean isCreated = u1.getUsername().equals(dtoWithProfileImage.getUsername()) &&
 		  u1.getEmail().equals(dtoWithProfileImage.getEmail()) &&
 		  u1.getPassword().equals(dtoWithProfileImage.getPassword()) &&
@@ -278,8 +402,6 @@ public class DiscodeitApplication {
 	/**
 	 * 사용자 삭제 테스트
 	 * - 사용자 삭제 후, 관련된 데이터도 삭제되는지 확인
-	 * @param userService
-	 * @param user
 	 */
 	static void userDeleteTest(UserService userService, User user, UserStatusRepository userStatusRepository,
 	  BinaryContentRepository binaryContentRepository) {
@@ -352,10 +474,12 @@ public class DiscodeitApplication {
 		System.out.println(log);
 	}
 
-	static void clearAll(ChannelService channelService, UserService userService, MessageService messageService) {
+	static void clearAll(ChannelService channelService, UserService userService, MessageService messageService,
+	  UserStatusRepository userStatusRepository) {
 		channelService.deleteAll();
 		userService.deleteAll();
 		messageService.deleteAll();
+		userStatusRepository.deleteAll();
 	}
 
 	static void authLoginTest(User user, AuthService authService) {
@@ -407,17 +531,27 @@ public class DiscodeitApplication {
 		  "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
 		  "┃     📡 CHANNEL TEST           ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		channelCreateTest(BasicChannelService, userStatusRepository, fileUserRepository);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
 
-		Channel fileChannelforBasic = setupChannel(BasicChannelService);
-		channelCreateTest(BasicChannelService);
-		channelReadTest(BasicChannelService, fileChannelforBasic);
-		channelUpdateTest(BasicChannelService, fileChannelforBasic);
-		channelDeleteTest(BasicChannelService, fileChannelforBasic);
+		channelReadTest(BasicChannelService, fileUserRepository, fileMessageRepository);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+
+		channelReadAllTest(fileUserRepository, fileMessageRepository, BasicChannelService,
+		  setupPUblicChannel(BasicChannelService));
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+
+		channelUpdateTest(BasicChannelService, setupPUblicChannel(BasicChannelService));
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+
+		channelDeleteTest(BasicChannelService, setupPUblicChannel(BasicChannelService));
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
 
 		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
 		  "┃ ✅ END CHANNEL TEST           ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
 
 		// 🧑‍💻🧑‍💻🧑‍💻 User Test Start 🧑‍💻🧑‍💻🧑‍💻
 		System.out.println("\n" +
@@ -427,22 +561,22 @@ public class DiscodeitApplication {
 
 		BinaryContent binaryContent1 = setupBinaryContent(fileBinaryContentRepository);
 
-		userCreateTest(BasicUserService, fileBinaryContentRepository, userStatusRepository);
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+		userCreateTest(BasicUserService, fileBinaryContentRepository);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
 
 		userReadTest(BasicUserService, setupUser(BasicUserService, binaryContent1));
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
 
 		userUpdateTest(BasicUserService, setupUser(BasicUserService, binaryContent1), fileBinaryContentRepository);
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
 		userDeleteTest(BasicUserService, setupUser(BasicUserService, binaryContent1), userStatusRepository,
 		  fileBinaryContentRepository);
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
 
 		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
 		  "┃ ✅ END USER TEST              ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
 
 		// 💌💌💌 Message Test Start 💌💌💌
 		System.out.println("\n" +
@@ -451,7 +585,7 @@ public class DiscodeitApplication {
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
 
 		BinaryContent binaryContent2 = setupBinaryContent(fileBinaryContentRepository);
-		Channel fileChannelForMessageforBasic = setupChannel(BasicChannelService);
+		Channel fileChannelForMessageforBasic = setupPUblicChannel(BasicChannelService);
 		User fileUserForMessageforBasic = setupUser(BasicUserService, binaryContent2);
 		Message fileMessageforBasic = setupMessage(BasicMessageService, fileChannelForMessageforBasic,
 		  fileUserForMessageforBasic);
@@ -464,7 +598,7 @@ public class DiscodeitApplication {
 		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
 		  "┃ ✅ END MESSAGE TEST           ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService);
+		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
 
 		// 💌💌💌 Message Test Start 💌💌💌
 		System.out.println("\n" +
