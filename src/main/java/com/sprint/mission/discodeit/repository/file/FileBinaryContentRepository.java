@@ -22,10 +22,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 	private static final String FILE_NAME = DIR_NAME + "/binaryContent.ser";
 
 	@Override
-	public BinaryContent create(BinaryContent newBinaryContent) {
-		Optional.ofNullable(newBinaryContent)
-		  .orElseThrow(() -> new IllegalArgumentException("binaryContent cannot be null"));
-
+	public BinaryContent save(BinaryContent newBinaryContent) {
 		List<BinaryContent> binaryContents = findAll();
 
 		binaryContents = new ArrayList<>(binaryContents);
@@ -42,8 +39,10 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 	}
 
 	@Override
-	public BinaryContent find(UUID id) {
-		return null;
+	public Optional<BinaryContent> find(UUID id) {
+		return findAll().stream()
+		  .filter(binaryContent -> binaryContent.getId().equals(id))
+		  .findFirst();
 	}
 
 	@Override
@@ -63,7 +62,15 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 
 	@Override
 	public void delete(UUID id) {
+		List<BinaryContent> binaryContents = findAll();
+		binaryContents.removeIf(binaryContent -> binaryContent.getId().equals(id));
 
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(binaryContents);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
