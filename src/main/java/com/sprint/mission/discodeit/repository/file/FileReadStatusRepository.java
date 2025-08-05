@@ -13,21 +13,22 @@ import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.domain.entity.ReadStatus;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 
 @Repository
-public class FileBinaryContentRepository implements BinaryContentRepository {
+public class FileReadStatusRepository implements ReadStatusRepository {
 
 	private static final String DIR_NAME = "data";
-	private static final String FILE_NAME = DIR_NAME + "/binaryContent.ser";
+	private static final String FILE_NAME = DIR_NAME + "/readStatus.ser";
 
 	@Override
-	public BinaryContent save(BinaryContent newBinaryContent) {
-		List<BinaryContent> binaryContents = findAll();
+	public ReadStatus save(ReadStatus readStatus) {
+		List<ReadStatus> binaryContents = findAll();
 
 		binaryContents = new ArrayList<>(binaryContents);
-		binaryContents.removeIf(exisitingEntity -> exisitingEntity.getId().equals(newBinaryContent.getId()));
-		binaryContents.add(newBinaryContent);
+		binaryContents.removeIf(existingStatus -> existingStatus.getId().equals(readStatus.getId()));
+		binaryContents.add(readStatus);
 
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
@@ -36,41 +37,43 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 			throw new RuntimeException(e);
 		}
 
-		return newBinaryContent;
+		return readStatus;
 	}
 
 	@Override
-	public List<BinaryContent> saveAll(List<BinaryContent> newBinaryContents) {
-		List<BinaryContent> binaryContents = findAll();
-
-		binaryContents = new ArrayList<>(binaryContents);
-		binaryContents.addAll(newBinaryContents);
-
-		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
-			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-			oos.writeObject(binaryContents);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-
-		return binaryContents;
-
-	}
-
-	@Override
-	public Optional<BinaryContent> find(UUID id) {
+	public Optional<ReadStatus> find(UUID id) {
 		return findAll().stream()
 		  .filter(binaryContent -> binaryContent.getId().equals(id))
 		  .findFirst();
 	}
 
 	@Override
-	public List<BinaryContent> findAll() {
+	public List<ReadStatus> findAllByUserId(UUID userId) {
+		return findAll().stream()
+		  .filter(binaryContent -> binaryContent.getUserId().equals(userId)).toList();
+	}
+
+	@Override
+	public List<ReadStatus> findAllByChannelId(UUID channelId) {
+		return findAll().stream()
+		  .filter(binaryContent -> binaryContent.getChannelId().equals(channelId)).toList();
+	}
+
+	@Override
+	public Optional<ReadStatus> findByUserIdAndChannelId(UUID userId, UUID channelId) {
+		return findAll().stream()
+		  .filter(binaryContent -> binaryContent.getUserId().equals(userId))
+		  .filter(binaryContent -> binaryContent.getChannelId().equals(channelId))
+		  .findFirst();
+	}
+
+	@Override
+	public List<ReadStatus> findAll() {
 		try (FileInputStream fis = new FileInputStream(FILE_NAME);
 			 ObjectInputStream ois = new ObjectInputStream(fis)) {
 			Object obj = ois.readObject();
 			if (obj instanceof List) {
-				return (List<BinaryContent>)obj;
+				return (List<ReadStatus>)obj;
 			}
 		} catch (Exception e) {
 			// 파일이 없거나 읽기 실패 시 빈 리스트 반환
@@ -81,7 +84,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 
 	@Override
 	public void delete(UUID id) {
-		List<BinaryContent> binaryContents = findAll();
+		List<ReadStatus> binaryContents = findAll();
 		binaryContents.removeIf(binaryContent -> binaryContent.getId().equals(id));
 
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
@@ -90,12 +93,26 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+
 	}
 
 	@Override
 	public boolean isEmpty(UUID id) {
 		return findAll().stream()
 		  .noneMatch(binaryContent -> binaryContent.getId().equals(id));
+	}
+
+	@Override
+	public void deleteByChannelId(UUID channelId) {
+		List<ReadStatus> readStatuses = findAll();
+		readStatuses.removeIf(readStatus -> readStatus.getChannelId().equals(channelId));
+
+		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+			oos.writeObject(readStatuses);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -106,6 +123,5 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
 	}
 }

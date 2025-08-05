@@ -17,11 +17,11 @@ import com.sprint.mission.discodeit.domain.dto.ChannelUpdateDTO;
 import com.sprint.mission.discodeit.domain.dto.ReadChannelResponse;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.entity.Message;
-import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.domain.entity.ReadStatus;
 import com.sprint.mission.discodeit.domain.enums.ChannelType;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class BasicChannelService implements ChannelService {
 
 	private final ChannelRepository channelRepository;
 	private final MessageRepository messageRepository;
-	private final UserStatusRepository userStatusRepository;
+	private final ReadStatusRepository readStatusRepository;
 
 	@Override
 	public Channel createPublic(ChannelCreateDTO dto) {
@@ -55,8 +55,8 @@ public class BasicChannelService implements ChannelService {
 		Channel newChannel = new Channel(PRIVATE, null, null);
 
 		dto.getMembers().stream().forEach(
-		  member -> userStatusRepository.save(
-			new UserStatus(member.getId(), newChannel.getId()))
+		  member -> readStatusRepository.save(
+			new ReadStatus(member.getId(), newChannel.getId()))
 		);
 
 		return channelRepository.save(newChannel);
@@ -73,9 +73,9 @@ public class BasicChannelService implements ChannelService {
 		  : getLastEditAt(messages);
 
 		List<UUID> membersIDList = channel.getChannelType() == PRIVATE ?
-		  userStatusRepository.findByChannelId(id)
+		  readStatusRepository.findAllByChannelId(id)
 			.stream()
-			.map(UserStatus::getUserId)
+			.map(ReadStatus::getUserId)
 			.toList()
 		  : new ArrayList<>();
 
@@ -87,7 +87,7 @@ public class BasicChannelService implements ChannelService {
 		return channelRepository.findAll().stream()
 		  // 필터링: PUBLIC 채널 또는 사용자가 참여한 PRIVATE 채널
 		  .filter(c -> c.getChannelType() == PUBLIC ||
-			userStatusRepository.findByUserId(userId)
+			readStatusRepository.findAllByUserId(userId)
 			  .stream()
 			  .anyMatch(us -> us.getChannelId().equals(c.getId())))
 		  // 각 채널에 대해 메시지와 멤버 정보를 포함한 ReadChannelResponse 생성
@@ -98,9 +98,9 @@ public class BasicChannelService implements ChannelService {
 				  : getLastEditAt(messages);
 
 				List<UUID> membersIDList = c.getChannelType() == PRIVATE ?
-				  userStatusRepository.findByChannelId(c.getId())
+				  readStatusRepository.findAllByChannelId(c.getId())
 					.stream()
-					.map(UserStatus::getUserId)
+					.map(ReadStatus::getUserId)
 					.toList()
 				  : new ArrayList<>();
 
@@ -116,7 +116,7 @@ public class BasicChannelService implements ChannelService {
 		// 연관된 메시지도 삭제
 		messageRepository.deleteByChannelId(id);
 		// 연관된 유저 상태도 삭제
-		userStatusRepository.deleteByChannelId(id);
+		readStatusRepository.deleteByChannelId(id);
 
 		channelRepository.delete(id);
 

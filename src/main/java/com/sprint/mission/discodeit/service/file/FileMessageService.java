@@ -44,7 +44,7 @@ public class FileMessageService implements MessageService {
 			throw new IllegalArgumentException("User ID cannot be null or empty");
 		}
 
-		return messageRepository.save(new Message(content, channelId, userId));
+		return messageRepository.save(new Message(content, channelId, userId, null));
 	}
 
 	@Override
@@ -88,8 +88,10 @@ public class FileMessageService implements MessageService {
 	}
 
 	@Override
-	public List<Message> readAll() {
-		return messageRepository.findAll();
+	public List<Message> findAllByChannelId(UUID channelId) {
+		return messageRepository.findAll().stream().filter(
+			message -> message.getChannelId().equals(channelId))
+		  .toList();
 	}
 
 	@Override

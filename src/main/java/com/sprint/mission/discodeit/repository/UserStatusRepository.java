@@ -12,9 +12,7 @@ public interface UserStatusRepository {
 
 	public Optional<UserStatus> find(UUID id);
 
-	public List<UserStatus> findByUserId(UUID userId);
-
-	public List<UserStatus> findByChannelId(UUID channelId);
+	public Optional<UserStatus> findByUserId(UUID userId);
 
 	public List<UserStatus> findAll();
 
@@ -26,5 +24,4 @@ public interface UserStatusRepository {
 
 	void deleteByUserId(UUID userId);
 
-	void deleteByChannelId(UUID channelId);
 }

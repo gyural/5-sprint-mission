@@ -52,7 +52,7 @@ public class JCFMessageService implements MessageService {
 		// 2. 채널에 참여한 사용자들에게 알림을 전송
 		// messageAlarmService.sendMessageAlarm(newMessage);
 
-		return messageRepository.save(new Message(content, channelId, userId));
+		return messageRepository.save(new Message(content, channelId, userId, dto.getAuthorName()));
 	}
 
 	@Override
@@ -62,8 +62,10 @@ public class JCFMessageService implements MessageService {
 	}
 
 	@Override
-	public List<Message> readAll() {
-		return messageRepository.findAll();
+	public List<Message> findAllByChannelId(UUID channelId) {
+		return messageRepository.findAll().stream().filter(
+			message -> message.getChannelId().equals(channelId))
+		  .toList();
 	}
 
 	@Override
