@@ -19,16 +19,13 @@ public class UserStatus implements Serializable {
 
 	// Foreign key
 	private final UUID userId; // 유저 ID
-	private final UUID channelId; // 채널 ID
 
 	public UserStatus(
-	  @NonNull UUID userId,
-	  @NonNull UUID channelId
+	  @NonNull UUID userId
 	) {
 		this.id = UUID.randomUUID();
 		this.createdAt = Instant.now();
 		this.userId = userId;
-		this.channelId = channelId;
 	}
 
 	public boolean isOnline() {

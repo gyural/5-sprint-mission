@@ -26,15 +26,6 @@ public class Message implements Serializable {
 	private final UUID channelId;
 	private final List<UUID> attachmentIds;
 
-	public Message(String content, UUID channelId, UUID authorId) {
-		this.id = UUID.randomUUID();
-		this.createdAt = Instant.now();
-		this.content = content;
-		this.authorId = authorId;
-		this.channelId = channelId;
-		this.attachmentIds = new ArrayList<>();
-	}
-
 	public Message(String content, @NonNull UUID authorId, @NonNull UUID channelId, String authorName) {
 		this.id = UUID.randomUUID();
 		this.createdAt = Instant.now();
@@ -44,7 +35,18 @@ public class Message implements Serializable {
 		this.channelId = channelId;
 		this.authorName = authorName;
 		this.attachmentIds = new ArrayList<>();
+	}
 
+	public Message(String content, @NonNull UUID authorId, @NonNull UUID channelId, String authorName,
+	  List<UUID> attachmentIds) {
+		this.id = UUID.randomUUID();
+		this.createdAt = Instant.now();
+		this.updatedAt = null;
+		this.content = content;
+		this.authorId = authorId;
+		this.channelId = channelId;
+		this.authorName = authorName;
+		this.attachmentIds = attachmentIds != null ? new ArrayList<>(attachmentIds) : new ArrayList<>();
 	}
 
 	public Instant getLastEditedAt() {

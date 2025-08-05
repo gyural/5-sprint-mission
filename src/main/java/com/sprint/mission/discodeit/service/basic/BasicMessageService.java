@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 
 import com.sprint.mission.discodeit.domain.dto.MessageCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.MessageUpdateDTO;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.Message;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -24,6 +26,7 @@ public class BasicMessageService implements MessageService {
 	private final MessageRepository messageRepository;
 	private final UserService userService;
 	private final ChannelRepository channelRepository;
+	private final BinaryContentRepository binaryContentRepository;
 
 	@Override
 	public Message create(MessageCreateDTO dto) {
@@ -31,7 +34,9 @@ public class BasicMessageService implements MessageService {
 		String content = dto.getContent();
 		UUID channelId = dto.getChannelId();
 		UUID userId = dto.getUserId();
+		List<BinaryContent> attachments = dto.getAttachments() != null ? dto.getAttachments() : List.of();
 
+		// Validate inputs
 		if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content cannot be null or empty");
 		}
@@ -41,12 +46,30 @@ public class BasicMessageService implements MessageService {
 		if (userId == null || userService.isEmpty(userId)) {
 			throw new IllegalArgumentException("User ID cannot be null or empty");
 		}
+		attachments.forEach(attachment -> {
+			if (attachment == null || attachment.getContent() == null || attachment.getContent().length == 0) {
+				throw new IllegalArgumentException("Attachment content cannot be null or empty");
+			}
+		});
 
-		return messageRepository.save(new Message(content, channelId, userId));
+		binaryContentRepository.saveAll(attachments);
+
+		List<UUID> attachmentIds = attachments.stream()
+		  .map(BinaryContent::getId)
+		  .toList();
+
+		return messageRepository.save(new Message(content, userId, channelId, dto.getAuthorName(), attachmentIds));
 	}
 
 	@Override
 	public void delete(UUID id) {
+		Message messageToDelete = messageRepository.find(id)
+		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
+
+		// 메시지 관련 Attachment 도 삭제
+		messageToDelete.getAttachmentIds().forEach(binaryContentRepository::delete);
+
+		// 메시지 삭제
 		messageRepository.delete(id);
 	}
 
@@ -87,8 +110,10 @@ public class BasicMessageService implements MessageService {
 	}
 
 	@Override
-	public List<Message> readAll() {
-		return messageRepository.findAll();
+	public List<Message> findAllByChannelId(UUID channelId) {
+		return messageRepository.findAll().stream().filter(
+			message -> message.getChannelId().equals(channelId))
+		  .toList();
 	}
 
 	@Override

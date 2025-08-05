@@ -83,7 +83,7 @@ public class JCFUserService implements UserService {
 		User user = userRepository.find(userId)
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 
-		List<UserStatus> status = userStatusRepository.findByUserId(userId);
+		Optional<UserStatus> status = userStatusRepository.findByUserId(userId);
 
 		boolean isOnline = status.stream()
 		  .anyMatch(UserStatus::isOnline);

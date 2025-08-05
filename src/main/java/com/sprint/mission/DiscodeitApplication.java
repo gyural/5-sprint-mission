@@ -4,8 +4,10 @@ import static com.sprint.mission.discodeit.domain.enums.ChannelType.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,27 +15,35 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import com.sprint.mission.discodeit.domain.dto.ChannelCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.ChannelUpdateDTO;
+import com.sprint.mission.discodeit.domain.dto.CreateReadStatusDTO;
 import com.sprint.mission.discodeit.domain.dto.MessageCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.MessageUpdateDTO;
 import com.sprint.mission.discodeit.domain.dto.ReadChannelResponse;
+import com.sprint.mission.discodeit.domain.dto.UpdateReadStatusDTO;
 import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.UserReadDTO;
+import com.sprint.mission.discodeit.domain.dto.UserStatusCreateDTO;
+import com.sprint.mission.discodeit.domain.dto.UserStatusUpdateDTO;
 import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.entity.Message;
+import com.sprint.mission.discodeit.domain.entity.ReadStatus;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.domain.enums.ContentType;
 import com.sprint.mission.discodeit.domain.request.UserLoginRequest;
 import com.sprint.mission.discodeit.domain.response.UserLoginResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
 import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
+import com.sprint.mission.discodeit.repository.file.FileReadStatusRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -43,11 +53,13 @@ import com.sprint.mission.discodeit.service.basic.AuthService;
 import com.sprint.mission.discodeit.service.basic.BasicChannelService;
 import com.sprint.mission.discodeit.service.basic.BasicMessageService;
 import com.sprint.mission.discodeit.service.basic.BasicUserService;
+import com.sprint.mission.discodeit.service.basic.ReadStatusService;
+import com.sprint.mission.discodeit.service.basic.UserStatusService;
 
 @SpringBootApplication
 public class DiscodeitApplication {
 
-	static BinaryContent setupBinaryContent(FileBinaryContentRepository fileBinaryContentRepository) {
+	static BinaryContent setupBinaryContent(BinaryContentRepository binaryContentRepository) {
 		byte[] bytes;
 		try {
 			Path imagePath = Path.of(System.getProperty("user.dir"), "dummyImage.png");
@@ -58,7 +70,7 @@ public class DiscodeitApplication {
 
 		BinaryContent dummyBinaryContent = new BinaryContent(
 		  bytes, bytes.length, ContentType.IMAGE, "dummyImage.png");
-		return fileBinaryContentRepository.save(dummyBinaryContent);
+		return binaryContentRepository.save(dummyBinaryContent);
 	}
 
 	static User setupUser(UserService userService, BinaryContent binaryContent) {
@@ -81,7 +93,7 @@ public class DiscodeitApplication {
 		  MessageCreateDTO.builder().channelId(channel.getId()).content("안녕하세요").userId(author.getId()).build());
 	}
 
-	static void channelCreateTest(ChannelService channelService, UserStatusRepository userStatusRepository,
+	static void channelCreateTest(ChannelService channelService, ReadStatusRepository readStatusRepository,
 	  UserRepository userRepository) {
 		System.out.print("ChannelCreateTest.......................");
 
@@ -105,10 +117,10 @@ public class DiscodeitApplication {
 
 		// Then
 		// 1. UserStatus가 생성되었는지 확인
-		List<UserStatus> userStatusList = userStatusRepository.findAll();
+		List<ReadStatus> readStatuseList = readStatusRepository.findAll();
 		boolean isMemberStatusCreated = memberList.stream()
-		  .allMatch(member -> userStatusList.stream()
-			.anyMatch(userStatus -> userStatus.getUserId().equals(member.getId())));
+		  .allMatch(member -> readStatuseList.stream()
+			.anyMatch(readStatus -> readStatus.getUserId().equals(member.getId())));
 		// 2. 채널이 잘 생성되었는지 확인
 		boolean isSuccess = !channelService.isEmpty(publicChannel.getId()) &&
 		  !channelService.isEmpty(privateChannel.getId()) &&
@@ -162,7 +174,6 @@ public class DiscodeitApplication {
 		boolean isMemberIdListValid = !readPrivateChannel.getMembersIDList().isEmpty() &&
 		  new HashSet<>(readPrivateChannel.getMembersIDList()).containsAll(
 			memberList.stream().map(User::getId).toList());
-		// TODO FALSe
 		boolean isPrivateChannelValid =
 		  readPrivateChannel.getMembersIDList().size() == memberList.size() &&
 			readPrivateChannel.getChannelType() == privateChannel.getChannelType() &&
@@ -179,9 +190,8 @@ public class DiscodeitApplication {
 		  "채널 조회 테스트 실패 ❌");
 	}
 
-	// TODO: 채널 전체 조회 테스트
 	static void channelReadAllTest(UserRepository userRepository, MessageRepository messageRepository,
-	  ChannelService channelService, Channel channel) {
+	  ChannelService channelService) {
 		System.out.print("channelReadAllTest.......................");
 
 		// Given: 유저 2명 생성
@@ -277,11 +287,11 @@ public class DiscodeitApplication {
 	 */
 	static void userCreateTest(
 	  UserService userService,
-	  FileBinaryContentRepository fileBinaryContentRepository) {
+	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("userCreateTest.......................");
 
 		// Given
-		BinaryContent userProfileImage = setupBinaryContent(fileBinaryContentRepository);
+		BinaryContent userProfileImage = setupBinaryContent(binaryContentRepository);
 		UserCreateDTO dtoWithProfileImage =
 		  UserCreateDTO.builder()
 			.username("newUser1")
@@ -308,7 +318,7 @@ public class DiscodeitApplication {
 		// UserProfile 잘 생성 되었는지 확인
 		boolean isProfileCreated = userWithProfile.getProfileId() != null &&
 		  userWithProfile.getProfileId().equals(userProfileImage.getId()) &&
-		  !fileBinaryContentRepository.isEmpty(userWithProfile.getProfileId());
+		  !binaryContentRepository.isEmpty(userWithProfile.getProfileId());
 		if (!isProfileCreated) {
 			System.out.println("UserWithProfile 생성 실패 ❌");
 			return;
@@ -330,14 +340,6 @@ public class DiscodeitApplication {
 		System.out.println(isCreated ?
 		  "사용자 생성 테스트 통과 ✅" :
 		  "사용자 생성 테스트 실패 ❌");
-	}
-
-	/**
-	 * 사용자 생성 테스트
-	 * - username, email 중복 검증 확인
-	 */
-	static void userCreateDuplicateTest(UserService userService) {
-
 	}
 
 	/**
@@ -370,13 +372,13 @@ public class DiscodeitApplication {
 	 * - 프로필 이미지를 대체할 수 있는지도 확인
 	 */
 	static void userUpdateTest(UserService userService, User user,
-	  FileBinaryContentRepository fileBinaryContentRepository) {
+	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("UserUpdateTest.......................");
 
 		String newUsername = "updatedUser";
 		String newEmail = "updateEmail@codeit.com";
 		String newPassword = "updatedPassword1234";
-		BinaryContent newProfileImage = setupBinaryContent(fileBinaryContentRepository);
+		BinaryContent newProfileImage = setupBinaryContent(binaryContentRepository);
 
 		userService.update(UserUpdateDTO.builder()
 		  .userId(user.getId())
@@ -391,7 +393,7 @@ public class DiscodeitApplication {
 		boolean isUpdated = userToValidate.getUsername().equals(newUsername) &&
 		  userToValidate.getEmail().equals(newEmail) &&
 		  userToValidate.getProfileId().equals(newProfileImage.getId()) &&
-		  fileBinaryContentRepository.find(newProfileImage.getId()).isPresent();
+		  binaryContentRepository.find(newProfileImage.getId()).isPresent();
 
 		System.out.println(isUpdated ?
 		  "사용자 업데이트 테스트 통과 ✅" :
@@ -418,31 +420,74 @@ public class DiscodeitApplication {
 		System.out.println(log);
 	}
 
-	static void messageCreateTest(MessageService messageService, Channel channel, User author) {
+	static void messageCreateTest(MessageService messageService, Channel channel, User author,
+	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("MessageCreateTest.......................");
-		Message message = messageService.create(
-		  MessageCreateDTO.builder().channelId(channel.getId()).content("안녕하세요").userId(author.getId()).build());
 
+		// Given
+		BinaryContent messageAttachment1 = setupBinaryContent(binaryContentRepository);
+		BinaryContent messageAttachment2 = setupBinaryContent(binaryContentRepository);
+		List<BinaryContent> attachments = List.of(messageAttachment1, messageAttachment2);
+
+		// WHEN
+		Message message = messageService.create(
+		  MessageCreateDTO.builder()
+			.channelId(channel.getId())
+			.content("안녕하세요")
+			.userId(author.getId())
+			.attachments(attachments)
+			.build()
+		);
+
+		// THEN
 		Message storedMessage = messageService.read(message.getId());
+		List<UUID> storedAttachments = binaryContentRepository.findAll().stream().map(BinaryContent::getId).toList();
 
 		boolean isCreated = messageService.read(message.getId()) != null &&
 		  storedMessage.getContent().equals("안녕하세요") &&
 		  storedMessage.getChannelId().equals(channel.getId()) &&
-		  storedMessage.getAuthorId().equals(author.getId());
+		  storedMessage.getAuthorId().equals(author.getId()) &&
+		  storedMessage.getAttachmentIds() != null &&
+		  storedMessage.getAttachmentIds().size() == 2 &&
+		  storedMessage.getAttachmentIds().contains(messageAttachment1.getId()) &&
+		  storedMessage.getAttachmentIds().contains(messageAttachment2.getId()) &&
+		  storedAttachments.contains(messageAttachment1.getId()) &&
+		  storedAttachments.contains(messageAttachment2.getId());
 
 		System.out.println(isCreated ?
 		  "메시지 생성 테스트 통과 ✅" :
 		  "메시지 생성 테스트 실패 ❌");
 	}
 
-	static void messageReadTest(MessageService messageService, Message message) {
+	static void messageReadTest(MessageService messageService, BinaryContentRepository binaryContentRepository,
+	  Channel channel, User author) {
 		System.out.print("MessageReadTest.......................");
+
+		// Given
+		BinaryContent messageAttachment1 = setupBinaryContent(binaryContentRepository);
+		BinaryContent messageAttachment2 = setupBinaryContent(binaryContentRepository);
+		List<BinaryContent> attachments = List.of(messageAttachment1, messageAttachment2);
+		Message message = messageService.create(
+		  MessageCreateDTO.builder()
+			.channelId(channel.getId())
+			.content("안녕하세요")
+			.userId(author.getId())
+			.attachments(attachments)
+			.build()
+		);
+
+		// When
 		Message readMessage = messageService.read(message.getId());
 
+		// Then
 		boolean isValid = readMessage.getId().equals(message.getId()) &&
 		  readMessage.getContent().equals(message.getContent()) &&
 		  readMessage.getChannelId().equals(message.getChannelId()) &&
-		  readMessage.getAuthorId().equals(message.getAuthorId());
+		  readMessage.getAuthorId().equals(message.getAuthorId()) &&
+		  readMessage.getAttachmentIds() != null &&
+		  readMessage.getAttachmentIds().size() == 2 &&
+		  readMessage.getAttachmentIds().contains(messageAttachment1.getId()) &&
+		  readMessage.getAttachmentIds().contains(messageAttachment2.getId());
 
 		System.out.println(isValid ?
 		  "메시지 조회 테스트 통과 ✅" :
@@ -463,26 +508,41 @@ public class DiscodeitApplication {
 		  "메시지 업데이트 테스트 실패 ❌");
 	}
 
-	static void messageDeleteTest(MessageService messageService, Message message) {
+	static void messageDeleteTest(MessageService messageService, BinaryContentRepository binaryContentRepository,
+	  Channel channel, User author) {
 		System.out.print("MessageDeleteTest.......................");
 
+		// Given
+		BinaryContent messageAttachment1 = setupBinaryContent(binaryContentRepository);
+		BinaryContent messageAttachment2 = setupBinaryContent(binaryContentRepository);
+		List<BinaryContent> attachments = List.of(messageAttachment1, messageAttachment2);
+		Message message = messageService.create(
+		  MessageCreateDTO.builder()
+			.channelId(channel.getId())
+			.content("안녕하세요")
+			.userId(author.getId())
+			.attachments(attachments)
+			.build()
+		);
 		messageService.delete(message.getId());
-
-		String log = messageService.isEmpty(message.getId()) ?
+		String log = messageService.isEmpty(message.getId()) && binaryContentRepository.findAll().isEmpty() ?
 		  "메시지 삭제 테스트 통과 ✅" :
 		  "메시지 삭제 테스트 실패 ❌";
 		System.out.println(log);
 	}
 
 	static void clearAll(ChannelService channelService, UserService userService, MessageService messageService,
-	  UserStatusRepository userStatusRepository) {
+	  UserStatusRepository userStatusRepository, BinaryContentRepository binaryContentRepository,
+	  ReadStatusRepository readStatusRepository) {
 		channelService.deleteAll();
 		userService.deleteAll();
 		messageService.deleteAll();
 		userStatusRepository.deleteAll();
+		binaryContentRepository.deleteAll();
+		readStatusRepository.deleteAll();
 	}
 
-	static void authLoginTest(User user, AuthService authService) {
+	static void authLoginTest(AuthService authService) {
 		System.out.print("AuthLoginTest.......................");
 
 		// Given
@@ -501,24 +561,272 @@ public class DiscodeitApplication {
 		  "로그인 테스트 실패 ❌");
 	}
 
+	static void createReadStatusTest(ReadStatusService readStatusService, UserService basicUserService,
+	  BinaryContentRepository binaryContentRepository, ChannelService channelService,
+	  ReadStatusRepository readStatusRepository) {
+		System.out.print("createReadStatusTest.......................");
+
+		// Given
+		User user = setupUser(basicUserService, setupBinaryContent(binaryContentRepository));
+		Channel channel = setupPUblicChannel(channelService);
+
+		// When
+		// ReadStatusService를 통해 ReadStatus 생성
+		readStatusService.create(
+		  CreateReadStatusDTO.builder()
+			.userId(user.getId())
+			.channelId(channel.getId())
+			.build());
+		// Then
+		// ReadStatus가 잘 생성되었는지 확인
+		readStatusRepository.findByUserIdAndChannelId(user.getId(), channel.getId())
+		  .ifPresentOrElse(
+			readStatus -> System.out.println("ReadStatus 생성 테스트 통과 ✅"),
+			() -> System.out.println("ReadStatus 생성 테스트 실패 ❌")
+		  );
+
+	}
+
+	static void readReadStatusTest(UserService userService, BinaryContentRepository binaryContentRepository,
+	  ChannelService channelService,
+	  ReadStatusService readStatusService) {
+		System.out.print("readReadStatusTest.......................");
+
+		// Given
+		User user = setupUser(userService, setupBinaryContent(binaryContentRepository));
+		Channel channel1 = setupPUblicChannel(channelService);
+		Channel channel2 = setupPUblicChannel(channelService);
+
+		// ReadStatusService를 통해 ReadStatus 생성
+		readStatusService.create(
+		  CreateReadStatusDTO.builder()
+			.userId(user.getId())
+			.channelId(channel1.getId())
+			.build());
+
+		readStatusService.create(
+		  CreateReadStatusDTO.builder()
+			.userId(user.getId())
+			.channelId(channel2.getId())
+			.build());
+
+		// When
+		// ReadStatusService를 통해 ReadStatus 조회
+		List<ReadStatus> readStatuses = readStatusService.findAllByUserId(user.getId());
+
+		// Then
+		// ReadStatus가 잘 조회되었는지 확인
+		boolean isValid = readStatuses.size() == 2 &&
+		  readStatuses.stream().anyMatch(rs -> rs.getChannelId().equals(channel1.getId())) &&
+		  readStatuses.stream().anyMatch(rs -> rs.getChannelId().equals(channel2.getId()));
+
+		String result = isValid ?
+		  "ReadStatus 조회 테스트 통과 ✅" :
+		  "ReadStatus 조회 테스트 실패 ❌";
+		System.out.println(result);
+
+	}
+
+	static void updateReadStatusTest(UserService userService,
+	  BinaryContentRepository binaryContentRepository, ChannelService channelService,
+	  ReadStatusService readStatusService, ReadStatusRepository readStatusRepository) {
+		System.out.print("updateReadStatusTest.......................");
+
+		// Given
+		User user = setupUser(userService, setupBinaryContent(binaryContentRepository));
+		Channel channel = setupPUblicChannel(channelService);
+
+		// ReadStatusService를 통해 ReadStatus 생성
+		ReadStatus readStatus = readStatusService.create(
+		  CreateReadStatusDTO.builder()
+			.userId(user.getId())
+			.channelId(channel.getId())
+			.build());
+
+		Instant beforeUpdate = readStatus.getUpdatedAt() == null ? Instant.now() : readStatus.getUpdatedAt();
+
+		// When
+		// ReadStatusService를 통해 ReadStatus 업데이트
+		readStatusService.update(
+		  UpdateReadStatusDTO.builder()
+			.id(readStatus.getId())
+			.build());
+
+		// Then
+		// ReadStatusRepository를 통해 ReadStatus 조회
+		ReadStatus updatedReadStatus = readStatusRepository.find(readStatus.getId())
+		  .orElseThrow(() -> new IllegalArgumentException("ReadStatus not found"));
+		Instant afterUpdate = updatedReadStatus.getUpdatedAt();
+
+		// ReadStatus가 잘 업데이트 되었는지 확인
+		String result = afterUpdate.isAfter(beforeUpdate) ?
+		  "ReadStatus 업데이트 테스트 통과 ✅" :
+		  "ReadStatus 업데이트 테스트 실패 ❌";
+
+		System.out.println(result);
+
+	}
+
+	static void deleteReadStatusTest(UserService userService,
+	  BinaryContentRepository binaryContentRepository, ChannelService channelService,
+	  ReadStatusService readStatusService, ReadStatusRepository readStatusRepository) {
+		System.out.print("deleteReadStatusTest.......................");
+
+		// Given
+		User user = setupUser(userService, setupBinaryContent(binaryContentRepository));
+		Channel channel = setupPUblicChannel(channelService);
+
+		// ReadStatusService 통해 ReadStatus 생성
+		ReadStatus readStatus = readStatusService.create(
+		  CreateReadStatusDTO.builder()
+			.userId(user.getId())
+			.channelId(channel.getId())
+			.build());
+
+		// When
+		// ReadStatusService를 통해 ReadStatus 삭제
+		readStatusService.delete(readStatus.getId());
+
+		// Then
+		// ReadStatusRepository를 통해 ReadStatus가 잘 삭제되었는지 확인
+		boolean isDeleted = readStatusRepository.find(readStatus.getId()).isEmpty();
+		String result = isDeleted ?
+		  "ReadStatus 삭제 테스트 통과 ✅" :
+		  "ReadStatus 삭제 테스트 실패 ❌";
+		System.out.println(result);
+
+	}
+
+	static void createUserStatusTest(UserStatusService userStatusService, UserService userService,
+	  BinaryContentRepository binaryContentRepository, UserStatusRepository userStatusRepository) {
+		System.out.print("createUserStatusTest.......................");
+
+		// Given
+		User user = setupUser(userService, setupBinaryContent(binaryContentRepository));
+
+		// When
+		UserStatus userStatus = userStatusService.create(UserStatusCreateDTO.builder()
+		  .userId(user.getId())
+		  .build());
+
+		// Then
+		boolean isCreated = userStatusRepository.find(userStatus.getId()).isPresent();
+		String result = isCreated ?
+		  "UserStatus 생성 테스트 통과 ✅" :
+		  "UserStatus 생성 테스트 실패 ❌";
+		System.out.println(result);
+	}
+
+	static void readUserStatusTest(UserStatusService userStatusService, UserService userService,
+	  BinaryContentRepository binaryContentRepository) {
+		System.out.print("readUserStatusTest.......................");
+
+		// Given
+		User user1 = setupUser(userService, setupBinaryContent(binaryContentRepository));
+		User user2 = userService.create(
+		  UserCreateDTO.builder()
+			.username("woody2")
+			.email("woody2@codeit.com")
+			.password("woody1234")
+			.binaryContent(setupBinaryContent(binaryContentRepository))
+			.build());
+
+		UserStatus userStatus1 = userStatusService.create(UserStatusCreateDTO.builder()
+		  .userId(user1.getId())
+		  .build());
+		UserStatus userStatus2 = userStatusService.create(UserStatusCreateDTO.builder()
+		  .userId(user2.getId())
+		  .build());
+
+		// When
+		UserStatus readUserStatusByFind = userStatusService.find(userStatus1.getId());
+		List<UserStatus> readUserStatusByFindAll = userStatusService.findAll();
+
+		// Then
+		boolean isValid = readUserStatusByFind.getId().equals(userStatus1.getId()) &&
+		  readUserStatusByFind.getUserId().equals(user1.getId()) &&
+		  readUserStatusByFindAll.size() == 2 &&
+		  readUserStatusByFindAll.stream().anyMatch(us -> us.getId().equals(userStatus1.getId())) &&
+		  readUserStatusByFindAll.stream().anyMatch(us -> us.getId().equals(userStatus2.getId()));
+
+		String result = isValid ?
+		  "UserStatus 조회 테스트 통과 ✅" :
+		  "UserStatus 조회 테스트 실패 ❌";
+		System.out.println(result);
+	}
+
+	static void updateUserStatusTest(UserStatusService userStatusService, UserService userService,
+	  BinaryContentRepository binaryContentRepository, UserStatusRepository userStatusRepository) {
+		System.out.print("updateUserStatusTest.......................");
+
+		// Given
+		User user = setupUser(userService, setupBinaryContent(binaryContentRepository));
+		UserStatus userStatus = userStatusService.create(UserStatusCreateDTO.builder()
+		  .userId(user.getId())
+		  .build());
+		Instant beforeUpdate = userStatus.getUpdatedAt() == null ? Instant.now() : userStatus.getUpdatedAt();
+
+		// When & Then
+		// update 와 updateByUserId 메서드를 통해 두번 업데이트
+		userStatusService.update(UserStatusUpdateDTO.builder()
+		  .id(userStatus.getId())
+		  .build());
+		Instant firstUpdate = userStatusRepository.find(userStatus.getId()).get().getUpdatedAt();
+
+		userStatusService.updateByUserId(userStatus.getUserId());
+		Instant secondUpdate = userStatusRepository.find(userStatus.getId()).get().getUpdatedAt();
+
+		boolean isUpdated = firstUpdate.isAfter(beforeUpdate) &&
+		  secondUpdate.isAfter(firstUpdate);
+
+		String result = isUpdated ?
+		  "UserStatus 업데이트 테스트 통과 ✅" :
+		  "UserStatus 업데이트 테스트 실패 ❌";
+		System.out.println(result);
+	}
+
+	static void deleteUserStatusTest(UserStatusService userStatusService, UserService userService,
+	  BinaryContentRepository binaryContentRepository, UserStatusRepository userStatusRepository) {
+		System.out.print("deleteUserStatusTest.......................");
+
+		// Given
+		User user = setupUser(userService, setupBinaryContent(binaryContentRepository));
+		UserStatus userStatus = userStatusService.create(UserStatusCreateDTO.builder()
+		  .userId(user.getId())
+		  .build());
+
+		// When
+		userStatusService.delete(userStatus.getId());
+
+		// Then
+		boolean isDeleted = userStatusRepository.find(userStatus.getId()).isEmpty();
+		String result = isDeleted ?
+		  "UserStatus 삭제 테스트 통과 ✅" :
+		  "UserStatus 삭제 테스트 실패 ❌";
+		System.out.println(result);
+	}
+
 	public static void main(String[] args) {
 		ConfigurableApplicationContext context = SpringApplication.run(DiscodeitApplication.class, args);
 
 		// setup-1 FILE 레포지토리 초기화
-		FileUserRepository fileUserRepository = context.getBean(FileUserRepository.class);
-		FileChannelRepository fileChannelRepository = context.getBean(FileChannelRepository.class);
-		FileMessageRepository fileMessageRepository = context.getBean(FileMessageRepository.class);
-		FileBinaryContentRepository fileBinaryContentRepository = context.getBean(FileBinaryContentRepository.class);
-		FileUserStatusRepository userStatusRepository = context.getBean(FileUserStatusRepository.class);
+		UserRepository userRepository = context.getBean(FileUserRepository.class);
+		ChannelRepository channelRepository = context.getBean(FileChannelRepository.class);
+		MessageRepository messageRepository = context.getBean(FileMessageRepository.class);
+		BinaryContentRepository binaryContentRepository = context.getBean(FileBinaryContentRepository.class);
+		UserStatusRepository userStatusRepository = context.getBean(FileUserStatusRepository.class);
+		ReadStatusRepository readStatusRepository = context.getBean(FileReadStatusRepository.class);
 		// setup-2 Basic 서비스 초기화
-		UserService BasicUserService = context.getBean(BasicUserService.class);
-		MessageService BasicMessageService = context.getBean(BasicMessageService.class);
-		ChannelService BasicChannelService = context.getBean(BasicChannelService.class);
+		UserService basicUserService = context.getBean(BasicUserService.class);
+		MessageService basicMessageService = context.getBean(BasicMessageService.class);
+		ChannelService basicChannelService = context.getBean(BasicChannelService.class);
 
 		// setup-3 service 초기화
 		AuthService authService = context.getBean(AuthService.class);
+		ReadStatusService readStatusService = context.getBean(ReadStatusService.class);
+		UserStatusService userStatusService = context.getBean(UserStatusService.class);
 
-		BinaryContent binaryContent = setupBinaryContent(fileBinaryContentRepository);
+		BinaryContent binaryContent = setupBinaryContent(binaryContentRepository);
 		System.out.println(binaryContent);
 
 		System.out.println("\n" +
@@ -531,27 +839,34 @@ public class DiscodeitApplication {
 		  "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
 		  "┃     📡 CHANNEL TEST           ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
-		channelCreateTest(BasicChannelService, userStatusRepository, fileUserRepository);
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+		channelCreateTest(basicChannelService, readStatusRepository, userRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
-		channelReadTest(BasicChannelService, fileUserRepository, fileMessageRepository);
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		channelReadTest(basicChannelService, userRepository, messageRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
-		channelReadAllTest(fileUserRepository, fileMessageRepository, BasicChannelService,
-		  setupPUblicChannel(BasicChannelService));
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		channelReadAllTest(userRepository, messageRepository, basicChannelService
+		);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
-		channelUpdateTest(BasicChannelService, setupPUblicChannel(BasicChannelService));
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		channelUpdateTest(basicChannelService, setupPUblicChannel(basicChannelService));
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
-		channelDeleteTest(BasicChannelService, setupPUblicChannel(BasicChannelService));
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		channelDeleteTest(basicChannelService, setupPUblicChannel(basicChannelService));
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
 		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
 		  "┃ ✅ END CHANNEL TEST           ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
 		// 🧑‍💻🧑‍💻🧑‍💻 User Test Start 🧑‍💻🧑‍💻🧑‍💻
 		System.out.println("\n" +
@@ -559,57 +874,154 @@ public class DiscodeitApplication {
 		  "┃       🙋 USER TEST            ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
 
-		BinaryContent binaryContent1 = setupBinaryContent(fileBinaryContentRepository);
+		BinaryContent binaryContent1 = setupBinaryContent(binaryContentRepository);
 
-		userCreateTest(BasicUserService, fileBinaryContentRepository);
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		userCreateTest(basicUserService, binaryContentRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
-		userReadTest(BasicUserService, setupUser(BasicUserService, binaryContent1));
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		userReadTest(basicUserService, setupUser(basicUserService, binaryContent1));
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
-		userUpdateTest(BasicUserService, setupUser(BasicUserService, binaryContent1), fileBinaryContentRepository);
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
-		userDeleteTest(BasicUserService, setupUser(BasicUserService, binaryContent1), userStatusRepository,
-		  fileBinaryContentRepository);
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		userUpdateTest(basicUserService, setupUser(basicUserService, binaryContent1), binaryContentRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+		userDeleteTest(basicUserService, setupUser(basicUserService, binaryContent1), userStatusRepository,
+		  binaryContentRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
-		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃ ✅ END USER TEST              ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃ ✅ END USER TEST              ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
 		// 💌💌💌 Message Test Start 💌💌💌
-		System.out.println("\n" +
-		  "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃     💌 MESSAGE TEST           ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃     💌 MESSAGE TEST           ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
 
-		BinaryContent binaryContent2 = setupBinaryContent(fileBinaryContentRepository);
-		Channel fileChannelForMessageforBasic = setupPUblicChannel(BasicChannelService);
-		User fileUserForMessageforBasic = setupUser(BasicUserService, binaryContent2);
-		Message fileMessageforBasic = setupMessage(BasicMessageService, fileChannelForMessageforBasic,
-		  fileUserForMessageforBasic);
+		// setup-1
+		BinaryContent binaryContent2 = setupBinaryContent(binaryContentRepository);
+		Channel fileChannelForMessageforBasic = setupPUblicChannel(basicChannelService);
+		User fileUserForMessageforBasic = setupUser(basicUserService, binaryContent2);
+		Message fileMessageforBasic;
+		// Test
+		messageCreateTest(basicMessageService, fileChannelForMessageforBasic, fileUserForMessageforBasic,
+		  binaryContentRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
-		messageCreateTest(BasicMessageService, fileChannelForMessageforBasic, fileUserForMessageforBasic);
-		messageReadTest(BasicMessageService, fileMessageforBasic);
-		messageUpdateTest(BasicMessageService, fileMessageforBasic);
-		messageDeleteTest(BasicMessageService, fileMessageforBasic);
+		// setup-2
+		binaryContent2 = setupBinaryContent(binaryContentRepository);
+		fileChannelForMessageforBasic = setupPUblicChannel(basicChannelService);
+		fileUserForMessageforBasic = setupUser(basicUserService, binaryContent2);
+		// Test
+		messageReadTest(basicMessageService, binaryContentRepository,
+		  fileChannelForMessageforBasic, fileUserForMessageforBasic);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		// setup-3
+		binaryContent2 = setupBinaryContent(binaryContentRepository);
+		fileChannelForMessageforBasic = setupPUblicChannel(basicChannelService);
+		fileUserForMessageforBasic = setupUser(basicUserService, binaryContent2);
+		fileMessageforBasic =
+		  setupMessage(basicMessageService, fileChannelForMessageforBasic, fileUserForMessageforBasic);
+		// Test
+		messageUpdateTest(basicMessageService, fileMessageforBasic);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		fileChannelForMessageforBasic = setupPUblicChannel(basicChannelService);
+		fileUserForMessageforBasic = setupUser(basicUserService, null);
+		messageDeleteTest(basicMessageService, binaryContentRepository,
+		  fileChannelForMessageforBasic, fileUserForMessageforBasic);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
 
 		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
 		  "┃ ✅ END MESSAGE TEST           ┃\n" +
 		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		clearAll(BasicChannelService, BasicUserService, BasicMessageService, userStatusRepository);
 
-		// 💌💌💌 Message Test Start 💌💌💌
-		System.out.println("\n" +
-		  "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃     🙋 USER LOGIN TEST        ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-		User fileUserForLogin = setupUser(BasicUserService, binaryContent2);
-		authLoginTest(fileUserForLogin, authService);
-		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃ ✅ END USER LOGIN TEST        ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃     🙋 USER LOGIN TEST        ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
+		User fileUserForLogin = setupUser(basicUserService, binaryContent2);
+		authLoginTest(authService);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃ ✅ END USER LOGIN TEST        ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
+
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃   🔍ReadStatus Service TEST   ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
+		createReadStatusTest(readStatusService, basicUserService, binaryContentRepository,
+		  basicChannelService, readStatusRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		readReadStatusTest(basicUserService, binaryContentRepository, basicChannelService, readStatusService
+		);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		updateReadStatusTest(basicUserService, binaryContentRepository, basicChannelService,
+		  readStatusService, readStatusRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		deleteReadStatusTest(basicUserService, binaryContentRepository, basicChannelService,
+		  readStatusService, readStatusRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃ ✅ END ReadStatus TEST        ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
+
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃   🙋UserStatus Service TEST   ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
+		createUserStatusTest(userStatusService, basicUserService, binaryContentRepository, userStatusRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		readUserStatusTest(userStatusService, basicUserService, binaryContentRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		updateUserStatusTest(userStatusService, basicUserService, binaryContentRepository, userStatusRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		deleteUserStatusTest(userStatusService, basicUserService, binaryContentRepository, userStatusRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃ ✅ END UserStatus TEST        ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
 
 	}
 }

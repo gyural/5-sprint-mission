@@ -9,6 +9,8 @@ import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 public interface BinaryContentRepository {
 	public BinaryContent save(BinaryContent binaryContent);
 
+	public List<BinaryContent> saveAll(List<BinaryContent> binaryContents);
+
 	public Optional<BinaryContent> find(UUID id);
 
 	public List<BinaryContent> findAll();
