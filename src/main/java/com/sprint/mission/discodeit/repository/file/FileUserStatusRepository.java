@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import com.sprint.mission.discodeit.domain.entity.Message;
@@ -20,6 +21,7 @@ import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 
 @Repository
+@Primary
 public class FileUserStatusRepository implements UserStatusRepository {
 
 	private static final String DIR_NAME = "data";

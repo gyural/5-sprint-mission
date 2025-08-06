@@ -65,14 +65,15 @@ public class DiscodeitApplication {
 	static BinaryContent setupBinaryContent(BinaryContentRepository binaryContentRepository) {
 		byte[] bytes;
 		try {
-			Path imagePath = Path.of(System.getProperty("user.dir"), "dummyImage.png");
+			Path imagePath = Path.of("dummyImage.png");
 			bytes = Files.readAllBytes(imagePath);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
-		BinaryContent dummyBinaryContent = new BinaryContent(
-		  bytes, bytes.length, ContentType.IMAGE, "dummyImage.png");
+		BinaryContent dummyBinaryContent =
+		  new BinaryContent(bytes, bytes.length, ContentType.IMAGE, "dummyImage.png");
+
 		return binaryContentRepository.save(dummyBinaryContent);
 	}
 
@@ -100,9 +101,8 @@ public class DiscodeitApplication {
 	  UserRepository userRepository) {
 		System.out.print("ChannelCreateTest.......................");
 
-		// Given & When
-
-		// 1. Member List 생성
+		// Given
+		//  Member List 생성
 		int size = 5;
 		for (int i = 1; i <= size; i++) {
 			userRepository.save(
@@ -111,10 +111,10 @@ public class DiscodeitApplication {
 		}
 		List<User> memberList = userRepository.findAll();
 
-		// 2. public 채널과 private 채널을 생성
+		// When
+		// public 채널과 private 채널을 생성
 		Channel publicChannel = channelService.createPublic(
 		  ChannelCreateDTO.builder().description("공개 공지 채널입니다.").name("공개 공지").build());
-
 		Channel privateChannel = channelService.createPrivate(
 		  ChannelCreateDTO.builder().members(memberList).build());
 
@@ -142,8 +142,7 @@ public class DiscodeitApplication {
 	  MessageRepository messageRepository) {
 		System.out.print("channelReadTest.......................");
 
-		// Given & When
-
+		// Given
 		// 1.  MemberList 생성
 		int size = 5;
 		for (int i = 1; i <= size; i++) {
@@ -167,9 +166,11 @@ public class DiscodeitApplication {
 		);
 		Message lastMessage = messageRepository.findAllByChannelId(privateChannel.getId()).get(0);
 
+		// When
 		ReadChannelResponse readPublicChannel = channelService.read(publicChannel.getId());
 		ReadChannelResponse readPrivateChannel = channelService.read(privateChannel.getId());
 
+		// Then
 		boolean isPublicChannelValid = readPublicChannel.getId().equals(publicChannel.getId()) &&
 		  readPublicChannel.getName().equals(publicChannel.getName()) &&
 		  readPublicChannel.getDescription().equals(publicChannel.getDescription());
@@ -197,7 +198,7 @@ public class DiscodeitApplication {
 	  ChannelService channelService) {
 		System.out.print("channelReadAllTest.......................");
 
-		// Given: 유저 2명 생성
+		// Given 유저 2명 생성
 		User user1 = userRepository.save(new User("user1", "user1@codeit.com", "pw1", null));
 		User user2 = userRepository.save(new User("user2", "user2@codeit.com", "pw2", null));
 		User userNoChannel = userRepository.save(new User("user3", "user3@codeit.com", "pw3", null));
@@ -217,11 +218,12 @@ public class DiscodeitApplication {
 		Message privMsg = messageRepository.save(
 		  new Message("private msg", user2.getId(), privateChannel.getId(), user2.getUsername()));
 
-		// When:
+		// When
 		List<ReadChannelResponse> channelsReqByPublicUser = channelService.findAllByUserId(userNoChannel.getId());
 		List<ReadChannelResponse> channelsReqByPrivateUser = channelService.findAllByUserId(user1.getId());
 
-		// Then: PUBLIC 채널은 항상 포함, PRIVATE 채널은 참여자만 조회됨
+		// Then
+		// PUBLIC 채널은 항상 포함, PRIVATE 채널은 참여자만 조회됨
 		boolean hasPublic = channelsReqByPublicUser.stream().anyMatch(c -> c.getId().equals(publicChannel.getId()));
 		boolean hasNoPrivate = channelsReqByPublicUser.stream()
 		  .noneMatch(c -> c.getId().equals(privateChannel.getId()));
@@ -255,9 +257,11 @@ public class DiscodeitApplication {
 	static void channelUpdateTest(ChannelService channelService, Channel channel) {
 		System.out.print("channelUpdateTest.......................");
 
+		// Given
 		String newName = "업데이트된 채널";
 		String newDescription = "업데이트된 채널 설명";
 
+		// When
 		channelService.update(ChannelUpdateDTO.builder()
 		  .id(channel.getId())
 		  .channelType(channel.getChannelType())
@@ -265,6 +269,7 @@ public class DiscodeitApplication {
 		  .description(newDescription)
 		  .build());
 
+		// Then
 		ReadChannelResponse channelToValidate = channelService.read(channel.getId());
 		boolean isUpdated = channelToValidate.getName().equals(newName) &&
 		  channelToValidate.getDescription().equals(newDescription);
@@ -902,19 +907,18 @@ public class DiscodeitApplication {
 		ReadStatusService readStatusService = context.getBean(ReadStatusService.class);
 		UserStatusService userStatusService = context.getBean(UserStatusService.class);
 
-		BinaryContent binaryContent = setupBinaryContent(binaryContentRepository);
-		System.out.println(binaryContent);
-
-		System.out.println("\n" +
-		  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-		  "💾 [FILE] 저장소 기반 BasicService 테스트 시작\n" +
-		  "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃ 💾 [FILE] 저장소 기반 BasicService 테스트 시작 ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
 
 		// 💥💥💥 Channel Test Start 💥💥💥
-		System.out.println("\n" +
-		  "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃     📡 CHANNEL TEST           ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃     📡 CHANNEL TEST           ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
 		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
 		  binaryContentRepository, readStatusRepository);
 		channelCreateTest(basicChannelService, readStatusRepository, userRepository);
@@ -938,17 +942,20 @@ public class DiscodeitApplication {
 		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
 		  binaryContentRepository, readStatusRepository);
 
-		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃ ✅ END CHANNEL TEST           ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃ ✅ END CHANNEL TEST           ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
 		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
 		  binaryContentRepository, readStatusRepository);
 
 		// 🧑‍💻🧑‍💻🧑‍💻 User Test Start 🧑‍💻🧑‍💻🧑‍💻
-		System.out.println("\n" +
-		  "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃       🙋 USER TEST            ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃       🙋 USER TEST            ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
 
 		BinaryContent binaryContent1 = setupBinaryContent(binaryContentRepository);
 
@@ -1022,13 +1029,15 @@ public class DiscodeitApplication {
 		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
 		  binaryContentRepository, readStatusRepository);
 
-		System.out.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n" +
-		  "┃ ✅ END MESSAGE TEST           ┃\n" +
-		  "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃ ✅ END MESSAGE TEST           ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
 
 		System.out.println("""
 		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-		  ┃     🙋 USER LOGIN TEST        ┃
+		  ┃  🙋 USER LOGIN TEST           ┃
 		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 		  """);
 		User fileUserForLogin = setupUser(basicUserService, binaryContent2);
@@ -1043,7 +1052,7 @@ public class DiscodeitApplication {
 
 		System.out.println("""
 		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-		  ┃   🔍ReadStatus Service TEST   ┃
+		  ┃ 🔍ReadStatus Service TEST     ┃
 		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 		  """);
 		createReadStatusTest(readStatusService, basicUserService, binaryContentRepository,
@@ -1074,7 +1083,7 @@ public class DiscodeitApplication {
 
 		System.out.println("""
 		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-		  ┃   🙋UserStatus Service TEST   ┃
+		  ┃  🙋UserStatus Service TEST    ┃
 		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 		  """);
 		createUserStatusTest(userStatusService, basicUserService, binaryContentRepository, userStatusRepository);
@@ -1101,7 +1110,7 @@ public class DiscodeitApplication {
 
 		System.out.println("""
 		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-		  ┃   🙋BinaryContent Service TEST┃
+		  ┃ ?? BinaryContent Service TEST ┃
 		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 		  """);
 		createBinaryContentTest(context.getBean(BinaryContentService.class), binaryContentRepository);

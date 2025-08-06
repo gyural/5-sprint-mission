@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
@@ -17,6 +18,7 @@ import com.sprint.mission.discodeit.domain.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 
 @Repository
+@Primary
 public class FileReadStatusRepository implements ReadStatusRepository {
 
 	private static final String DIR_NAME = "data";
