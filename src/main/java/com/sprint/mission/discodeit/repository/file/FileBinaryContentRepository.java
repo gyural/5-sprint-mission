@@ -80,6 +80,13 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 	}
 
 	@Override
+	public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
+		return findAll().stream()
+		  .filter(binaryContent -> ids.contains(binaryContent.getId()))
+		  .toList();
+	}
+
+	@Override
 	public void delete(UUID id) {
 		List<BinaryContent> binaryContents = findAll();
 		binaryContents.removeIf(binaryContent -> binaryContent.getId().equals(id));
