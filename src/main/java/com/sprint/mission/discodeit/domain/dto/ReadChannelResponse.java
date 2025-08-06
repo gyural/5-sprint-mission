@@ -26,6 +26,14 @@ public class ReadChannelResponse {
 	private Instant lastMessageAt;
 	private List<UUID> membersIDList;
 
+	/**
+	 * Creates a {@code ReadChannelResponse} DTO from a {@code Channel} entity, the timestamp of the last message, and a list of member UUIDs.
+	 *
+	 * @param channel the channel entity to convert
+	 * @param LastMessageAt the timestamp of the last message sent in the channel
+	 * @param membersIDList the list of member UUIDs associated with the channel
+	 * @return a {@code ReadChannelResponse} representing the channel's data
+	 */
 	public static ReadChannelResponse toReadChannelResponse(Channel channel, Instant LastMessageAt,
 	  List<UUID> membersIDList) {
 		return ReadChannelResponse.builder()

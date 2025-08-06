@@ -30,6 +30,12 @@ public class FileChannelRepository implements ChannelRepository {
 
 	private final String FILE_NAME;
 
+	/**
+	 * Constructs a file-based channel repository, initializing the storage file and its parent directory if they do not exist.
+	 *
+	 * @param fileDirectory the directory path where the channel data file will be stored
+	 * @throws RuntimeException if an I/O error occurs during initialization
+	 */
 	public FileChannelRepository(@Value("${discodeit.repository.file-directory}") String fileDirectory) {
 		this.FILE_NAME = fileDirectory + "/channel.ser";
 		try {

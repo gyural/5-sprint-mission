@@ -22,6 +22,15 @@ public class JCFUserService implements UserService {
 	private final JCFUserRepository userRepository;
 	private final UserStatusRepository userStatusRepository;
 
+	/**
+	 * Creates a new user with the provided details.
+	 *
+	 * Validates the input data and ensures the username is unique before saving the user.
+	 *
+	 * @param dto Data transfer object containing the username, email, and password for the new user.
+	 * @return The newly created User entity.
+	 * @throws IllegalArgumentException if the input DTO is null, any required field is null or empty, or the username already exists.
+	 */
 	@Override
 	public User create(UserCreateDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserCreateDTO cannot be null"));
@@ -47,11 +56,23 @@ public class JCFUserService implements UserService {
 
 	}
 
+	/**
+	 * Deletes the user identified by the given user ID from the repository.
+	 *
+	 * @param userId the unique identifier of the user to delete
+	 */
 	@Override
 	public void delete(UUID userId) {
 		userRepository.delete(userId);
 	}
 
+	/**
+	 * Updates an existing user's username, email, and password with the values provided in the given DTO.
+	 *
+	 * @param dto Data transfer object containing the user ID and new values for username, email, and password.
+	 * @throws IllegalArgumentException if the DTO is null or any of the new values are empty.
+	 * @throws NoSuchElementException if no user with the specified ID exists.
+	 */
 	@Override
 	public void update(UserUpdateDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserUpdateDTO cannot be null"));
@@ -78,6 +99,13 @@ public class JCFUserService implements UserService {
 		userRepository.save(targetUser);
 	}
 
+	/**
+	 * Retrieves user details and online status for the specified user ID.
+	 *
+	 * @param userId the unique identifier of the user to retrieve
+	 * @return a UserReadDTO containing user information and online status
+	 * @throws IllegalArgumentException if no user with the given ID exists
+	 */
 	@Override
 	public UserReadDTO read(UUID userId) {
 		User user = userRepository.find(userId)
@@ -99,6 +127,11 @@ public class JCFUserService implements UserService {
 		  .build();
 	}
 
+	/**
+	 * Retrieves a list of all users from the repository.
+	 *
+	 * @return a list containing all User entities
+	 */
 	@Override
 	public List<User> readAll() {
 		return userRepository.findAll();

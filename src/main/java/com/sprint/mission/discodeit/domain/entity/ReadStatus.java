@@ -21,6 +21,14 @@ public class ReadStatus implements Serializable {
 	private final UUID userId;
 	private final UUID channelId;
 
+	/**
+	 * Constructs a new ReadStatus instance for the specified user and channel.
+	 *
+	 * Initializes the unique identifier and creation timestamp upon instantiation.
+	 *
+	 * @param userId    the UUID of the user associated with this read status (must not be null)
+	 * @param channelId the UUID of the channel associated with this read status (must not be null)
+	 */
 	public ReadStatus(@NonNull UUID userId, @NonNull UUID channelId) {
 		this.id = UUID.randomUUID();
 		this.createdAt = Instant.now();
@@ -28,6 +36,9 @@ public class ReadStatus implements Serializable {
 		this.channelId = channelId;
 	}
 
+	/**
+	 * Updates the {@code updatedAt} timestamp to the current instant.
+	 */
 	public void setUpdatedAt() {
 		this.updatedAt = Instant.now();
 	}

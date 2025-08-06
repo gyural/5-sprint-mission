@@ -30,6 +30,14 @@ public class FileMessageRepository implements MessageRepository {
 
 	private final String FILE_NAME;
 
+	/**
+	 * Constructs a FileMessageRepository that stores messages in a serialized file at the specified directory.
+	 *
+	 * Initializes the file and its parent directories if they do not exist, and ensures the file contains an empty list of messages upon creation.
+	 *
+	 * @param fileDirectory the directory path where the message file will be stored
+	 * @throws RuntimeException if an I/O error occurs during initialization
+	 */
 	public FileMessageRepository(@Value("${discodeit.repository.file-directory}") String fileDirectory) {
 		this.FILE_NAME = fileDirectory + "/message.ser";
 

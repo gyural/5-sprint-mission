@@ -34,6 +34,13 @@ public class BasicChannelService implements ChannelService {
 	private final MessageRepository messageRepository;
 	private final ReadStatusRepository readStatusRepository;
 
+	/**
+	 * Creates and saves a new public channel using the provided name and description.
+	 *
+	 * @param dto Data transfer object containing the channel's name and description.
+	 * @return The newly created public channel entity.
+	 * @throws IllegalArgumentException if the name or description is null or empty.
+	 */
 	@Override
 	public Channel createPublic(ChannelCreateDTO dto) {
 		String name = dto.getName();
@@ -49,6 +56,15 @@ public class BasicChannelService implements ChannelService {
 		return channelRepository.save(new Channel(PUBLIC, name, description));
 	}
 
+	/**
+	 * Creates a new private channel with the specified members.
+	 *
+	 * The created channel has no name or description. For each member in the provided DTO,
+	 * a corresponding read status entry is initialized and saved.
+	 *
+	 * @param dto the data transfer object containing the list of members to include in the private channel
+	 * @return the newly created private channel entity
+	 */
 	@Override
 	public Channel createPrivate(ChannelCreateDTO dto) {
 
@@ -62,6 +78,16 @@ public class BasicChannelService implements ChannelService {
 		return channelRepository.save(newChannel);
 	}
 
+	/**
+	 * Retrieves detailed information about a channel by its ID.
+	 *
+	 * If the channel is private, includes the list of member user IDs; otherwise, the member list is empty.
+	 * Also provides the timestamp of the most recent message edit or creation, or null if there are no messages.
+	 *
+	 * @param id the unique identifier of the channel to retrieve
+	 * @return a {@link ReadChannelResponse} containing channel details, last message timestamp, and member user IDs
+	 * @throws NoSuchElementException if the channel with the specified ID does not exist
+	 */
 	@Override
 	public ReadChannelResponse read(UUID id) {
 		Channel channel = channelRepository.find(id)
@@ -82,6 +108,14 @@ public class BasicChannelService implements ChannelService {
 		return toReadChannelResponse(channel, lastMessageAt, membersIDList);
 	}
 
+	/**
+	 * Retrieves all channels visible to the specified user, including all public channels and private channels where the user is a member.
+	 *
+	 * For each channel, returns a response containing channel details, the timestamp of the most recent message (if any), and the list of member user IDs for private channels.
+	 *
+	 * @param userId the ID of the user whose accessible channels are to be retrieved
+	 * @return a list of channel response objects with message and membership information
+	 */
 	@Override
 	public List<ReadChannelResponse> findAllByUserId(UUID userId) {
 		return channelRepository.findAll().stream()
@@ -111,6 +145,11 @@ public class BasicChannelService implements ChannelService {
 
 	}
 
+	/**
+	 * Deletes the channel with the specified ID, along with all associated messages and read status entries.
+	 *
+	 * @param id the unique identifier of the channel to delete
+	 */
 	@Override
 	public void delete(UUID id) {
 		// 연관된 메시지도 삭제
@@ -122,6 +161,13 @@ public class BasicChannelService implements ChannelService {
 
 	}
 
+	/**
+	 * Updates the type, name, and description of a public channel using the provided update DTO.
+	 *
+	 * @param dto the data transfer object containing the channel ID, new name, new description, and new channel type
+	 * @throws IllegalArgumentException if the DTO, name, description, or channel type is null or empty, or if the channel does not exist
+	 * @throws RuntimeException if attempting to update a private channel
+	 */
 	@Override
 	public void update(ChannelUpdateDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("ChannelUpdateDTO cannot be null"));
@@ -162,18 +208,34 @@ public class BasicChannelService implements ChannelService {
 		return channelRepository.isEmpty(id);
 	}
 
+	/**
+	 * Deletes all channels and all messages from the system.
+	 */
 	@Override
 	public void deleteAll() {
 		channelRepository.deleteAll();
 		messageRepository.deleteAll();
 	}
 
+	/**
+	 * Returns the latest edit or creation timestamp among a list of messages.
+	 *
+	 * @param messages the list of messages to evaluate
+	 * @return the most recent edit or creation time found in the messages
+	 * @throws NoSuchElementException if the message list is empty
+	 */
 	private Instant getLastEditAt(List<Message> messages) {
 		return messages.stream().map(this::getMessageLastEditAt)
 		  .max(Instant::compareTo)
 		  .orElseThrow(() -> new NoSuchElementException("No messages found"));
 	}
 
+	/**
+	 * Returns the most recent timestamp for a message, using the updated time if available, otherwise the created time.
+	 *
+	 * @param message the message whose timestamp is to be determined
+	 * @return the latest edit or creation timestamp of the message
+	 */
 	private Instant getMessageLastEditAt(Message message) {
 		return message.getUpdatedAt() != null ? message.getUpdatedAt() : message.getCreatedAt();
 	}

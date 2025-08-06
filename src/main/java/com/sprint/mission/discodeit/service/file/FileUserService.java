@@ -21,6 +21,16 @@ public class FileUserService implements UserService {
 	private final FileUserRepository userRepository;
 	private final UserStatusRepository userStatusRepository;
 
+	/**
+	 * Creates a new user with the provided username, email, and password.
+	 *
+	 * Validates that the username, email, and password in the given DTO are non-null and non-empty.
+	 * Throws an IllegalArgumentException if any validation fails.
+	 *
+	 * @param dto the data transfer object containing user creation details
+	 * @return the created User entity
+	 * @throws IllegalArgumentException if username, email, or password is null or empty
+	 */
 	@Override
 	public User create(UserCreateDTO dto) {
 		String username = dto.getUsername();
@@ -40,11 +50,22 @@ public class FileUserService implements UserService {
 		return userRepository.save(new User(username, email, password, null));
 	}
 
+	/**
+	 * Deletes the user identified by the specified user ID from the repository.
+	 *
+	 * @param userId the unique identifier of the user to delete
+	 */
 	@Override
 	public void delete(UUID userId) {
 		userRepository.delete(userId);
 	}
 
+	/**
+	 * Updates an existing user's username, email, and password using the provided update DTO.
+	 *
+	 * @param dto the data transfer object containing the user ID and new user details
+	 * @throws IllegalArgumentException if the DTO is null, any new field is null or empty, or the user does not exist
+	 */
 	@Override
 	public void update(UserUpdateDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserUpdateDTO cannot be null"));
@@ -73,6 +94,13 @@ public class FileUserService implements UserService {
 		userRepository.save(targetUser);
 	}
 
+	/**
+	 * Retrieves user details and online status for the specified user ID.
+	 *
+	 * @param userId the unique identifier of the user to retrieve
+	 * @return a {@link UserReadDTO} containing user information and online status
+	 * @throws IllegalArgumentException if the user with the given ID does not exist
+	 */
 	@Override
 	public UserReadDTO read(UUID userId) {
 		User user = userRepository.find(userId)
@@ -94,6 +122,11 @@ public class FileUserService implements UserService {
 		  .build();
 	}
 
+	/**
+	 * Retrieves a list of all users from the repository.
+	 *
+	 * @return a list containing all user entities
+	 */
 	@Override
 	public List<User> readAll() {
 		return userRepository.findAll();

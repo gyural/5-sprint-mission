@@ -21,11 +21,24 @@ public class FileChannelService implements ChannelService {
 	private final FileChannelRepository channelRepository;
 	private final FileMessageRepository messageRepository;
 
+	/**
+	 * Constructs a FileChannelService with the specified channel and message repositories.
+	 *
+	 * @param channelRepository the repository used for channel data persistence
+	 * @param messageRepository the repository used for message data persistence
+	 */
 	public FileChannelService(FileChannelRepository channelRepository, FileMessageRepository messageRepository) {
 		this.channelRepository = channelRepository;
 		this.messageRepository = messageRepository;
 	}
 
+	/**
+	 * Creates and persists a new public channel using the provided data.
+	 *
+	 * @param dto Data transfer object containing the channel's name and description.
+	 * @return The newly created public Channel entity.
+	 * @throws IllegalArgumentException if the channel name or description is null or empty.
+	 */
 	@Override
 	public Channel createPublic(ChannelCreateDTO dto) {
 		String name = dto.getName();
@@ -41,6 +54,13 @@ public class FileChannelService implements ChannelService {
 		return channelRepository.save(new Channel(PUBLIC, name, description));
 	}
 
+	/**
+	 * Creates a new private channel with the specified name and description.
+	 *
+	 * @param dto Data transfer object containing the channel's name and description.
+	 * @return The created private Channel entity.
+	 * @throws IllegalArgumentException if the name or description is null or empty.
+	 */
 	public Channel createPrivate(ChannelCreateDTO dto) {
 		String name = dto.getName();
 		String description = dto.getDescription();
@@ -55,6 +75,13 @@ public class FileChannelService implements ChannelService {
 		return channelRepository.save(new Channel(PRIVATE, name, description));
 	}
 
+	/**
+	 * Retrieves a channel by its unique identifier and returns its details as a response DTO.
+	 *
+	 * @param id the UUID of the channel to retrieve
+	 * @return a {@code ReadChannelResponse} containing the channel's details
+	 * @throws NoSuchElementException if no channel with the specified ID exists
+	 */
 	@Override
 	public ReadChannelResponse read(UUID id) {
 		Channel channel = channelRepository.find(id)
@@ -70,6 +97,12 @@ public class FileChannelService implements ChannelService {
 		  .build();
 	}
 
+	/**
+	 * Retrieves all channels and returns them as a list of {@code ReadChannelResponse} objects.
+	 *
+	 * @param userId the user ID (currently unused in filtering)
+	 * @return a list of channel responses representing all channels
+	 */
 	@Override
 	public List<ReadChannelResponse> findAllByUserId(UUID userId) {
 		return channelRepository.findAll().stream()
@@ -77,6 +110,11 @@ public class FileChannelService implements ChannelService {
 		  .toList();
 	}
 
+	/**
+	 * Deletes the channel with the specified UUID and all messages associated with it.
+	 *
+	 * @param id the UUID of the channel to delete
+	 */
 	@Override
 	public void delete(UUID id) {
 		// 연관된 메시지도 삭제
@@ -86,6 +124,13 @@ public class FileChannelService implements ChannelService {
 
 	}
 
+	/**
+	 * Updates an existing channel's type, name, and description using the provided update DTO.
+	 *
+	 * @param dto the data transfer object containing the channel ID, new type, name, and description
+	 * @throws IllegalArgumentException if the channel ID, name, description, or type is null or empty
+	 * @throws NoSuchElementException if the channel with the specified ID does not exist
+	 */
 	@Override
 	public void update(ChannelUpdateDTO dto) {
 		UUID id = dto.getId();

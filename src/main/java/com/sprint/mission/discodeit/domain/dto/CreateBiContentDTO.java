@@ -18,6 +18,11 @@ public class CreateBiContentDTO {
 	private ContentType contentType;
 	private String filename;
 
+	/**
+	 * Converts this DTO to a {@link BinaryContent} entity using its field values.
+	 *
+	 * @return a new {@code BinaryContent} instance containing the content, size, content type, and filename from this DTO
+	 */
 	public BinaryContent toBinaryContent() {
 		return new BinaryContent(content, size, contentType, filename);
 	}

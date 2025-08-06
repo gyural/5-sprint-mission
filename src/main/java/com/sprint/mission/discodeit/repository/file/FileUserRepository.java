@@ -30,6 +30,14 @@ public class FileUserRepository implements UserRepository {
 
 	private final String FILE_NAME;
 
+	/**
+	 * Constructs a file-based user repository, initializing the user data file at the specified directory.
+	 *
+	 * If the user data file does not exist, it is created and initialized with an empty user list.
+	 *
+	 * @param fileDirectory the directory path where the user data file will be stored
+	 * @throws RuntimeException if an I/O error occurs during file or directory creation
+	 */
 	public FileUserRepository(@Value("${discodeit.repository.file-directory}") String fileDirectory) {
 		this.FILE_NAME = fileDirectory + "/user.ser";
 
@@ -47,6 +55,17 @@ public class FileUserRepository implements UserRepository {
 		}
 	}
 
+	/**
+	 * Saves a new user to the repository, ensuring the username is unique.
+	 *
+	 * If a user with the same username already exists, an IllegalArgumentException is thrown.
+	 * Any existing user with the same ID is replaced by the new user.
+	 *
+	 * @param user the user to save
+	 * @return the saved user
+	 * @throws IllegalArgumentException if the username already exists
+	 * @throws RuntimeException if an I/O error occurs during saving
+	 */
 	@Override
 	public User save(User user) {
 		String username = user.getUsername();
@@ -126,16 +145,33 @@ public class FileUserRepository implements UserRepository {
 
 	}
 
+	/**
+	 * Returns the total number of users stored in the repository.
+	 *
+	 * @return the count of users, or 0 if the repository is empty
+	 */
 	@Override
 	public Long count() {
 		return findAll().isEmpty() ? 0L : (long)findAll().size();
 	}
 
+	/**
+	 * Retrieves the first user with the specified username.
+	 *
+	 * @param username the username to search for
+	 * @return an {@code Optional} containing the user if found, or empty if no user matches the username
+	 */
 	@Override
 	public Optional<User> findByUsername(String username) {
 		return findAll().stream().filter(user -> user.getUsername().equals(username)).findFirst();
 	}
 
+	/**
+	 * Retrieves a user by their email address.
+	 *
+	 * @param email the email address to search for
+	 * @return an {@code Optional} containing the user with the specified email, or empty if not found
+	 */
 	@Override
 	public Optional<User> findByEmail(String email) {
 		return findAll().stream().filter(user -> user.getEmail().equals(email)).findFirst();

@@ -19,7 +19,9 @@ public class JCFMessageService implements MessageService {
 	private final JCFChannelRepository channelRepository;
 
 	private final UserService userService;
-	// private final MessageAlarmService messageAlarmService;
+	/**
+	 * Constructs a JCFMessageService with the specified message repository, channel repository, and user service.
+	 */
 
 	public JCFMessageService(JCFMessageRepository messageRepository, JCFChannelRepository channelRepository,
 	  UserService userService) {
@@ -28,6 +30,13 @@ public class JCFMessageService implements MessageService {
 		this.userService = userService;
 	}
 
+	/**
+	 * Creates and saves a new message using the provided data transfer object.
+	 *
+	 * @param dto the data transfer object containing message content, channel ID, user ID, and author name
+	 * @return the saved Message entity
+	 * @throws IllegalArgumentException if the DTO, content, user ID, or channel ID is null or invalid
+	 */
 	@Override
 	public Message create(MessageCreateDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("MessageCreateDTO cannot be null"));
@@ -55,12 +64,25 @@ public class JCFMessageService implements MessageService {
 		return messageRepository.save(new Message(content, channelId, userId, dto.getAuthorName()));
 	}
 
+	/**
+	 * Retrieves a message by its unique identifier.
+	 *
+	 * @param id the unique identifier of the message to retrieve
+	 * @return the message with the specified ID
+	 * @throws NoSuchElementException if no message is found with the given ID
+	 */
 	@Override
 	public Message read(UUID id) {
 		return messageRepository.find(id)
 		  .orElseThrow(() -> new NoSuchElementException("Message not found with ID: " + id));
 	}
 
+	/**
+	 * Retrieves all messages associated with the specified channel ID.
+	 *
+	 * @param channelId the unique identifier of the channel
+	 * @return a list of messages belonging to the given channel
+	 */
 	@Override
 	public List<Message> findAllByChannelId(UUID channelId) {
 		return messageRepository.findAll().stream().filter(
@@ -68,6 +90,11 @@ public class JCFMessageService implements MessageService {
 		  .toList();
 	}
 
+	/**
+	 * Deletes a message by its unique identifier.
+	 *
+	 * @param id the unique identifier of the message to delete
+	 */
 	@Override
 	public void delete(UUID id) {
 		messageRepository.delete(id);
@@ -79,6 +106,12 @@ public class JCFMessageService implements MessageService {
 
 	}
 
+	/**
+	 * Deletes all messages associated with the specified channel ID.
+	 *
+	 * @param channelId the unique identifier of the channel whose messages will be deleted
+	 * @throws IllegalArgumentException if the channel ID is null or does not exist
+	 */
 	@Override
 	public void deleteAllByChannelId(UUID channelId) {
 		if (channelId == null || channelRepository.isEmpty(channelId)) {
@@ -88,6 +121,13 @@ public class JCFMessageService implements MessageService {
 		messageRepository.deleteByChannelId(channelId);
 	}
 
+	/**
+	 * Updates the content of an existing message using the provided update DTO.
+	 *
+	 * @param dto the data transfer object containing the message ID and new content
+	 * @throws IllegalArgumentException if the DTO, message ID, or new content is null or empty, or if the message does not exist
+	 * @throws NoSuchElementException if the message with the specified ID is not found
+	 */
 	@Override
 	public void update(MessageUpdateDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("MessageUpdateDTO cannot be null"));
