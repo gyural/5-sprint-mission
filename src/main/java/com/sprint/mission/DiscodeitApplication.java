@@ -5,6 +5,7 @@ import static com.sprint.mission.discodeit.domain.enums.ChannelType.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import com.sprint.mission.discodeit.domain.dto.ChannelCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.ChannelUpdateDTO;
+import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateReadStatusDTO;
 import com.sprint.mission.discodeit.domain.dto.MessageCreateDTO;
 import com.sprint.mission.discodeit.domain.dto.MessageUpdateDTO;
@@ -53,6 +55,7 @@ import com.sprint.mission.discodeit.service.basic.AuthService;
 import com.sprint.mission.discodeit.service.basic.BasicChannelService;
 import com.sprint.mission.discodeit.service.basic.BasicMessageService;
 import com.sprint.mission.discodeit.service.basic.BasicUserService;
+import com.sprint.mission.discodeit.service.basic.BinaryContentService;
 import com.sprint.mission.discodeit.service.basic.ReadStatusService;
 import com.sprint.mission.discodeit.service.basic.UserStatusService;
 
@@ -806,6 +809,79 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
+	static void createBinaryContentTest(BinaryContentService binaryContentService,
+	  BinaryContentRepository binaryContentRepository) {
+		System.out.print("createBinaryContentTest.......................");
+
+		// Given
+		CreateBiContentDTO dto = CreateBiContentDTO.builder()
+		  .content(new byte[] {1, 2, 3, 4, 5})
+		  .size(5)
+		  .contentType(ContentType.IMAGE)
+		  .filename("testImage.png")
+		  .build();
+
+		// When
+		binaryContentService.create(dto);
+
+		// Then
+		BinaryContent storedContent = binaryContentRepository.findAll().stream().findFirst().orElse(null);
+		boolean isValid = storedContent != null && storedContent.getFilename().equals(dto.getFilename()) &&
+		  storedContent.getSize() == dto.getSize() &&
+		  storedContent.getContentType() == dto.getContentType() &&
+		  Arrays.equals(storedContent.getContent(), dto.getContent());
+		String result = isValid ?
+		  "BinaryContent 생성 테스트 통과 ✅" :
+		  "BinaryContent 생성 테스트 실패 ❌";
+		System.out.println(result);
+	}
+
+	static void readBinaryContentTest(BinaryContentService binaryContentService,
+	  BinaryContentRepository binaryContentRepository) {
+		System.out.print("readBinaryContentTest.......................");
+
+		// Given
+		BinaryContent binaryContent1 = setupBinaryContent(binaryContentRepository);
+		BinaryContent binaryContent2 = setupBinaryContent(binaryContentRepository);
+		BinaryContent binaryContent3 = setupBinaryContent(binaryContentRepository);
+
+		// When
+		BinaryContent foundContentByfind = binaryContentService.find(binaryContent1.getId());
+		List<BinaryContent> foundContentByfindAll = binaryContentService.findAllByIdIn(
+		  List.of(binaryContent1.getId(), binaryContent2.getId(), binaryContent3.getId()));
+
+		// Then
+		boolean isValid = foundContentByfind != null &&
+		  foundContentByfind.getId().equals(binaryContent1.getId()) &&
+		  foundContentByfindAll.size() == 3 &&
+		  foundContentByfindAll.stream().anyMatch(bc -> bc.getId().equals(binaryContent1.getId())) &&
+		  foundContentByfindAll.stream().anyMatch(bc -> bc.getId().equals(binaryContent2.getId())) &&
+		  foundContentByfindAll.stream().anyMatch(bc -> bc.getId().equals(binaryContent3.getId()));
+
+		String result = isValid ?
+		  "BinaryContent 조회 테스트 통과 ✅" :
+		  "BinaryContent 조회 테스트 실패 ❌";
+		System.out.println(result);
+	}
+
+	static void deleteBinaryContentTest(BinaryContentService binaryContentService,
+	  BinaryContentRepository binaryContentRepository) {
+		System.out.print("deleteBinaryContentTest.......................");
+
+		// Given
+		BinaryContent binaryContent = setupBinaryContent(binaryContentRepository);
+
+		// When
+		binaryContentService.delete(binaryContent.getId());
+
+		// Then
+		boolean isDeleted = binaryContentRepository.find(binaryContent.getId()).isEmpty();
+		String result = isDeleted ?
+		  "BinaryContent 삭제 테스트 통과 ✅" :
+		  "BinaryContent 삭제 테스트 실패 ❌";
+		System.out.println(result);
+	}
+
 	public static void main(String[] args) {
 		ConfigurableApplicationContext context = SpringApplication.run(DiscodeitApplication.class, args);
 
@@ -1020,6 +1096,29 @@ public class DiscodeitApplication {
 		System.out.println("""
 		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 		  ┃ ✅ END UserStatus TEST        ┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
+
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃   🙋BinaryContent Service TEST┃
+		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+		  """);
+		createBinaryContentTest(context.getBean(BinaryContentService.class), binaryContentRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
+		  binaryContentRepository, readStatusRepository);
+
+		readBinaryContentTest(context.getBean(BinaryContentService.class), binaryContentRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository
+		  , binaryContentRepository, readStatusRepository);
+
+		deleteBinaryContentTest(context.getBean(BinaryContentService.class), binaryContentRepository);
+		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository
+		  , binaryContentRepository, readStatusRepository);
+
+		System.out.println("""
+		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+		  ┃ ✅ BinaryContent Service TEST ┃
 		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 		  """);
 

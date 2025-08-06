@@ -15,6 +15,8 @@ public interface BinaryContentRepository {
 
 	public List<BinaryContent> findAll();
 
+	public List<BinaryContent> findAllByIdIn(List<UUID> ids);
+
 	public void delete(UUID id);
 
 	boolean isEmpty(UUID id);
