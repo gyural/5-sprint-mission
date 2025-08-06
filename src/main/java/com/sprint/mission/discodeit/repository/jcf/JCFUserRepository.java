@@ -56,23 +56,43 @@ public class JCFUserRepository implements UserRepository {
 		return data.get(userId) == null;
 	}
 
+	/**
+	 * Removes all users from the repository.
+	 */
 	@Override
 	public void deleteAll() {
 		data.clear();
 
 	}
 
+	/**
+	 * Retrieves a user by their username.
+	 *
+	 * @param username the username to search for
+	 * @return an {@code Optional} containing the user if found, or empty if no user with the given username exists
+	 */
 	public Optional<User> findByUsername(String username) {
 		return data.values().stream()
 		  .filter(user -> user.getUsername().equals(username))
 		  .findFirst();
 	}
 
+	/**
+	 * Returns the total number of users currently stored in the repository.
+	 *
+	 * @return the count of users as a Long
+	 */
 	@Override
 	public Long count() {
 		return (long)data.size();
 	}
 
+	/**
+	 * Returns an empty {@code Optional} as searching users by email is not implemented.
+	 *
+	 * @param username the email address to search for
+	 * @return an empty {@code Optional}
+	 */
 	@Override
 	public Optional<User> findByEmail(String username) {
 		return Optional.empty();

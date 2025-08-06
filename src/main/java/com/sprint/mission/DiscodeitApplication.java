@@ -56,6 +56,12 @@ import com.sprint.mission.discodeit.service.basic.UserStatusService;
 @SpringBootApplication
 public class DiscodeitApplication {
 
+	/**
+	 * Reads a local image file and creates a BinaryContent entity of type IMAGE, saving it to the repository.
+	 *
+	 * @return the saved BinaryContent entity representing the image file
+	 * @throws RuntimeException if the image file cannot be read
+	 */
 	static BinaryContent setupBinaryContent(BinaryContentRepository binaryContentRepository) {
 		byte[] bytes;
 		try {
@@ -71,6 +77,12 @@ public class DiscodeitApplication {
 		return binaryContentRepository.save(dummyBinaryContent);
 	}
 
+	/**
+	 * Creates and returns a new user with predefined username, email, password, and the specified profile image.
+	 *
+	 * @param binaryContent the profile image to associate with the new user
+	 * @return the created User entity
+	 */
 	static User setupUser(UserService userService, BinaryContent binaryContent) {
 		return userService.create(
 		  UserCreateDTO.builder()
@@ -81,16 +93,33 @@ public class DiscodeitApplication {
 			.build());
 	}
 
+	/**
+	 * Creates and returns a public channel with a predefined name and description.
+	 *
+	 * @return the created public Channel instance
+	 */
 	static Channel setupPUblicChannel(ChannelService channelService) {
 		return channelService.createPublic(
 		  ChannelCreateDTO.builder().description("공지 채널입니다.").name("공지").build());
 	}
 
+	/**
+	 * Creates and returns a new message in the specified channel authored by the given user with preset content.
+	 *
+	 * @param channel the channel in which to create the message
+	 * @param author the user who will be set as the author of the message
+	 * @return the created Message entity
+	 */
 	static Message setupMessage(MessageService messageService, Channel channel, User author) {
 		return messageService.create(
 		  MessageCreateDTO.builder().channelId(channel.getId()).content("안녕하세요").userId(author.getId()).build());
 	}
 
+	/**
+	 * Tests the creation of public and private channels, verifying channel properties and member read status initialization.
+	 *
+	 * Creates multiple users, then creates a public and a private channel. Checks that all members have corresponding read statuses and that channel attributes are set correctly. Prints the test result to the console.
+	 */
 	static void channelCreateTest(ChannelService channelService, ReadStatusRepository readStatusRepository,
 	  UserRepository userRepository) {
 		System.out.print("ChannelCreateTest.......................");
@@ -132,6 +161,11 @@ public class DiscodeitApplication {
 		  "채널 생성 테스트 실패 ❌");
 	}
 
+	/**
+	 * Tests reading public and private channels, verifying channel details, member lists, and last message timestamps.
+	 *
+	 * Creates multiple users, a public channel, a private channel with those users as members, and a message in the private channel. Reads both channels and checks that the retrieved information matches the expected properties and membership.
+	 */
 	static void channelReadTest(ChannelService channelService, UserRepository userRepository,
 	  MessageRepository messageRepository) {
 		System.out.print("channelReadTest.......................");
@@ -188,6 +222,18 @@ public class DiscodeitApplication {
 		  "채널 조회 테스트 실패 ❌");
 	}
 
+	/**
+	 * Tests retrieval of all channels visible to users, verifying public channel visibility, private channel membership, and last message timestamps.
+	 *
+	 * This method creates two users, a non-member user, a public channel, and a private channel with two members. It adds messages to both channels, then checks that:
+	 * <ul>
+	 *   <li>All users can see the public channel.</li>
+	 *   <li>Only channel members can see the private channel.</li>
+	 *   <li>The last message timestamp for each channel matches the most recent message.</li>
+	 *   <li>Private channel member lists are accurate.</li>
+	 * </ul>
+	 * Prints the test result to the console.
+	 */
 	static void channelReadAllTest(UserRepository userRepository, MessageRepository messageRepository,
 	  ChannelService channelService) {
 		System.out.print("channelReadAllTest.......................");
@@ -248,6 +294,12 @@ public class DiscodeitApplication {
 		  "채널 전체 조회 테스트 실패 ❌");
 	}
 
+	/**
+	 * Tests updating a channel's name and description and verifies that the changes are persisted.
+	 *
+	 * This method updates the specified channel with new name and description values using the provided ChannelService,
+	 * then reads the channel to confirm the updates were applied.
+	 */
 	static void channelUpdateTest(ChannelService channelService, Channel channel) {
 		System.out.print("channelUpdateTest.......................");
 
@@ -273,6 +325,11 @@ public class DiscodeitApplication {
 		  "채널 업데이트 테스트 실패 ❌");
 	}
 
+	/**
+	 * Tests the deletion of a channel and verifies that it has been removed.
+	 *
+	 * Deletes the specified channel using the provided service and checks if the channel is empty to confirm successful deletion. Prints the test result to the console.
+	 */
 	static void channelDeleteTest(ChannelService channelService, Channel channel) {
 		System.out.print("channelDeleteTest.......................");
 
@@ -284,8 +341,9 @@ public class DiscodeitApplication {
 	}
 
 	/**
-	 * 사용자 생성 테스트
-	 * - 프로필 이미지가 있는 경우와 없는 경우를 모두 테스트
+	 * Tests user creation with and without a profile image.
+	 *
+	 * Verifies that users can be created both with a profile image and without one, and checks that user fields and profile image associations are correctly persisted.
 	 */
 	static void userCreateTest(
 	  UserService userService,
@@ -345,8 +403,9 @@ public class DiscodeitApplication {
 	}
 
 	/**
-	 * 사용자 조회 테스트
-	 * - password는 제외하고 online 정보가 잘 조회되는지 확인
+	 * Tests user retrieval to verify that user details (excluding password) and online status are correctly returned.
+	 *
+	 * Retrieves a user by ID and checks that the returned data matches the original user's fields, including online status and profile image presence.
 	 */
 	static void userReadTest(UserService userService, User user) {
 		System.out.print("UserReadTest.......................");
@@ -370,8 +429,9 @@ public class DiscodeitApplication {
 	}
 
 	/**
-	 * 사용자 갱신 테스트
-	 * - 프로필 이미지를 대체할 수 있는지도 확인
+	 * Tests updating a user's information, including replacing the profile image.
+	 *
+	 * Updates the specified user's username, email, password, and profile image, then verifies that the changes are correctly persisted.
 	 */
 	static void userUpdateTest(UserService userService, User user,
 	  BinaryContentRepository binaryContentRepository) {
@@ -404,8 +464,9 @@ public class DiscodeitApplication {
 	}
 
 	/**
-	 * 사용자 삭제 테스트
-	 * - 사용자 삭제 후, 관련된 데이터도 삭제되는지 확인
+	 * Tests user deletion and verifies that associated user status and profile image data are also removed.
+	 *
+	 * After deleting the specified user, checks that the user, their user status, and their profile image no longer exist in the respective repositories.
 	 */
 	static void userDeleteTest(UserService userService, User user, UserStatusRepository userStatusRepository,
 	  BinaryContentRepository binaryContentRepository) {
@@ -422,6 +483,11 @@ public class DiscodeitApplication {
 		System.out.println(log);
 	}
 
+	/**
+	 * Tests the creation of a message with multiple binary content attachments in a specified channel.
+	 *
+	 * Verifies that the message is created with the correct content, author, channel association, and that all attachments are properly linked and persisted.
+	 */
 	static void messageCreateTest(MessageService messageService, Channel channel, User author,
 	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("MessageCreateTest.......................");
@@ -461,6 +527,11 @@ public class DiscodeitApplication {
 		  "메시지 생성 테스트 실패 ❌");
 	}
 
+	/**
+	 * Tests reading a message with attachments and verifies that all message fields and attachment IDs are correctly retrieved.
+	 *
+	 * Creates a message with two binary content attachments, reads it back, and checks that the message content, channel, author, and attachment references match the original.
+	 */
 	static void messageReadTest(MessageService messageService, BinaryContentRepository binaryContentRepository,
 	  Channel channel, User author) {
 		System.out.print("MessageReadTest.......................");
@@ -496,6 +567,12 @@ public class DiscodeitApplication {
 		  "메시지 조회 테스트 실패 ❌");
 	}
 
+	/**
+	 * Tests updating a message's content and verifies that the update is applied.
+	 *
+	 * This method updates the specified message with new content using the provided MessageService,
+	 * then reads the message back to confirm the content has changed as expected. Prints the test result to the console.
+	 */
 	static void messageUpdateTest(MessageService messageService, Message message) {
 		System.out.print("MessageUpdateTest.......................");
 
@@ -510,6 +587,12 @@ public class DiscodeitApplication {
 		  "메시지 업데이트 테스트 실패 ❌");
 	}
 
+	/**
+	 * Tests the deletion of a message and its attachments, verifying that both the message and associated binary content are removed from the system.
+	 *
+	 * @param channel the channel in which the message is created and deleted
+	 * @param author the user who authors the message
+	 */
 	static void messageDeleteTest(MessageService messageService, BinaryContentRepository binaryContentRepository,
 	  Channel channel, User author) {
 		System.out.print("MessageDeleteTest.......................");
@@ -533,6 +616,11 @@ public class DiscodeitApplication {
 		System.out.println(log);
 	}
 
+	/**
+	 * Deletes all data from channels, users, messages, user statuses, binary contents, and read statuses repositories and services.
+	 *
+	 * This method is typically used to reset the application's persistent state between tests or operations.
+	 */
 	static void clearAll(ChannelService channelService, UserService userService, MessageService messageService,
 	  UserStatusRepository userStatusRepository, BinaryContentRepository binaryContentRepository,
 	  ReadStatusRepository readStatusRepository) {
@@ -544,6 +632,11 @@ public class DiscodeitApplication {
 		readStatusRepository.deleteAll();
 	}
 
+	/**
+	 * Tests the authentication service by attempting to log in with predefined credentials and verifying the response.
+	 *
+	 * Prints the result of the login test to the console, indicating whether authentication succeeded and the returned user matches the expected username.
+	 */
 	static void authLoginTest(AuthService authService) {
 		System.out.print("AuthLoginTest.......................");
 
@@ -563,6 +656,11 @@ public class DiscodeitApplication {
 		  "로그인 테스트 실패 ❌");
 	}
 
+	/**
+	 * Tests the creation of a ReadStatus entry linking a user and a channel.
+	 *
+	 * Creates a user and a public channel, then uses the ReadStatusService to create a ReadStatus for the user-channel pair. Verifies creation by checking the repository for the new ReadStatus and prints the test result.
+	 */
 	static void createReadStatusTest(ReadStatusService readStatusService, UserService basicUserService,
 	  BinaryContentRepository binaryContentRepository, ChannelService channelService,
 	  ReadStatusRepository readStatusRepository) {
@@ -589,6 +687,12 @@ public class DiscodeitApplication {
 
 	}
 
+	/**
+	 * Tests retrieval of all ReadStatus entries for a user across multiple channels.
+	 *
+	 * Creates a user and two channels, associates the user with both channels via ReadStatus entries,
+	 * and verifies that all ReadStatus records for the user can be retrieved correctly.
+	 */
 	static void readReadStatusTest(UserService userService, BinaryContentRepository binaryContentRepository,
 	  ChannelService channelService,
 	  ReadStatusService readStatusService) {
@@ -629,6 +733,12 @@ public class DiscodeitApplication {
 
 	}
 
+	/**
+	 * Tests updating a ReadStatus entity and verifies that its updated timestamp is properly modified.
+	 *
+	 * This method creates a user and a public channel, associates them with a ReadStatus, updates the ReadStatus,
+	 * and checks that the updated timestamp is later than before the update. Prints the test result to the console.
+	 */
 	static void updateReadStatusTest(UserService userService,
 	  BinaryContentRepository binaryContentRepository, ChannelService channelService,
 	  ReadStatusService readStatusService, ReadStatusRepository readStatusRepository) {
@@ -669,6 +779,11 @@ public class DiscodeitApplication {
 
 	}
 
+	/**
+	 * Tests the deletion of a ReadStatus entity and verifies its removal from the repository.
+	 *
+	 * This method creates a user and a public channel, associates them with a ReadStatus, deletes the ReadStatus using the service, and checks that it no longer exists in the repository.
+	 */
 	static void deleteReadStatusTest(UserService userService,
 	  BinaryContentRepository binaryContentRepository, ChannelService channelService,
 	  ReadStatusService readStatusService, ReadStatusRepository readStatusRepository) {
@@ -699,6 +814,9 @@ public class DiscodeitApplication {
 
 	}
 
+	/**
+	 * Tests the creation of a UserStatus entity for a user and verifies its persistence in the repository.
+	 */
 	static void createUserStatusTest(UserStatusService userStatusService, UserService userService,
 	  BinaryContentRepository binaryContentRepository, UserStatusRepository userStatusRepository) {
 		System.out.print("createUserStatusTest.......................");
@@ -719,6 +837,11 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
+	/**
+	 * Tests reading individual and all UserStatus entities to verify correct retrieval.
+	 *
+	 * Creates two users and their corresponding UserStatus entries, then checks that a UserStatus can be retrieved by its ID and that all UserStatus entries can be listed. Prints the test result to the console.
+	 */
 	static void readUserStatusTest(UserStatusService userStatusService, UserService userService,
 	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("readUserStatusTest.......................");
@@ -757,6 +880,11 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
+	/**
+	 * Tests updating a UserStatus entity using both its ID and user ID, verifying that the updated timestamp changes after each update.
+	 *
+	 * This method creates a user and associated UserStatus, performs two updates (one by ID and one by user ID), and checks that the `updatedAt` field is incremented after each operation. Prints the test result to the console.
+	 */
 	static void updateUserStatusTest(UserStatusService userStatusService, UserService userService,
 	  BinaryContentRepository binaryContentRepository, UserStatusRepository userStatusRepository) {
 		System.out.print("updateUserStatusTest.......................");
@@ -787,6 +915,9 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
+	/**
+	 * Tests the deletion of a UserStatus entity and verifies its removal from the repository.
+	 */
 	static void deleteUserStatusTest(UserStatusService userStatusService, UserService userService,
 	  BinaryContentRepository binaryContentRepository, UserStatusRepository userStatusRepository) {
 		System.out.print("deleteUserStatusTest.......................");
@@ -808,6 +939,12 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
+	/**
+	 * Tests the creation of a BinaryContent entity and verifies its persistence and field values.
+	 *
+	 * This method creates a BinaryContent using sample data, stores it via the service, retrieves it from the repository,
+	 * and checks that all fields match the original input. Prints the test result to the console.
+	 */
 	static void createBinaryContentTest(BinaryContentService binaryContentService,
 	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("createBinaryContentTest.......................");
@@ -835,6 +972,11 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
+	/**
+	 * Tests retrieval of BinaryContent entities by ID and by a list of IDs.
+	 *
+	 * Creates three BinaryContent entities, retrieves one by its ID and all three by their IDs, and verifies correct retrieval and presence in the results. Prints the test outcome to the console.
+	 */
 	static void readBinaryContentTest(BinaryContentService binaryContentService,
 	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("readBinaryContentTest.......................");
@@ -863,6 +1005,9 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
+	/**
+	 * Tests the deletion of a BinaryContent entity and verifies its removal from the repository.
+	 */
 	static void deleteBinaryContentTest(BinaryContentService binaryContentService,
 	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("deleteBinaryContentTest.......................");
@@ -881,6 +1026,13 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
+	/**
+	 * Entry point for the DiscodeitApplication. Initializes the Spring application context, retrieves all required repositories and services, and sequentially executes comprehensive integration tests for channels, users, messages, authentication, read statuses, user statuses, and binary content.
+	 *
+	 * The method performs setup, execution, and verification for each test scenario, clearing all data between tests to ensure isolation. Test results and section headers are printed to the console.
+	 *
+	 * @param args command-line arguments passed to the application
+	 */
 	public static void main(String[] args) {
 		ConfigurableApplicationContext context = SpringApplication.run(DiscodeitApplication.class, args);
 

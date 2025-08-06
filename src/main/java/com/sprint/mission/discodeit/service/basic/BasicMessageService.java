@@ -28,6 +28,16 @@ public class BasicMessageService implements MessageService {
 	private final ChannelRepository channelRepository;
 	private final BinaryContentRepository binaryContentRepository;
 
+	/**
+	 * Creates and saves a new message with the specified content, channel, user, author name, and attachments.
+	 *
+	 * Validates the input DTO and its fields, ensuring content, channelId, userId, and attachments are present and valid.
+	 * Saves all valid attachments and associates their IDs with the new message.
+	 *
+	 * @param dto the data transfer object containing message content, channel ID, user ID, author name, and attachments
+	 * @return the created and saved Message entity
+	 * @throws IllegalArgumentException if the DTO or any required field is null or empty, or if any attachment is invalid
+	 */
 	@Override
 	public Message create(MessageCreateDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("MessageCreateDTO cannot be null"));
@@ -61,6 +71,12 @@ public class BasicMessageService implements MessageService {
 		return messageRepository.save(new Message(content, userId, channelId, dto.getAuthorName(), attachmentIds));
 	}
 
+	/**
+	 * Deletes a message by its ID, including all associated attachments.
+	 *
+	 * @param id the unique identifier of the message to delete
+	 * @throws NoSuchElementException if no message with the specified ID exists
+	 */
 	@Override
 	public void delete(UUID id) {
 		Message messageToDelete = messageRepository.find(id)
@@ -78,6 +94,12 @@ public class BasicMessageService implements MessageService {
 		messageRepository.deleteAll();
 	}
 
+	/**
+	 * Deletes all messages associated with the specified channel ID.
+	 *
+	 * @param channelId the unique identifier of the channel whose messages will be deleted
+	 * @throws IllegalArgumentException if the channel ID is null or does not exist
+	 */
 	@Override
 	public void deleteAllByChannelId(UUID channelId) {
 		if (channelRepository.isEmpty(channelId)) {
@@ -86,6 +108,12 @@ public class BasicMessageService implements MessageService {
 		messageRepository.deleteByChannelId(channelId);
 	}
 
+	/**
+	 * Updates the content of an existing message using the provided update DTO.
+	 *
+	 * @param dto the data transfer object containing the message ID and new content
+	 * @throws IllegalArgumentException if the DTO is null, the new content is null or empty, or the message is not found
+	 */
 	@Override
 	public void update(MessageUpdateDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("MessageUpdateDTO cannot be null"));
@@ -103,12 +131,25 @@ public class BasicMessageService implements MessageService {
 		messageRepository.save(targetMessage);
 	}
 
+	/**
+	 * Retrieves a message by its unique identifier.
+	 *
+	 * @param id the unique identifier of the message to retrieve
+	 * @return the message with the specified ID
+	 * @throws NoSuchElementException if no message with the given ID exists
+	 */
 	@Override
 	public Message read(UUID id) {
 		return messageRepository.find(id)
 		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
 	}
 
+	/**
+	 * Retrieves all messages associated with the specified channel ID.
+	 *
+	 * @param channelId the unique identifier of the channel to filter messages by
+	 * @return a list of messages belonging to the given channel
+	 */
 	@Override
 	public List<Message> findAllByChannelId(UUID channelId) {
 		return messageRepository.findAll().stream().filter(
@@ -116,6 +157,12 @@ public class BasicMessageService implements MessageService {
 		  .toList();
 	}
 
+	/**
+	 * Retrieves all messages associated with the specified channel ID.
+	 *
+	 * @param channelId the unique identifier of the channel
+	 * @return a list of messages belonging to the given channel
+	 */
 	@Override
 	public List<Message> readAllByChannelId(UUID channelId) {
 		return messageRepository.findAllByChannelId(channelId);

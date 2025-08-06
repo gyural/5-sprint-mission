@@ -27,6 +27,16 @@ public class BasicUserService implements UserService {
 	private final BinaryContentRepository binaryContentRepository;
 	private final UserStatusRepository userStatusRepository;
 
+	/**
+	 * Creates a new user with the provided information.
+	 *
+	 * Validates the input DTO and its required fields. If a profile image is included, it is saved and associated with the new user. Throws an exception if the username or email already exists.
+	 *
+	 * @param dto the data transfer object containing user creation details
+	 * @return the newly created User entity
+	 * @throws IllegalArgumentException if the DTO or any required field is null or empty
+	 * @throws RuntimeException if the username or email already exists
+	 */
 	@Override
 	public User create(UserCreateDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserCreateDTO cannot be null"));
@@ -62,6 +72,14 @@ public class BasicUserService implements UserService {
 		return userRepository.save(newUser);
 	}
 
+	/**
+	 * Deletes a user and all associated data by user ID.
+	 *
+	 * Removes the user's status records and profile image if present before deleting the user entity itself.
+	 *
+	 * @param userId the unique identifier of the user to delete
+	 * @throws IllegalArgumentException if the user with the specified ID does not exist
+	 */
 	@Override
 	public void delete(UUID userId) {
 		User targetUser = userRepository.find(userId)
@@ -77,6 +95,12 @@ public class BasicUserService implements UserService {
 		userRepository.delete(userId);
 	}
 
+	/**
+	 * Updates an existing user's information with new username, email, password, and optionally a new profile image.
+	 *
+	 * @param dto Data transfer object containing the user ID and updated user details.
+	 * @throws IllegalArgumentException if the DTO or any required field is null or empty, or if the user does not exist.
+	 */
 	@Override
 	public void update(UserUpdateDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserUpdateDTO cannot be null"));
@@ -113,6 +137,13 @@ public class BasicUserService implements UserService {
 		userRepository.save(targetUser);
 	}
 
+	/**
+	 * Retrieves user details and online status for the specified user ID.
+	 *
+	 * @param userId the unique identifier of the user to retrieve
+	 * @return a UserReadDTO containing user information and online status
+	 * @throws IllegalArgumentException if the user with the given ID does not exist
+	 */
 	@Override
 	public UserReadDTO read(UUID userId) {
 		User user = userRepository.find(userId)
@@ -134,6 +165,11 @@ public class BasicUserService implements UserService {
 		  .build();
 	}
 
+	/**
+	 * Retrieves a list of all users.
+	 *
+	 * @return a list containing all user entities
+	 */
 	@Override
 	public List<User> readAll() {
 		return userRepository.findAll();

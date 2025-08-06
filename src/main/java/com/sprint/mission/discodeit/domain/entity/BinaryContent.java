@@ -22,6 +22,14 @@ public class BinaryContent implements Serializable {
 
 	private final Instant createdAt;
 
+	/****
+	 * Constructs a new BinaryContent instance with the specified binary data, size, content type, and filename.
+	 *
+	 * @param content     the binary data to store
+	 * @param size        the size of the content in bytes
+	 * @param contentType the type of the content
+	 * @param filename    the name of the file associated with the content
+	 */
 	public BinaryContent(byte[] content, Integer size, ContentType contentType, String filename) {
 		this.id = UUID.randomUUID();
 		this.createdAt = Instant.now();

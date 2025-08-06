@@ -14,6 +14,17 @@ import lombok.RequiredArgsConstructor;
 public class AuthService {
 	private final UserRepository userRepository;
 
+	/**
+	 * Authenticates a user based on the provided login request.
+	 *
+	 * Attempts to find a user by username and verifies the password. Throws a {@code RuntimeException}
+	 * if the user is not found or if the password is invalid. Returns a {@code UserLoginResponse}
+	 * indicating successful authentication and including the authenticated user.
+	 *
+	 * @param request the login request containing username and password
+	 * @return a response indicating successful authentication and the authenticated user
+	 * @throws RuntimeException if the user is not found or the password is invalid
+	 */
 	public UserLoginResponse login(UserLoginRequest request) {
 		User user = userRepository.findByUsername(request.getUsername())
 		  .orElseThrow(() -> new RuntimeException("User not found"));

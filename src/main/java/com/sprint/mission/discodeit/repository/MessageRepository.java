@@ -7,7 +7,13 @@ import java.util.UUID;
 import com.sprint.mission.discodeit.domain.entity.Message;
 
 public interface MessageRepository {
-	Message save(Message message);
+	/**
+ * Persists a Message entity and returns the saved instance.
+ *
+ * @param message the Message entity to be saved
+ * @return the persisted Message entity
+ */
+Message save(Message message);
 
 	void delete(UUID id);
 
