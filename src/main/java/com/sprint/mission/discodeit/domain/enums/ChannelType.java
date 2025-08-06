@@ -1,5 +1,8 @@
 package com.sprint.mission.discodeit.domain.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum ChannelType {
 	PUBLIC("PUBLIC"),
 	PRIVATE("PRIVATE");
@@ -8,10 +11,6 @@ public enum ChannelType {
 
 	ChannelType(String type) {
 		this.type = type;
-	}
-
-	public String getType() {
-		return type;
 	}
 
 	@Override

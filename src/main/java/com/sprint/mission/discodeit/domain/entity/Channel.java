@@ -9,8 +9,10 @@ import java.util.UUID;
 import com.sprint.mission.discodeit.domain.enums.ChannelType;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class Channel implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
@@ -54,10 +56,6 @@ public class Channel implements Serializable {
 	@Override
 	public int hashCode() {
 		return Objects.hashCode(id);
-	}
-
-	public void setChannelType(ChannelType channelType) {
-		this.channelType = channelType;
 	}
 
 	@Override
