@@ -1,14 +1,20 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class User {
+public class User implements Serializable {
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	private final UUID id;
 	private final Long createdAt;
 	private Long updatedAt;
 	private String username;
+	private String email;
+	private String password;
 
 	public UUID getId() {
 		return id;
@@ -22,11 +28,13 @@ public class User {
 		return updatedAt;
 	}
 
-	public User(String username) {
+	public User(String username, String email, String password) {
 		this.id = UUID.randomUUID();
 		this.createdAt = System.currentTimeMillis();
 		this.updatedAt = null;
 		this.username = username;
+		this.email = email;
+		this.password = password;
 	}
 
 	public String getUsername() {
@@ -38,14 +46,20 @@ public class User {
 		this.updatedAt = System.currentTimeMillis();
 	}
 
-	@Override
-	public String toString() {
-		return "User{" +
-		  "id=" + id +
-		  ", createdAt=" + createdAt +
-		  ", updatedAt=" + updatedAt +
-		  ", username='" + username + '\'' +
-		  '}';
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	@Override
@@ -63,6 +77,17 @@ public class User {
 		return Objects.hashCode(id);
 	}
 
+	@Override
+	public String toString() {
+		return "User{" +
+		  "id=" + id +
+		  ", createdAt=" + createdAt +
+		  ", updatedAt=" + updatedAt +
+		  ", username='" + username + '\'' +
+		  ", email='" + email + '\'' +
+		  ", password='" + password + '\'' +
+		  '}';
+	}
 }
 
 

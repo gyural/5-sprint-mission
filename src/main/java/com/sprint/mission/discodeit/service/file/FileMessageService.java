@@ -1,60 +1,42 @@
-package com.sprint.mission.discodeit.service.jsf;
+package com.sprint.mission.discodeit.service.file;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
-import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
-public class JCFMessageService implements MessageService {
+public class FileMessageService implements MessageService {
 
-	private final JCFMessageRepository messageRepository;
-	private final JCFChannelRepository channelRepository;
-
+	private final FileMessageRepository messageRepository;
 	private final UserService userService;
-	// private final MessageAlarmService messageAlarmService;
+	private final FileChannelRepository channelRepository;
 
-	public JCFMessageService(JCFMessageRepository messageRepository, JCFChannelRepository channelRepository,
-	  UserService userService) {
+	public FileMessageService(FileMessageRepository messageRepository, UserService userService,
+	  FileChannelRepository channelRepository) {
 		this.messageRepository = messageRepository;
-		this.channelRepository = channelRepository;
 		this.userService = userService;
+		this.channelRepository = channelRepository;
 	}
 
 	@Override
 	public Message create(String content, UUID channelId, UUID userId) {
+
 		if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content cannot be null or empty");
 		}
-
+		if (channelId == null || channelRepository.isEmpty(channelId)) {
+			throw new IllegalArgumentException("Channel ID cannot be null or empty");
+		}
 		if (userId == null || userService.isEmpty(userId)) {
 			throw new IllegalArgumentException("User ID cannot be null or empty");
 		}
 
-		if (channelId == null || channelRepository.isEmpty(channelId)) {
-			throw new IllegalArgumentException("Channel ID cannot be null or empty");
-		}
-
-		// 1. 데이터 저장
-		// 2. 채널에 참여한 사용자들에게 알림을 전송
-		// messageAlarmService.sendMessageAlarm(newMessage);
-
 		return messageRepository.save(new Message(content, channelId, userId));
-	}
-
-	@Override
-	public Message read(UUID id) {
-		return messageRepository.find(id)
-		  .orElseThrow(() -> new NoSuchElementException("Message not found with ID: " + id));
-	}
-
-	@Override
-	public List<Message> readAll() {
-		return messageRepository.findAll();
 	}
 
 	@Override
@@ -65,35 +47,37 @@ public class JCFMessageService implements MessageService {
 	@Override
 	public void deleteAll() {
 		messageRepository.deleteAll();
-
 	}
 
 	@Override
 	public void deleteAllByChannelId(UUID channelId) {
-		if (channelId == null || channelRepository.isEmpty(channelId)) {
+		if (channelRepository.isEmpty(channelId)) {
 			throw new IllegalArgumentException("Channel ID cannot be null or empty");
 		}
-		// 채널에 속한 모든 메시지를 삭제
 		messageRepository.deleteByChannelId(channelId);
 	}
 
 	@Override
 	public void update(UUID id, String newContent) {
-
 		if (newContent == null || newContent.isEmpty()) {
-			throw new IllegalArgumentException("Content cannot be null or empty");
-		}
-
-		if (id == null || messageRepository.isEmpty(id)) {
-			throw new IllegalArgumentException("Message ID cannot be null or empty");
+			throw new IllegalArgumentException("New content cannot be null or empty");
 		}
 
 		Message targetMessage = messageRepository.find(id)
-		  .orElseThrow(() -> new NoSuchElementException("Message not found with ID: " + id));
+		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
 		targetMessage.setContent(newContent);
-
-		// 메시지 내용 수정
 		messageRepository.save(targetMessage);
+	}
+
+	@Override
+	public Message read(UUID id) {
+		return messageRepository.find(id)
+		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
+	}
+
+	@Override
+	public List<Message> readAll() {
+		return messageRepository.findAll();
 	}
 
 	@Override

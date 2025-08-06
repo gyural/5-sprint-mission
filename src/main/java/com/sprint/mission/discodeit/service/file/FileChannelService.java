@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service.jsf;
+package com.sprint.mission.discodeit.service.file;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -6,18 +6,18 @@ import java.util.UUID;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
-import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
 
-public class JCFChannelService implements ChannelService {
+public class FileChannelService implements ChannelService {
 
-	private final JCFChannelRepository channelRepository;
-	private final MessageService messageService;
+	private final FileChannelRepository channelRepository;
+	private final FileMessageRepository messageRepository;
 
-	public JCFChannelService(MessageService messageService, JCFChannelRepository channelRepository) {
-		this.messageService = messageService;
+	public FileChannelService(FileChannelRepository channelRepository, FileMessageRepository messageRepository) {
 		this.channelRepository = channelRepository;
+		this.messageRepository = messageRepository;
 	}
 
 	@Override
@@ -31,14 +31,13 @@ public class JCFChannelService implements ChannelService {
 		if (channelType == null) {
 			throw new IllegalArgumentException("Channel type cannot be null");
 		}
-
 		return channelRepository.save(new Channel(channelType, name, description));
 	}
 
 	@Override
 	public Channel read(UUID id) {
-		return channelRepository.find(id)
-		  .orElseThrow(() -> new NoSuchElementException("Channel with ID " + id + " not found"));
+		return channelRepository.find(id).orElseThrow(()
+		  -> new NoSuchElementException("Channel with ID " + id + " not found"));
 	}
 
 	@Override
@@ -49,7 +48,7 @@ public class JCFChannelService implements ChannelService {
 	@Override
 	public void delete(UUID id) {
 		// 연관된 메시지도 삭제
-		messageService.deleteAllByChannelId(id);
+		messageRepository.deleteByChannelId(id);
 
 		channelRepository.delete(id);
 
@@ -66,15 +65,13 @@ public class JCFChannelService implements ChannelService {
 		if (newChannelType == null) {
 			throw new IllegalArgumentException("Channel type cannot be null");
 		}
+		Channel channel = channelRepository.find(id).orElseThrow(()
+		  -> new NoSuchElementException("Channel with ID " + id + " not found"));
+		channel.setChannelType(newChannelType);
+		channel.setName(newChannelName);
+		channel.setDescription(newDescription);
 
-		Channel targetChannel = channelRepository.find(id)
-		  .orElseThrow(() -> new NoSuchElementException("Channel with ID " + id + " not found"));
-
-		targetChannel.setChannelType(newChannelType);
-		targetChannel.setName(newChannelName);
-		targetChannel.setDescription(newDescription);
-
-		channelRepository.save(targetChannel);
+		channelRepository.save(channel);
 	}
 
 	@Override
@@ -85,8 +82,6 @@ public class JCFChannelService implements ChannelService {
 	@Override
 	public void deleteAll() {
 		channelRepository.deleteAll();
-
-		// 연관된 메시지 삭제 (CASCADE DELETE)
-		messageService.deleteAll();
+		messageRepository.deleteAll();
 	}
 }

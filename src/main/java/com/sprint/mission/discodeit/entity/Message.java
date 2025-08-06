@@ -1,9 +1,14 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Message {
+public class Message implements Serializable {
+	@Serial
+	private static final long serialVersionUID = 1L;
+
 	private final UUID id;
 	private final Long createdAt;
 	private Long updatedAt;
@@ -11,6 +16,15 @@ public class Message {
 	private UUID authorId; // Optinal
 	private UUID channelId;
 	private String authorName; // 유저가 채널을 나가도 메시지의 작성자는 남아있어야 하므로, authorId와 authorName을 분리
+
+	public Message(String content, UUID channelId, UUID authorId) {
+		this.id = UUID.randomUUID();
+		this.createdAt = System.currentTimeMillis();
+		this.updatedAt = null;
+		this.content = content;
+		this.authorId = authorId;
+		this.channelId = channelId;
+	}
 
 	public Message(String content, UUID authorId, UUID channelId, String authorName) {
 		this.id = UUID.randomUUID();
@@ -61,19 +75,6 @@ public class Message {
 	}
 
 	@Override
-	public String toString() {
-		return "Message{" +
-		  "id=" + id +
-		  ", createdAt=" + createdAt +
-		  ", updatedAt=" + updatedAt +
-		  ", content='" + content + '\'' +
-		  ", authorId=" + authorId +
-		  ", channelId=" + channelId +
-		  ", authorName='" + authorName + '\'' +
-		  '}';
-	}
-
-	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
@@ -87,4 +88,18 @@ public class Message {
 	public int hashCode() {
 		return Objects.hashCode(id);
 	}
+
+	@Override
+	public String toString() {
+		return "Message{" +
+		  "id=" + id +
+		  ", createdAt=" + createdAt +
+		  ", updatedAt=" + updatedAt +
+		  ", content='" + content + '\'' +
+		  ", authorId=" + authorId +
+		  ", channelId=" + channelId +
+		  ", authorName='" + authorName + '\'' +
+		  '}';
+	}
+
 }

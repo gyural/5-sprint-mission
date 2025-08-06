@@ -2,7 +2,7 @@ package com.sprint.mission.discodeit.entity;
 
 import java.util.UUID;
 
-public class ChannelUser extends Common {
+public class ChannelUser {
 	private UUID channelId;
 	private UUID userId;
 	private boolean isActive;
@@ -31,10 +31,10 @@ public class ChannelUser extends Common {
 
 	@Override
 	public String toString() {
-		return super.toString() + "\n" +
+		return
 		  "ChannelUser{" +
-		  "channelId=" + channelId +
-		  ", userId=" + userId +
-		  '}';
+			"channelId=" + channelId +
+			", userId=" + userId +
+			'}';
 	}
 }
