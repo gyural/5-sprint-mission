@@ -14,7 +14,7 @@ import lombok.ToString;
 public class BinaryContent implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private UUID id;
+	private final UUID id;
 	private final String filename;
 	private final ContentType contentType;
 	private final Integer size;
