@@ -6,12 +6,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 
 @Repository
+@ConditionalOnProperty(
+  prefix = "discodeit.repository",
+  name = "type",
+  havingValue = "jcf",
+  matchIfMissing = true // 값이 없으면 JCF로 등록
+)
 public class JCFBinaryContentRepository implements BinaryContentRepository {
 
 	public final Map<UUID, BinaryContent> data;
@@ -34,7 +41,7 @@ public class JCFBinaryContentRepository implements BinaryContentRepository {
 
 	@Override
 	public Optional<BinaryContent> find(UUID id) {
-		return Optional.of(data.get(id));
+		return Optional.ofNullable(data.get(id));
 	}
 
 	@Override

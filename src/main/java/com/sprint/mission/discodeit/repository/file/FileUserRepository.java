@@ -13,29 +13,33 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
 @Repository
+@ConditionalOnProperty(
+  prefix = "discodeit.repository",
+  name = "type",
+  havingValue = "file"
+)
 public class FileUserRepository implements UserRepository {
 
-	private static final String DIR_NAME = "data";
-	private static final String FILE_NAME = DIR_NAME + "/user.ser";
+	private final String FILE_NAME;
 
-	public FileUserRepository() {
+	public FileUserRepository(@Value("${discodeit.repository.file-directory}") String fileDirectory) {
+		this.FILE_NAME = fileDirectory + "/user.ser";
+
 		try {
-			Path dirPath = Paths.get(DIR_NAME);
-			if (!Files.exists(dirPath)) {
-				Files.createDirectories(dirPath);
-			}
 			Path filePath = Paths.get(FILE_NAME);
+			Files.createDirectories(filePath.getParent());
 			if (!Files.exists(filePath)) {
 				try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 					 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-					oos.writeObject(new ArrayList<Message>());
+					oos.writeObject(new ArrayList<User>());
 				}
 			}
 		} catch (IOException e) {
@@ -44,7 +48,6 @@ public class FileUserRepository implements UserRepository {
 	}
 
 	@Override
-
 	public User save(User user) {
 		String username = user.getUsername();
 		List<User> users = findAll();

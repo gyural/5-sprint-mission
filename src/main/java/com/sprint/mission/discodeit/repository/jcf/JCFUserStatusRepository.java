@@ -6,12 +6,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 
 @Repository
+@ConditionalOnProperty(
+  prefix = "discodeit.repository",
+  name = "type",
+  havingValue = "jcf",
+  matchIfMissing = true // 값이 없으면 JCF로 등록
+)
 public class JCFUserStatusRepository implements UserStatusRepository {
 
 	private final Map<UUID, UserStatus> data;
@@ -28,7 +35,7 @@ public class JCFUserStatusRepository implements UserStatusRepository {
 
 	@Override
 	public Optional<UserStatus> find(UUID id) {
-		return Optional.of(data.get(id));
+		return Optional.ofNullable(data.get(id));
 	}
 
 	@Override
