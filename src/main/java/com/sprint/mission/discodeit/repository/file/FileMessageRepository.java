@@ -13,24 +13,29 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
 @Repository
+@ConditionalOnProperty(
+  prefix = "discodeit.repository",
+  name = "type",
+  havingValue = "file"
+)
 public class FileMessageRepository implements MessageRepository {
 
-	private static final String DIR_NAME = "data";
-	private static final String FILE_NAME = DIR_NAME + "/message.ser";
+	private final String FILE_NAME;
 
-	public FileMessageRepository() {
+	public FileMessageRepository(@Value("${discodeit.repository.file-directory}") String fileDirectory) {
+		this.FILE_NAME = fileDirectory + "/message.ser";
+
 		try {
-			Path dirPath = Paths.get(DIR_NAME);
-			if (!Files.exists(dirPath)) {
-				Files.createDirectories(dirPath);
-			}
 			Path filePath = Paths.get(FILE_NAME);
+			Files.createDirectories(filePath.getParent());
 			if (!Files.exists(filePath)) {
 				try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 					 ObjectOutputStream oos = new ObjectOutputStream(fos)) {

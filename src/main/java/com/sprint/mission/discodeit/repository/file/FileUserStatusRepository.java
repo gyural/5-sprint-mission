@@ -13,31 +13,33 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.context.annotation.Primary;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 
 @Repository
-@Primary
+@ConditionalOnProperty(
+  prefix = "discodeit.repository",
+  name = "type",
+  havingValue = "file"
+)
 public class FileUserStatusRepository implements UserStatusRepository {
 
-	private static final String DIR_NAME = "data";
-	private static final String FILE_NAME = DIR_NAME + "/userStatus.ser";
+	private final String FILE_NAME;
 
-	public FileUserStatusRepository() {
+	public FileUserStatusRepository(@Value("${discodeit.repository.file-directory}") String fileDirectory) {
+		this.FILE_NAME = fileDirectory + "/userStatus.ser";
+
 		try {
-			Path dirPath = Paths.get(DIR_NAME);
-			if (!Files.exists(dirPath)) {
-				Files.createDirectories(dirPath);
-			}
 			Path filePath = Paths.get(FILE_NAME);
+			Files.createDirectories(filePath.getParent());
 			if (!Files.exists(filePath)) {
 				try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 					 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-					oos.writeObject(new ArrayList<Message>());
+					oos.writeObject(new ArrayList<UserStatus>());
 				}
 			}
 		} catch (IOException e) {

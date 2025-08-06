@@ -42,12 +42,6 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
-import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
-import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
-import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
-import com.sprint.mission.discodeit.repository.file.FileReadStatusRepository;
-import com.sprint.mission.discodeit.repository.file.FileUserRepository;
-import com.sprint.mission.discodeit.repository.file.FileUserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -891,12 +885,12 @@ public class DiscodeitApplication {
 		ConfigurableApplicationContext context = SpringApplication.run(DiscodeitApplication.class, args);
 
 		// setup-1 FILE 레포지토리 초기화
-		UserRepository userRepository = context.getBean(FileUserRepository.class);
-		ChannelRepository channelRepository = context.getBean(FileChannelRepository.class);
-		MessageRepository messageRepository = context.getBean(FileMessageRepository.class);
-		BinaryContentRepository binaryContentRepository = context.getBean(FileBinaryContentRepository.class);
-		UserStatusRepository userStatusRepository = context.getBean(FileUserStatusRepository.class);
-		ReadStatusRepository readStatusRepository = context.getBean(FileReadStatusRepository.class);
+		UserRepository userRepository = context.getBean(UserRepository.class);
+		ChannelRepository channelRepository = context.getBean(ChannelRepository.class);
+		MessageRepository messageRepository = context.getBean(MessageRepository.class);
+		BinaryContentRepository binaryContentRepository = context.getBean(BinaryContentRepository.class);
+		UserStatusRepository userStatusRepository = context.getBean(UserStatusRepository.class);
+		ReadStatusRepository readStatusRepository = context.getBean(ReadStatusRepository.class);
 		// setup-2 Basic 서비스 초기화
 		UserService basicUserService = context.getBean(BasicUserService.class);
 		MessageService basicMessageService = context.getBean(BasicMessageService.class);

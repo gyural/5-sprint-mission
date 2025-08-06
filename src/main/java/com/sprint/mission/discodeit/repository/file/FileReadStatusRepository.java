@@ -5,12 +5,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.context.annotation.Primary;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
@@ -18,11 +22,31 @@ import com.sprint.mission.discodeit.domain.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 
 @Repository
-@Primary
+@ConditionalOnProperty(
+  prefix = "discodeit.repository",
+  name = "type",
+  havingValue = "file"
+)
 public class FileReadStatusRepository implements ReadStatusRepository {
 
-	private static final String DIR_NAME = "data";
-	private static final String FILE_NAME = DIR_NAME + "/readStatus.ser";
+	private final String FILE_NAME;
+
+	public FileReadStatusRepository(@Value("${discodeit.repository.file-directory}") String fileDirectory) {
+		this.FILE_NAME = fileDirectory + "/readStatus.ser";
+
+		try {
+			Path filePath = Paths.get(FILE_NAME);
+			Files.createDirectories(filePath.getParent());
+			if (!Files.exists(filePath)) {
+				try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
+					 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+					oos.writeObject(new ArrayList<ReadStatus>());
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	@Override
 	public ReadStatus save(ReadStatus readStatus) {
