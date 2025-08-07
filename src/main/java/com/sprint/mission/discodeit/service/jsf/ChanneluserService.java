@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.ChannelUser;
+import com.sprint.mission.discodeit.domain.entity.ChannelUser;
 
 public class ChanneluserService {
 

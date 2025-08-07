@@ -1,65 +1,56 @@
-package com.sprint.mission.discodeit.entity;
+package com.sprint.mission.discodeit.domain.entity;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+import lombok.Getter;
+
+@Getter
 public class User implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private final UUID id;
-	private final Long createdAt;
-	private Long updatedAt;
+	private final Instant createdAt;
+	private Instant updatedAt;
 	private String username;
 	private String email;
 	private String password;
 
-	public UUID getId() {
-		return id;
-	}
+	// Foreign key
+	private UUID profileId;
 
-	public Long getCreatedAt() {
-		return createdAt;
-	}
-
-	public Long getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public User(String username, String email, String password) {
+	public User(String username, String email, String password, UUID profileId) {
 		this.id = UUID.randomUUID();
-		this.createdAt = System.currentTimeMillis();
+		this.createdAt = Instant.now();
 		this.updatedAt = null;
 		this.username = username;
 		this.email = email;
 		this.password = password;
-	}
-
-	public String getUsername() {
-		return username;
+		this.profileId = profileId;
 	}
 
 	public void setUsername(String username) {
 		this.username = username;
-		this.updatedAt = System.currentTimeMillis();
-	}
-
-	public String getEmail() {
-		return email;
+		this.updatedAt = Instant.now();
 	}
 
 	public void setEmail(String email) {
 		this.email = email;
-	}
-
-	public String getPassword() {
-		return password;
+		this.updatedAt = Instant.now();
 	}
 
 	public void setPassword(String password) {
 		this.password = password;
+		this.updatedAt = Instant.now();
+	}
+
+	public void setProfileId(UUID profileId) {
+		this.profileId = profileId;
+		this.updatedAt = Instant.now();
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service.alarm;
 
-import com.sprint.mission.discodeit.dto.AlarmDTO;
+import com.sprint.mission.discodeit.domain.dto.AlarmDTO;
 
 public class AlarmService {
 

@@ -6,9 +6,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.User;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
+
+import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
+@Repository
+@ConditionalOnProperty(
+  prefix = "discodeit.repository",
+  name = "type",
+  havingValue = "jcf",
+  matchIfMissing = true // 값이 없으면 JCF로 등록
+)
 public class JCFUserRepository implements UserRepository {
 
 	private final Map<UUID, User> data;
@@ -52,15 +62,19 @@ public class JCFUserRepository implements UserRepository {
 
 	}
 
-	public User findByUsername(String username) {
+	public Optional<User> findByUsername(String username) {
 		return data.values().stream()
 		  .filter(user -> user.getUsername().equals(username))
-		  .findFirst()
-		  .orElse(null);
+		  .findFirst();
 	}
 
 	@Override
 	public Long count() {
 		return (long)data.size();
+	}
+
+	@Override
+	public Optional<User> findByEmail(String username) {
+		return Optional.empty();
 	}
 }

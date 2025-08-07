@@ -6,9 +6,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.Channel;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
+
+import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 
+@Repository
+@ConditionalOnProperty(
+  prefix = "discodeit.repository",
+  name = "type",
+  havingValue = "jcf",
+  matchIfMissing = true // 값이 없으면 JCF로 등록
+)
 public class JCFChannelRepository implements ChannelRepository {
 
 	public final Map<UUID, Channel> data;

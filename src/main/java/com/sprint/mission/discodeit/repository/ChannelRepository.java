@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.domain.entity.Channel;
 
 public interface ChannelRepository {
 	public Channel save(Channel channel);

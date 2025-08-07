@@ -2,8 +2,8 @@ package com.sprint.mission.discodeit.service.alarm;
 
 import java.util.List;
 
-import com.sprint.mission.discodeit.dto.AlarmDTO;
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.domain.dto.AlarmDTO;
+import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.service.jsf.ChanneluserService;
 
 public class MessageAlarmService {
