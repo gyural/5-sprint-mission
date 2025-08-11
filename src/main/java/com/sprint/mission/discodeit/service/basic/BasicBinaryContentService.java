@@ -7,34 +7,48 @@ import org.springframework.stereotype.Service;
 
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
+import com.sprint.mission.discodeit.domain.enums.ContentType;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class BinaryContentService {
+public class BasicBinaryContentService implements BinaryContentService {
 
 	private final BinaryContentRepository binaryContentRepository;
 
+	@Override
 	public BinaryContent create(CreateBiContentDTO dto) {
-		return binaryContentRepository.save(dto.toBinaryContent());
+		return binaryContentRepository.save(DTOtoBinaryContent(dto));
 	}
 
+	@Override
 	public BinaryContent find(UUID id) {
 		return binaryContentRepository.find(id)
 		  .orElseThrow(() -> new IllegalArgumentException("Binary content not found for ID: " + id));
 	}
 
+	@Override
 	public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
 		return binaryContentRepository.findAllByIdIn(ids);
 	}
 
+	@Override
 	public void delete(UUID id) {
 		if (binaryContentRepository.isEmpty(id)) {
 			throw new IllegalArgumentException("Binary content not found for ID: " + id);
 		}
 		binaryContentRepository.delete(id);
+	}
+
+	private BinaryContent DTOtoBinaryContent(CreateBiContentDTO dto) {
+		byte[] content = dto.getContent();
+		int size = dto.getSize();
+		ContentType contentType = dto.getContentType();
+		String filename = dto.getFileName();
+		return new BinaryContent(content, size, contentType, filename);
 	}
 
 }

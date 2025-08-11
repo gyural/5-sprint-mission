@@ -6,17 +6,15 @@ import com.sprint.mission.discodeit.domain.entity.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-@Data
 @AllArgsConstructor
-@NoArgsConstructor
+@Getter
 @Builder
-public class ChannelCreateDTO {
+public class CreateChannelDTO {
 
-	private String name;
-	private String description;
-	private List<User> members;
+	private final String name;
+	private final String description;
+	private final List<User> members;
 
 }

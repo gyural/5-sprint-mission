@@ -44,6 +44,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 				}
 			}
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
@@ -56,12 +57,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 		binaryContents.removeIf(exisitingEntity -> exisitingEntity.getId().equals(newBinaryContent.getId()));
 		binaryContents.add(newBinaryContent);
 
-		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
-			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-			oos.writeObject(binaryContents);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		PersistBinaryContents(binaryContents);
 
 		return newBinaryContent;
 	}
@@ -73,12 +69,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 		binaryContents = new ArrayList<>(binaryContents);
 		binaryContents.addAll(newBinaryContents);
 
-		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
-			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-			oos.writeObject(binaryContents);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		PersistBinaryContents(binaryContents);
 
 		return binaryContents;
 
@@ -118,10 +109,15 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 		List<BinaryContent> binaryContents = findAll();
 		binaryContents.removeIf(binaryContent -> binaryContent.getId().equals(id));
 
+		PersistBinaryContents(binaryContents);
+	}
+
+	private void PersistBinaryContents(List<BinaryContent> binaryContents) {
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 			oos.writeObject(binaryContents);
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
@@ -138,6 +134,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 			oos.writeObject(new ArrayList<BinaryContent>());
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 

@@ -6,12 +6,12 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
-import com.sprint.mission.discodeit.domain.dto.UserReadDTO;
-import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
+import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.domain.response.UserReadResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -28,8 +28,8 @@ public class BasicUserService implements UserService {
 	private final UserStatusRepository userStatusRepository;
 
 	@Override
-	public User create(UserCreateDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserCreateDTO cannot be null"));
+	public User create(CreateUserDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("CreateUserDTO cannot be null"));
 		String username = dto.getUsername();
 		String email = dto.getEmail();
 		String password = dto.getPassword();
@@ -50,12 +50,19 @@ public class BasicUserService implements UserService {
 			throw new RuntimeException("Username or email already exists");
 		}
 
-		// 2. Profile image 여부 반영
+		// 2. Profile Image 저장
+		BinaryContent savedProfileImage = null;
+		if (profileImage != null) {
+			savedProfileImage = binaryContentRepository.save(profileImage);
+		}
+		UUID ProfileId = savedProfileImage != null ? savedProfileImage.getId() : null;
+
+		// 3. 인스턴스 생성
 		User newUser = new User(
 		  username,
 		  email,
 		  password,
-		  profileImage != null ? binaryContentRepository.save(profileImage).getId() : null
+		  ProfileId
 		);
 
 		// 3. 데이터 저장
@@ -78,8 +85,8 @@ public class BasicUserService implements UserService {
 	}
 
 	@Override
-	public void update(UserUpdateDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserUpdateDTO cannot be null"));
+	public void update(UpdateUserDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateUserDTO cannot be null"));
 		UUID userId = dto.getUserId();
 		String newUsername = dto.getNewUsername();
 		String newEmail = dto.getNewEmail();
@@ -114,16 +121,15 @@ public class BasicUserService implements UserService {
 	}
 
 	@Override
-	public UserReadDTO read(UUID userId) {
+	public UserReadResponse read(UUID userId) {
 		User user = userRepository.find(userId)
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 
 		Optional<UserStatus> status = userStatusRepository.findByUserId(userId);
 
-		boolean isOnline = status.stream()
-		  .anyMatch(UserStatus::isOnline);
+		boolean isOnline = status.map(UserStatus::isOnline).orElse(false);
 
-		return UserReadDTO.builder()
+		return UserReadResponse.builder()
 		  .id(user.getId())
 		  .createdAt(user.getCreatedAt())
 		  .updatedAt(user.getUpdatedAt())

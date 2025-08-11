@@ -14,19 +14,17 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import com.sprint.mission.discodeit.domain.dto.ChannelCreateDTO;
-import com.sprint.mission.discodeit.domain.dto.ChannelUpdateDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
+import com.sprint.mission.discodeit.domain.dto.CreateChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.CreateMessageDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateReadStatusDTO;
-import com.sprint.mission.discodeit.domain.dto.MessageCreateDTO;
-import com.sprint.mission.discodeit.domain.dto.MessageUpdateDTO;
-import com.sprint.mission.discodeit.domain.dto.ReadChannelResponse;
+import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.CreateUserStatusDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateMessageDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateReadStatusDTO;
-import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
-import com.sprint.mission.discodeit.domain.dto.UserReadDTO;
-import com.sprint.mission.discodeit.domain.dto.UserStatusCreateDTO;
-import com.sprint.mission.discodeit.domain.dto.UserStatusUpdateDTO;
-import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateUserStatusDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.entity.Message;
@@ -35,7 +33,9 @@ import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.domain.enums.ContentType;
 import com.sprint.mission.discodeit.domain.request.UserLoginRequest;
+import com.sprint.mission.discodeit.domain.response.ReadChannelResponse;
 import com.sprint.mission.discodeit.domain.response.UserLoginResponse;
+import com.sprint.mission.discodeit.domain.response.UserReadResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -45,13 +45,13 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.basic.AuthService;
+import com.sprint.mission.discodeit.service.basic.BasicAuthService;
+import com.sprint.mission.discodeit.service.basic.BasicBinaryContentService;
 import com.sprint.mission.discodeit.service.basic.BasicChannelService;
 import com.sprint.mission.discodeit.service.basic.BasicMessageService;
+import com.sprint.mission.discodeit.service.basic.BasicReadStatusService;
 import com.sprint.mission.discodeit.service.basic.BasicUserService;
-import com.sprint.mission.discodeit.service.basic.BinaryContentService;
-import com.sprint.mission.discodeit.service.basic.ReadStatusService;
-import com.sprint.mission.discodeit.service.basic.UserStatusService;
+import com.sprint.mission.discodeit.service.basic.BasicUserStatusService;
 
 @SpringBootApplication
 public class DiscodeitApplication {
@@ -73,7 +73,7 @@ public class DiscodeitApplication {
 
 	static User setupUser(UserService userService, BinaryContent binaryContent) {
 		return userService.create(
-		  UserCreateDTO.builder()
+		  CreateUserDTO.builder()
 			.username("woody")
 			.email("woody@codeit.com")
 			.password("woody1234")
@@ -83,12 +83,12 @@ public class DiscodeitApplication {
 
 	static Channel setupPUblicChannel(ChannelService channelService) {
 		return channelService.createPublic(
-		  ChannelCreateDTO.builder().description("공지 채널입니다.").name("공지").build());
+		  CreateChannelDTO.builder().description("공지 채널입니다.").name("공지").build());
 	}
 
 	static Message setupMessage(MessageService messageService, Channel channel, User author) {
 		return messageService.create(
-		  MessageCreateDTO.builder().channelId(channel.getId()).content("안녕하세요").userId(author.getId()).build());
+		  CreateMessageDTO.builder().channelId(channel.getId()).content("안녕하세요").userId(author.getId()).build());
 	}
 
 	static void channelCreateTest(ChannelService channelService, ReadStatusRepository readStatusRepository,
@@ -108,9 +108,9 @@ public class DiscodeitApplication {
 		// When
 		// public 채널과 private 채널을 생성
 		Channel publicChannel = channelService.createPublic(
-		  ChannelCreateDTO.builder().description("공개 공지 채널입니다.").name("공개 공지").build());
+		  CreateChannelDTO.builder().description("공개 공지 채널입니다.").name("공개 공지").build());
 		Channel privateChannel = channelService.createPrivate(
-		  ChannelCreateDTO.builder().members(memberList).build());
+		  CreateChannelDTO.builder().members(memberList).build());
 
 		// Then
 		// 1. UserStatus가 생성되었는지 확인
@@ -148,32 +148,32 @@ public class DiscodeitApplication {
 
 		// 2. public 채널과 private 채널을 생성
 		Channel publicChannel = channelService.createPublic(
-		  ChannelCreateDTO.builder().description("공개 공지 채널입니다.").name("공개 공지").build());
+		  CreateChannelDTO.builder().description("공개 공지 채널입니다.").name("공개 공지").build());
 
 		Channel privateChannel = channelService.createPrivate(
-		  ChannelCreateDTO.builder().members(memberList).build());
+		  CreateChannelDTO.builder().members(memberList).build());
 
 		// 3. Message 생성
 		messageRepository.save(
 		  new Message(
-			"안녕하세요", memberList.get(0).getId(), privateChannel.getId(), memberList.get(0).getUsername())
+			"안녕하세요", memberList.get(0).getId(), privateChannel.getId())
 		);
 		Message lastMessage = messageRepository.findAllByChannelId(privateChannel.getId()).get(0);
 
 		// When
-		ReadChannelResponse readPublicChannel = channelService.read(publicChannel.getId());
-		ReadChannelResponse readPrivateChannel = channelService.read(privateChannel.getId());
+		ReadChannelResponse readPublicChannel = channelService.readPublic(publicChannel.getId());
+		ReadChannelResponse readPrivateChannel = channelService.readPrivate(privateChannel.getId());
 
 		// Then
 		boolean isPublicChannelValid = readPublicChannel.getId().equals(publicChannel.getId()) &&
 		  readPublicChannel.getName().equals(publicChannel.getName()) &&
 		  readPublicChannel.getDescription().equals(publicChannel.getDescription());
 
-		boolean isMemberIdListValid = !readPrivateChannel.getMembersIDList().isEmpty() &&
-		  new HashSet<>(readPrivateChannel.getMembersIDList()).containsAll(
+		boolean isMemberIdListValid = !readPrivateChannel.getMembersIDs().isEmpty() &&
+		  new HashSet<>(readPrivateChannel.getMembersIDs()).containsAll(
 			memberList.stream().map(User::getId).toList());
 		boolean isPrivateChannelValid =
-		  readPrivateChannel.getMembersIDList().size() == memberList.size() &&
+		  readPrivateChannel.getMembersIDs().size() == memberList.size() &&
 			readPrivateChannel.getChannelType() == privateChannel.getChannelType() &&
 			readPrivateChannel.getId().equals(privateChannel.getId()) &&
 			readPrivateChannel.getLastMessageAt()
@@ -199,18 +199,18 @@ public class DiscodeitApplication {
 
 		// PUBLIC 채널 생성
 		Channel publicChannel = channelService.createPublic(
-		  ChannelCreateDTO.builder().name("공지").description("공지 채널").build());
+		  CreateChannelDTO.builder().name("공지").description("공지 채널").build());
 
 		// PRIVATE 채널 생성 (user1, user2 참여)
 		List<User> members = List.of(user1, user2);
 		Channel privateChannel = channelService.createPrivate(
-		  ChannelCreateDTO.builder().members(members).build());
+		  CreateChannelDTO.builder().members(members).build());
 
 		// 각 채널에 메시지 생성
 		Message pubMsg = messageRepository.save(
-		  new Message("public msg", user1.getId(), publicChannel.getId(), user1.getUsername()));
+		  new Message("public msg", user1.getId(), publicChannel.getId()));
 		Message privMsg = messageRepository.save(
-		  new Message("private msg", user2.getId(), privateChannel.getId(), user2.getUsername()));
+		  new Message("private msg", user2.getId(), privateChannel.getId()));
 
 		// When
 		List<ReadChannelResponse> channelsReqByPublicUser = channelService.findAllByUserId(userNoChannel.getId());
@@ -238,7 +238,7 @@ public class DiscodeitApplication {
 
 		// PRIVATE 채널 참여자 id 검증
 		boolean privMembersValid = privResp != null &&
-		  new HashSet<>(privResp.getMembersIDList()).containsAll(List.of(user1.getId(), user2.getId()));
+		  new HashSet<>(privResp.getMembersIDs()).containsAll(List.of(user1.getId(), user2.getId()));
 
 		boolean isValid =
 		  hasPublic && hasPrivate && hasNoPrivate && pubMsgTimeValid && privMsgTimeValid && privMembersValid;
@@ -256,7 +256,7 @@ public class DiscodeitApplication {
 		String newDescription = "업데이트된 채널 설명";
 
 		// When
-		channelService.update(ChannelUpdateDTO.builder()
+		channelService.update(UpdateChannelDTO.builder()
 		  .id(channel.getId())
 		  .channelType(channel.getChannelType())
 		  .name(newName)
@@ -264,7 +264,7 @@ public class DiscodeitApplication {
 		  .build());
 
 		// Then
-		ReadChannelResponse channelToValidate = channelService.read(channel.getId());
+		ReadChannelResponse channelToValidate = channelService.readPublic(channel.getId());
 		boolean isUpdated = channelToValidate.getName().equals(newName) &&
 		  channelToValidate.getDescription().equals(newDescription);
 
@@ -294,15 +294,15 @@ public class DiscodeitApplication {
 
 		// Given
 		BinaryContent userProfileImage = setupBinaryContent(binaryContentRepository);
-		UserCreateDTO dtoWithProfileImage =
-		  UserCreateDTO.builder()
+		CreateUserDTO dtoWithProfileImage =
+		  CreateUserDTO.builder()
 			.username("newUser1")
 			.email("newUser1@codeit.com")
 			.password("newUser1234")
 			.binaryContent(userProfileImage)
 			.build();
-		UserCreateDTO dtoWithNoProfileImage =
-		  UserCreateDTO.builder()
+		CreateUserDTO dtoWithNoProfileImage =
+		  CreateUserDTO.builder()
 			.username("newUser2")
 			.email("newUser2@codeit.com")
 			.password("newUser1234")
@@ -313,8 +313,8 @@ public class DiscodeitApplication {
 		User u2 = userService.create(dtoWithNoProfileImage);
 
 		// Then
-		UserReadDTO userWithProfile = userService.read(u1.getId());
-		UserReadDTO userWithNoProfile = userService.read(u2.getId());
+		UserReadResponse userWithProfile = userService.read(u1.getId());
+		UserReadResponse userWithNoProfile = userService.read(u2.getId());
 
 		// 1. UserProfile가 생성 여부 확인
 		// UserProfile 잘 생성 되었는지 확인
@@ -350,7 +350,7 @@ public class DiscodeitApplication {
 	 */
 	static void userReadTest(UserService userService, User user) {
 		System.out.print("UserReadTest.......................");
-		UserReadDTO readUser = userService.read(user.getId());
+		UserReadResponse readUser = userService.read(user.getId());
 
 		boolean isValid = readUser.getId().equals(user.getId()) &&
 		  readUser.getCreatedAt().equals(user.getCreatedAt()) &&
@@ -382,7 +382,7 @@ public class DiscodeitApplication {
 		String newPassword = "updatedPassword1234";
 		BinaryContent newProfileImage = setupBinaryContent(binaryContentRepository);
 
-		userService.update(UserUpdateDTO.builder()
+		userService.update(UpdateUserDTO.builder()
 		  .userId(user.getId())
 		  .newUsername(newUsername)
 		  .newEmail(newEmail)
@@ -390,7 +390,7 @@ public class DiscodeitApplication {
 		  .newProfileImage(newProfileImage)
 		  .build());
 
-		UserReadDTO userToValidate = userService.read(user.getId());
+		UserReadResponse userToValidate = userService.read(user.getId());
 
 		boolean isUpdated = userToValidate.getUsername().equals(newUsername) &&
 		  userToValidate.getEmail().equals(newEmail) &&
@@ -429,11 +429,21 @@ public class DiscodeitApplication {
 		// Given
 		BinaryContent messageAttachment1 = setupBinaryContent(binaryContentRepository);
 		BinaryContent messageAttachment2 = setupBinaryContent(binaryContentRepository);
-		List<BinaryContent> attachments = List.of(messageAttachment1, messageAttachment2);
+		List<CreateBiContentDTO> attachments = List.of(
+		  CreateBiContentDTO.builder()
+			.content(messageAttachment1.getContent())
+			.fileName(messageAttachment1.getFileName())
+			.contentType(ContentType.IMAGE)
+			.build(),
+		  CreateBiContentDTO.builder()
+			.content(messageAttachment2.getContent())
+			.fileName(messageAttachment2.getFileName())
+			.contentType(ContentType.IMAGE)
+			.build());
 
 		// WHEN
 		Message message = messageService.create(
-		  MessageCreateDTO.builder()
+		  CreateMessageDTO.builder()
 			.channelId(channel.getId())
 			.content("안녕하세요")
 			.userId(author.getId())
@@ -450,11 +460,7 @@ public class DiscodeitApplication {
 		  storedMessage.getChannelId().equals(channel.getId()) &&
 		  storedMessage.getAuthorId().equals(author.getId()) &&
 		  storedMessage.getAttachmentIds() != null &&
-		  storedMessage.getAttachmentIds().size() == 2 &&
-		  storedMessage.getAttachmentIds().contains(messageAttachment1.getId()) &&
-		  storedMessage.getAttachmentIds().contains(messageAttachment2.getId()) &&
-		  storedAttachments.contains(messageAttachment1.getId()) &&
-		  storedAttachments.contains(messageAttachment2.getId());
+		  storedMessage.getAttachmentIds().size() == 2;
 
 		System.out.println(isCreated ?
 		  "메시지 생성 테스트 통과 ✅" :
@@ -468,9 +474,18 @@ public class DiscodeitApplication {
 		// Given
 		BinaryContent messageAttachment1 = setupBinaryContent(binaryContentRepository);
 		BinaryContent messageAttachment2 = setupBinaryContent(binaryContentRepository);
-		List<BinaryContent> attachments = List.of(messageAttachment1, messageAttachment2);
+		List<CreateBiContentDTO> attachments = List.of(CreateBiContentDTO.builder()
+			.contentType(ContentType.IMAGE)
+			.content(messageAttachment1.getContent())
+			.fileName(messageAttachment1.getFileName())
+			.build(),
+		  CreateBiContentDTO.builder()
+			.contentType(ContentType.IMAGE)
+			.content(messageAttachment2.getContent())
+			.fileName(messageAttachment2.getFileName())
+			.build());
 		Message message = messageService.create(
-		  MessageCreateDTO.builder()
+		  CreateMessageDTO.builder()
 			.channelId(channel.getId())
 			.content("안녕하세요")
 			.userId(author.getId())
@@ -487,9 +502,7 @@ public class DiscodeitApplication {
 		  readMessage.getChannelId().equals(message.getChannelId()) &&
 		  readMessage.getAuthorId().equals(message.getAuthorId()) &&
 		  readMessage.getAttachmentIds() != null &&
-		  readMessage.getAttachmentIds().size() == 2 &&
-		  readMessage.getAttachmentIds().contains(messageAttachment1.getId()) &&
-		  readMessage.getAttachmentIds().contains(messageAttachment2.getId());
+		  readMessage.getAttachmentIds().size() == 2;
 
 		System.out.println(isValid ?
 		  "메시지 조회 테스트 통과 ✅" :
@@ -500,7 +513,7 @@ public class DiscodeitApplication {
 		System.out.print("MessageUpdateTest.......................");
 
 		String newContent = "업데이트된 메시지 내용";
-		messageService.update(MessageUpdateDTO.builder().id(message.getId()).newContent(newContent).build());
+		messageService.update(UpdateMessageDTO.builder().id(message.getId()).newContent(newContent).build());
 
 		Message updatedMessage = messageService.read(message.getId());
 		boolean isUpdated = updatedMessage.getContent().equals(newContent);
@@ -517,9 +530,21 @@ public class DiscodeitApplication {
 		// Given
 		BinaryContent messageAttachment1 = setupBinaryContent(binaryContentRepository);
 		BinaryContent messageAttachment2 = setupBinaryContent(binaryContentRepository);
-		List<BinaryContent> attachments = List.of(messageAttachment1, messageAttachment2);
+		int beforeSize = binaryContentRepository.findAll().size();
+		List<CreateBiContentDTO> attachments = List.of(
+		  CreateBiContentDTO.builder()
+			.contentType(ContentType.IMAGE)
+			.content(messageAttachment1.getContent())
+			.fileName(messageAttachment1.getFileName())
+			.build(),
+		  CreateBiContentDTO.builder()
+			.contentType(ContentType.IMAGE)
+			.content(messageAttachment2.getContent())
+			.fileName(messageAttachment2.getFileName())
+			.build()
+		);
 		Message message = messageService.create(
-		  MessageCreateDTO.builder()
+		  CreateMessageDTO.builder()
 			.channelId(channel.getId())
 			.content("안녕하세요")
 			.userId(author.getId())
@@ -527,9 +552,11 @@ public class DiscodeitApplication {
 			.build()
 		);
 		messageService.delete(message.getId());
-		String log = messageService.isEmpty(message.getId()) && binaryContentRepository.findAll().isEmpty() ?
-		  "메시지 삭제 테스트 통과 ✅" :
-		  "메시지 삭제 테스트 실패 ❌";
+
+		String log =
+		  messageService.isEmpty(message.getId()) && binaryContentRepository.findAll().size() == beforeSize ?
+			"메시지 삭제 테스트 통과 ✅" :
+			"메시지 삭제 테스트 실패 ❌";
 		System.out.println(log);
 	}
 
@@ -544,7 +571,7 @@ public class DiscodeitApplication {
 		readStatusRepository.deleteAll();
 	}
 
-	static void authLoginTest(AuthService authService) {
+	static void authLoginTest(BasicAuthService basicAuthService) {
 		System.out.print("AuthLoginTest.......................");
 
 		// Given
@@ -553,7 +580,7 @@ public class DiscodeitApplication {
 		  .password("woody1234")
 		  .build();
 
-		UserLoginResponse successResponse = authService.login(successRequest);
+		UserLoginResponse successResponse = basicAuthService.login(successRequest);
 
 		boolean isValid = successResponse.isSuccess() && successResponse.getUser() != null &&
 		  successResponse.getUser().getUsername().equals(successRequest.getUsername());
@@ -563,7 +590,7 @@ public class DiscodeitApplication {
 		  "로그인 테스트 실패 ❌");
 	}
 
-	static void createReadStatusTest(ReadStatusService readStatusService, UserService basicUserService,
+	static void createReadStatusTest(BasicReadStatusService readStatusService, UserService basicUserService,
 	  BinaryContentRepository binaryContentRepository, ChannelService channelService,
 	  ReadStatusRepository readStatusRepository) {
 		System.out.print("createReadStatusTest.......................");
@@ -591,7 +618,7 @@ public class DiscodeitApplication {
 
 	static void readReadStatusTest(UserService userService, BinaryContentRepository binaryContentRepository,
 	  ChannelService channelService,
-	  ReadStatusService readStatusService) {
+	  BasicReadStatusService readStatusService) {
 		System.out.print("readReadStatusTest.......................");
 
 		// Given
@@ -631,7 +658,7 @@ public class DiscodeitApplication {
 
 	static void updateReadStatusTest(UserService userService,
 	  BinaryContentRepository binaryContentRepository, ChannelService channelService,
-	  ReadStatusService readStatusService, ReadStatusRepository readStatusRepository) {
+	  BasicReadStatusService readStatusService, ReadStatusRepository readStatusRepository) {
 		System.out.print("updateReadStatusTest.......................");
 
 		// Given
@@ -671,14 +698,14 @@ public class DiscodeitApplication {
 
 	static void deleteReadStatusTest(UserService userService,
 	  BinaryContentRepository binaryContentRepository, ChannelService channelService,
-	  ReadStatusService readStatusService, ReadStatusRepository readStatusRepository) {
+	  BasicReadStatusService readStatusService, ReadStatusRepository readStatusRepository) {
 		System.out.print("deleteReadStatusTest.......................");
 
 		// Given
 		User user = setupUser(userService, setupBinaryContent(binaryContentRepository));
 		Channel channel = setupPUblicChannel(channelService);
 
-		// ReadStatusService 통해 ReadStatus 생성
+		// BasicReadStatusService 통해 ReadStatus 생성
 		ReadStatus readStatus = readStatusService.create(
 		  CreateReadStatusDTO.builder()
 			.userId(user.getId())
@@ -699,7 +726,7 @@ public class DiscodeitApplication {
 
 	}
 
-	static void createUserStatusTest(UserStatusService userStatusService, UserService userService,
+	static void createUserStatusTest(BasicUserStatusService userStatusService, UserService userService,
 	  BinaryContentRepository binaryContentRepository, UserStatusRepository userStatusRepository) {
 		System.out.print("createUserStatusTest.......................");
 
@@ -707,7 +734,7 @@ public class DiscodeitApplication {
 		User user = setupUser(userService, setupBinaryContent(binaryContentRepository));
 
 		// When
-		UserStatus userStatus = userStatusService.create(UserStatusCreateDTO.builder()
+		UserStatus userStatus = userStatusService.create(CreateUserStatusDTO.builder()
 		  .userId(user.getId())
 		  .build());
 
@@ -719,24 +746,24 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
-	static void readUserStatusTest(UserStatusService userStatusService, UserService userService,
+	static void readUserStatusTest(BasicUserStatusService userStatusService, UserService userService,
 	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("readUserStatusTest.......................");
 
 		// Given
 		User user1 = setupUser(userService, setupBinaryContent(binaryContentRepository));
 		User user2 = userService.create(
-		  UserCreateDTO.builder()
+		  CreateUserDTO.builder()
 			.username("woody2")
 			.email("woody2@codeit.com")
 			.password("woody1234")
 			.binaryContent(setupBinaryContent(binaryContentRepository))
 			.build());
 
-		UserStatus userStatus1 = userStatusService.create(UserStatusCreateDTO.builder()
+		UserStatus userStatus1 = userStatusService.create(CreateUserStatusDTO.builder()
 		  .userId(user1.getId())
 		  .build());
-		UserStatus userStatus2 = userStatusService.create(UserStatusCreateDTO.builder()
+		UserStatus userStatus2 = userStatusService.create(CreateUserStatusDTO.builder()
 		  .userId(user2.getId())
 		  .build());
 
@@ -757,20 +784,20 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
-	static void updateUserStatusTest(UserStatusService userStatusService, UserService userService,
+	static void updateUserStatusTest(BasicUserStatusService userStatusService, UserService userService,
 	  BinaryContentRepository binaryContentRepository, UserStatusRepository userStatusRepository) {
 		System.out.print("updateUserStatusTest.......................");
 
 		// Given
 		User user = setupUser(userService, setupBinaryContent(binaryContentRepository));
-		UserStatus userStatus = userStatusService.create(UserStatusCreateDTO.builder()
+		UserStatus userStatus = userStatusService.create(CreateUserStatusDTO.builder()
 		  .userId(user.getId())
 		  .build());
 		Instant beforeUpdate = userStatus.getUpdatedAt() == null ? Instant.now() : userStatus.getUpdatedAt();
 
 		// When & Then
 		// update 와 updateByUserId 메서드를 통해 두번 업데이트
-		userStatusService.update(UserStatusUpdateDTO.builder()
+		userStatusService.update(UpdateUserStatusDTO.builder()
 		  .id(userStatus.getId())
 		  .build());
 		Instant firstUpdate = userStatusRepository.find(userStatus.getId()).get().getUpdatedAt();
@@ -787,13 +814,13 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
-	static void deleteUserStatusTest(UserStatusService userStatusService, UserService userService,
+	static void deleteUserStatusTest(BasicUserStatusService userStatusService, UserService userService,
 	  BinaryContentRepository binaryContentRepository, UserStatusRepository userStatusRepository) {
 		System.out.print("deleteUserStatusTest.......................");
 
 		// Given
 		User user = setupUser(userService, setupBinaryContent(binaryContentRepository));
-		UserStatus userStatus = userStatusService.create(UserStatusCreateDTO.builder()
+		UserStatus userStatus = userStatusService.create(CreateUserStatusDTO.builder()
 		  .userId(user.getId())
 		  .build());
 
@@ -808,7 +835,7 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
-	static void createBinaryContentTest(BinaryContentService binaryContentService,
+	static void createBinaryContentTest(BasicBinaryContentService binaryContentService,
 	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("createBinaryContentTest.......................");
 
@@ -817,7 +844,7 @@ public class DiscodeitApplication {
 		  .content(new byte[] {1, 2, 3, 4, 5})
 		  .size(5)
 		  .contentType(ContentType.IMAGE)
-		  .filename("testImage.png")
+		  .fileName("testImage.png")
 		  .build();
 
 		// When
@@ -825,7 +852,7 @@ public class DiscodeitApplication {
 
 		// Then
 		BinaryContent storedContent = binaryContentRepository.findAll().stream().findFirst().orElse(null);
-		boolean isValid = storedContent != null && storedContent.getFilename().equals(dto.getFilename()) &&
+		boolean isValid = storedContent != null && storedContent.getFileName().equals(dto.getFileName()) &&
 		  storedContent.getSize() == dto.getSize() &&
 		  storedContent.getContentType() == dto.getContentType() &&
 		  Arrays.equals(storedContent.getContent(), dto.getContent());
@@ -835,7 +862,7 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
-	static void readBinaryContentTest(BinaryContentService binaryContentService,
+	static void readBinaryContentTest(BasicBinaryContentService binaryContentService,
 	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("readBinaryContentTest.......................");
 
@@ -863,7 +890,7 @@ public class DiscodeitApplication {
 		System.out.println(result);
 	}
 
-	static void deleteBinaryContentTest(BinaryContentService binaryContentService,
+	static void deleteBinaryContentTest(BasicBinaryContentService binaryContentService,
 	  BinaryContentRepository binaryContentRepository) {
 		System.out.print("deleteBinaryContentTest.......................");
 
@@ -897,9 +924,9 @@ public class DiscodeitApplication {
 		ChannelService basicChannelService = context.getBean(BasicChannelService.class);
 
 		// setup-3 service 초기화
-		AuthService authService = context.getBean(AuthService.class);
-		ReadStatusService readStatusService = context.getBean(ReadStatusService.class);
-		UserStatusService userStatusService = context.getBean(UserStatusService.class);
+		BasicAuthService basicAuthService = context.getBean(BasicAuthService.class);
+		BasicReadStatusService readStatusService = context.getBean(BasicReadStatusService.class);
+		BasicUserStatusService userStatusService = context.getBean(BasicUserStatusService.class);
 
 		System.out.println("""
 		  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -1035,7 +1062,7 @@ public class DiscodeitApplication {
 		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 		  """);
 		User fileUserForLogin = setupUser(basicUserService, binaryContent2);
-		authLoginTest(authService);
+		authLoginTest(basicAuthService);
 		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
 		  binaryContentRepository, readStatusRepository);
 		System.out.println("""
@@ -1107,15 +1134,15 @@ public class DiscodeitApplication {
 		  ┃ ?? BinaryContent Service TEST ┃
 		  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 		  """);
-		createBinaryContentTest(context.getBean(BinaryContentService.class), binaryContentRepository);
+		createBinaryContentTest(context.getBean(BasicBinaryContentService.class), binaryContentRepository);
 		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository,
 		  binaryContentRepository, readStatusRepository);
 
-		readBinaryContentTest(context.getBean(BinaryContentService.class), binaryContentRepository);
+		readBinaryContentTest(context.getBean(BasicBinaryContentService.class), binaryContentRepository);
 		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository
 		  , binaryContentRepository, readStatusRepository);
 
-		deleteBinaryContentTest(context.getBean(BinaryContentService.class), binaryContentRepository);
+		deleteBinaryContentTest(context.getBean(BasicBinaryContentService.class), binaryContentRepository);
 		clearAll(basicChannelService, basicUserService, basicMessageService, userStatusRepository
 		  , binaryContentRepository, readStatusRepository);
 

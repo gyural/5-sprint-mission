@@ -5,8 +5,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.domain.dto.MessageCreateDTO;
-import com.sprint.mission.discodeit.domain.dto.MessageUpdateDTO;
+import com.sprint.mission.discodeit.domain.dto.CreateMessageDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateMessageDTO;
 import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
 import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
@@ -27,8 +27,8 @@ public class FileMessageService implements MessageService {
 	}
 
 	@Override
-	public Message create(MessageCreateDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("MessageCreateDTO cannot be null"));
+	public Message create(CreateMessageDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("CreateMessageDTO cannot be null"));
 
 		String content = dto.getContent();
 		UUID channelId = dto.getChannelId();
@@ -66,8 +66,8 @@ public class FileMessageService implements MessageService {
 	}
 
 	@Override
-	public void update(MessageUpdateDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("MessageUpdateDTO cannot be null"));
+	public void update(UpdateMessageDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateMessageDTO cannot be null"));
 		UUID id = dto.getId();
 		String newContent = dto.getNewContent();
 

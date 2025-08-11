@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import static com.sprint.mission.discodeit.domain.dto.ReadChannelResponse.*;
 import static com.sprint.mission.discodeit.domain.enums.ChannelType.*;
 
 import java.time.Instant;
@@ -12,13 +11,13 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.sprint.mission.discodeit.domain.dto.ChannelCreateDTO;
-import com.sprint.mission.discodeit.domain.dto.ChannelUpdateDTO;
-import com.sprint.mission.discodeit.domain.dto.ReadChannelResponse;
+import com.sprint.mission.discodeit.domain.dto.CreateChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.domain.entity.ReadStatus;
 import com.sprint.mission.discodeit.domain.enums.ChannelType;
+import com.sprint.mission.discodeit.domain.response.ReadChannelResponse;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -35,7 +34,7 @@ public class BasicChannelService implements ChannelService {
 	private final ReadStatusRepository readStatusRepository;
 
 	@Override
-	public Channel createPublic(ChannelCreateDTO dto) {
+	public Channel createPublic(CreateChannelDTO dto) {
 		String name = dto.getName();
 		String description = dto.getDescription();
 
@@ -50,7 +49,7 @@ public class BasicChannelService implements ChannelService {
 	}
 
 	@Override
-	public Channel createPrivate(ChannelCreateDTO dto) {
+	public Channel createPrivate(CreateChannelDTO dto) {
 
 		Channel newChannel = new Channel(PRIVATE, null, null);
 
@@ -63,23 +62,36 @@ public class BasicChannelService implements ChannelService {
 	}
 
 	@Override
-	public ReadChannelResponse read(UUID id) {
+	public ReadChannelResponse readPrivate(UUID id) {
 		Channel channel = channelRepository.find(id)
 		  .orElseThrow(() -> new NoSuchElementException("Channel with ID " + id + " not found"));
 
 		// 1. 가장 최근 메시지 가 언제인지 확인
+		// TODO 추후 개선 필요 파일저장이라 SQL 불가능... (풀스캔 위험)
 		List<Message> messages = messageRepository.findAllByChannelId(id);
 		Instant lastMessageAt = messages.isEmpty() ? null
 		  : getLastEditAt(messages);
 
-		List<UUID> membersIDList = channel.getChannelType() == PRIVATE ?
-		  readStatusRepository.findAllByChannelId(id)
-			.stream()
-			.map(ReadStatus::getUserId)
-			.toList()
-		  : new ArrayList<>();
+		List<UUID> membersIDList = readStatusRepository.findAllByChannelId(id)
+		  .stream()
+		  .map(ReadStatus::getUserId)
+		  .toList();
 
 		return toReadChannelResponse(channel, lastMessageAt, membersIDList);
+	}
+
+	@Override
+	public ReadChannelResponse readPublic(UUID id) {
+		Channel channel = channelRepository.find(id)
+		  .orElseThrow(() -> new NoSuchElementException("Channel with ID " + id + " not found"));
+
+		// 1. 가장 최근 메시지 가 언제인지 확인
+		// TODO 추후 개선 필요 파일저장이라 SQL 불가능... (풀스캔 위험)
+		List<Message> messages = messageRepository.findAllByChannelId(id);
+		Instant lastMessageAt = messages.isEmpty() ? null
+		  : getLastEditAt(messages);
+
+		return toReadChannelResponse(channel, lastMessageAt, List.of());
 	}
 
 	@Override
@@ -123,8 +135,8 @@ public class BasicChannelService implements ChannelService {
 	}
 
 	@Override
-	public void update(ChannelUpdateDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("ChannelUpdateDTO cannot be null"));
+	public void update(UpdateChannelDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateChannelDTO cannot be null"));
 
 		UUID id = dto.getId();
 		String newChannelName = dto.getName();
@@ -176,6 +188,21 @@ public class BasicChannelService implements ChannelService {
 
 	private Instant getMessageLastEditAt(Message message) {
 		return message.getUpdatedAt() != null ? message.getUpdatedAt() : message.getCreatedAt();
+	}
+
+	private ReadChannelResponse toReadChannelResponse(Channel channel, Instant LastMessageAt,
+	  List<UUID> membersIDList) {
+
+		return ReadChannelResponse.builder()
+		  .id(channel.getId())
+		  .createdAt(channel.getCreatedAt())
+		  .updatedAt(channel.getUpdatedAt())
+		  .channelType(channel.getChannelType())
+		  .name(channel.getName())
+		  .description(channel.getDescription())
+		  .lastMessageAt(LastMessageAt)
+		  .membersIDs(membersIDList)
+		  .build();
 	}
 
 }

@@ -11,17 +11,19 @@ import com.sprint.mission.discodeit.domain.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.ReadStatusService;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ReadStatusService {
+public class BasicReadStatusService implements ReadStatusService {
 
 	private final ReadStatusRepository readStatusRepository;
 	private final UserRepository userRepository;
 	private final ChannelRepository channelRepository;
 
+	@Override
 	public ReadStatus create(CreateReadStatusDTO dto) {
 
 		UUID channelId = dto.getChannelId();
@@ -43,6 +45,7 @@ public class ReadStatusService {
 		return readStatusRepository.save(readStatus);
 	}
 
+	@Override
 	public List<ReadStatus> findAllByUserId(UUID userId) {
 		if (userId == null || userRepository.isEmpty(userId)) {
 			throw new IllegalArgumentException("User ID cannot be null or empty");
@@ -51,6 +54,7 @@ public class ReadStatusService {
 		return readStatusRepository.findAllByUserId(userId);
 	}
 
+	@Override
 	public void update(UpdateReadStatusDTO dto) {
 		UUID id = dto.getId();
 
@@ -62,6 +66,7 @@ public class ReadStatusService {
 		readStatusRepository.save(targetReadStatus);
 	}
 
+	@Override
 	public void delete(UUID id) {
 		if (id == null || readStatusRepository.isEmpty(id)) {
 			throw new IllegalArgumentException("Read status ID cannot be null or empty");

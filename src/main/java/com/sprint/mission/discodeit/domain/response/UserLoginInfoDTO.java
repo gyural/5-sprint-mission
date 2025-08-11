@@ -5,9 +5,9 @@ import lombok.Builder;
 import lombok.Getter;
 
 @AllArgsConstructor
-@Builder
 @Getter
-public class UserLoginResponse {
-	private final boolean success;
-	private final UserLoginInfoDTO user;
+@Builder
+public class UserLoginInfoDTO {
+	private final String username;
+	private final String email;
 }

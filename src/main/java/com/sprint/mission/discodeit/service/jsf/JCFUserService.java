@@ -5,11 +5,11 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.domain.dto.UserCreateDTO;
-import com.sprint.mission.discodeit.domain.dto.UserReadDTO;
-import com.sprint.mission.discodeit.domain.dto.UserUpdateDTO;
+import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.domain.response.UserReadResponse;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
 import com.sprint.mission.discodeit.service.UserService;
@@ -23,8 +23,8 @@ public class JCFUserService implements UserService {
 	private final UserStatusRepository userStatusRepository;
 
 	@Override
-	public User create(UserCreateDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserCreateDTO cannot be null"));
+	public User create(CreateUserDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("CreateUserDTO cannot be null"));
 		String username = dto.getUsername();
 		String email = dto.getEmail();
 		String password = dto.getPassword();
@@ -53,8 +53,8 @@ public class JCFUserService implements UserService {
 	}
 
 	@Override
-	public void update(UserUpdateDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UserUpdateDTO cannot be null"));
+	public void update(UpdateUserDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateUserDTO cannot be null"));
 		UUID userId = dto.getUserId();
 		String newUsername = dto.getNewUsername();
 		String newEmail = dto.getNewEmail();
@@ -79,7 +79,7 @@ public class JCFUserService implements UserService {
 	}
 
 	@Override
-	public UserReadDTO read(UUID userId) {
+	public UserReadResponse read(UUID userId) {
 		User user = userRepository.find(userId)
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 
@@ -88,7 +88,7 @@ public class JCFUserService implements UserService {
 		boolean isOnline = status.stream()
 		  .anyMatch(UserStatus::isOnline);
 
-		return UserReadDTO.builder()
+		return UserReadResponse.builder()
 		  .id(user.getId())
 		  .createdAt(user.getCreatedAt())
 		  .updatedAt(user.getUpdatedAt())

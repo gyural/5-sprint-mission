@@ -4,14 +4,11 @@ import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
-@NoArgsConstructor
-@Data
+@Getter
 @Builder
-public class UserStatusCreateDTO {
-	private UUID userId;
-
+public class UpdateUserStatusDTO {
+	private final UUID id;
 }

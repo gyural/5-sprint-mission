@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -7,15 +8,16 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.sprint.mission.discodeit.domain.dto.MessageCreateDTO;
-import com.sprint.mission.discodeit.domain.dto.MessageUpdateDTO;
+import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
+import com.sprint.mission.discodeit.domain.dto.CreateMessageDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateMessageDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,17 +26,18 @@ import lombok.RequiredArgsConstructor;
 public class BasicMessageService implements MessageService {
 
 	private final MessageRepository messageRepository;
-	private final UserService userService;
+	private final UserRepository userRepository;
 	private final ChannelRepository channelRepository;
 	private final BinaryContentRepository binaryContentRepository;
+	private final BasicBinaryContentService binaryContentService;
 
 	@Override
-	public Message create(MessageCreateDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("MessageCreateDTO cannot be null"));
+	public Message create(CreateMessageDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("CreateMessageDTO cannot be null"));
 		String content = dto.getContent();
 		UUID channelId = dto.getChannelId();
 		UUID userId = dto.getUserId();
-		List<BinaryContent> attachments = dto.getAttachments() != null ? dto.getAttachments() : List.of();
+		List<CreateBiContentDTO> attachmentsInMessage = dto.getAttachments();
 
 		// Validate inputs
 		if (content == null || content.isEmpty()) {
@@ -43,22 +46,20 @@ public class BasicMessageService implements MessageService {
 		if (channelId == null || channelRepository.isEmpty(channelId)) {
 			throw new IllegalArgumentException("Channel ID cannot be null or empty");
 		}
-		if (userId == null || userService.isEmpty(userId)) {
+		if (userId == null || userRepository.isEmpty(userId)) {
 			throw new IllegalArgumentException("User ID cannot be null or empty");
 		}
-		attachments.forEach(attachment -> {
-			if (attachment == null || attachment.getContent() == null || attachment.getContent().length == 0) {
-				throw new IllegalArgumentException("Attachment content cannot be null or empty");
-			}
-		});
 
-		binaryContentRepository.saveAll(attachments);
+		List<BinaryContent> files = new ArrayList<>();
+		if (attachmentsInMessage != null && !attachmentsInMessage.isEmpty()) {
+			attachmentsInMessage.forEach((file) -> {
+				files.add(binaryContentService.create(file));
+			});
+		}
 
-		List<UUID> attachmentIds = attachments.stream()
-		  .map(BinaryContent::getId)
-		  .toList();
+		List<UUID> attachmentIds = files.stream().map(BinaryContent::getId).toList();
 
-		return messageRepository.save(new Message(content, userId, channelId, dto.getAuthorName(), attachmentIds));
+		return messageRepository.save(new Message(content, userId, channelId, attachmentIds));
 	}
 
 	@Override
@@ -87,8 +88,8 @@ public class BasicMessageService implements MessageService {
 	}
 
 	@Override
-	public void update(MessageUpdateDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("MessageUpdateDTO cannot be null"));
+	public void update(UpdateMessageDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateMessageDTO cannot be null"));
 		UUID id = dto.getId();
 		String newContent = dto.getNewContent();
 

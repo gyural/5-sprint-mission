@@ -4,16 +4,19 @@ import org.springframework.stereotype.Service;
 
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.request.UserLoginRequest;
+import com.sprint.mission.discodeit.domain.response.UserLoginInfoDTO;
 import com.sprint.mission.discodeit.domain.response.UserLoginResponse;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class BasicAuthService implements AuthService {
 	private final UserRepository userRepository;
 
+	@Override
 	public UserLoginResponse login(UserLoginRequest request) {
 		User user = userRepository.findByUsername(request.getUsername())
 		  .orElseThrow(() -> new RuntimeException("User not found"));
@@ -24,7 +27,7 @@ public class AuthService {
 
 		return UserLoginResponse.builder()
 		  .success(true)
-		  .user(user)
+		  .user(UserLoginInfoDTO.builder().username(user.getUsername()).email(user.getEmail()).build())
 		  .build();
 	}
 

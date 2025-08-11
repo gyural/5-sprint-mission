@@ -1,17 +1,17 @@
 package com.sprint.mission.discodeit.service.jsf;
 
-import static com.sprint.mission.discodeit.domain.dto.ReadChannelResponse.*;
 import static com.sprint.mission.discodeit.domain.enums.ChannelType.*;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.domain.dto.ChannelCreateDTO;
-import com.sprint.mission.discodeit.domain.dto.ChannelUpdateDTO;
-import com.sprint.mission.discodeit.domain.dto.ReadChannelResponse;
+import com.sprint.mission.discodeit.domain.dto.CreateChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.enums.ChannelType;
+import com.sprint.mission.discodeit.domain.response.ReadChannelResponse;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -27,7 +27,7 @@ public class JCFChannelService implements ChannelService {
 	}
 
 	@Override
-	public Channel createPublic(ChannelCreateDTO dto) {
+	public Channel createPublic(CreateChannelDTO dto) {
 		String name = dto.getName();
 		String description = dto.getDescription();
 
@@ -42,7 +42,7 @@ public class JCFChannelService implements ChannelService {
 	}
 
 	@Override
-	public Channel createPrivate(ChannelCreateDTO dto) {
+	public Channel createPrivate(CreateChannelDTO dto) {
 		String name = dto.getName();
 		String description = dto.getDescription();
 
@@ -57,7 +57,22 @@ public class JCFChannelService implements ChannelService {
 	}
 
 	@Override
-	public ReadChannelResponse read(UUID id) {
+	public ReadChannelResponse readPublic(UUID id) {
+		Channel channel = channelRepository.find(id)
+		  .orElseThrow(() -> new NoSuchElementException("Channel with ID " + id + " not found"));
+
+		return ReadChannelResponse.builder()
+		  .id(channel.getId())
+		  .createdAt(channel.getCreatedAt())
+		  .updatedAt(channel.getUpdatedAt())
+		  .channelType(channel.getChannelType())
+		  .name(channel.getName())
+		  .description(channel.getDescription())
+		  .build();
+	}
+
+	@Override
+	public ReadChannelResponse readPrivate(UUID id) {
 		Channel channel = channelRepository.find(id)
 		  .orElseThrow(() -> new NoSuchElementException("Channel with ID " + id + " not found"));
 
@@ -88,7 +103,7 @@ public class JCFChannelService implements ChannelService {
 	}
 
 	@Override
-	public void update(ChannelUpdateDTO dto) {
+	public void update(UpdateChannelDTO dto) {
 		String newChannelName = dto.getName();
 		String newDescription = dto.getDescription();
 		ChannelType newChannelType = dto.getChannelType();
@@ -129,5 +144,20 @@ public class JCFChannelService implements ChannelService {
 
 		// 연관된 메시지 삭제 (CASCADE DELETE)
 		messageService.deleteAll();
+	}
+
+	private ReadChannelResponse toReadChannelResponse(Channel channel, Instant LastMessageAt,
+	  List<UUID> membersIDList) {
+
+		return ReadChannelResponse.builder()
+		  .id(channel.getId())
+		  .createdAt(channel.getCreatedAt())
+		  .updatedAt(channel.getUpdatedAt())
+		  .channelType(channel.getChannelType())
+		  .name(channel.getName())
+		  .description(channel.getDescription())
+		  .lastMessageAt(LastMessageAt)
+		  .membersIDs(membersIDList)
+		  .build();
 	}
 }

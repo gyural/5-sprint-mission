@@ -6,17 +6,15 @@ import com.sprint.mission.discodeit.domain.enums.ChannelType;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-@Data
 @AllArgsConstructor
-@NoArgsConstructor
+@Getter
 @Builder
-public class ChannelUpdateDTO {
-	private UUID id;
-	private ChannelType channelType;
-	private String name;
-	private String description;
+public class UpdateChannelDTO {
+	private final UUID id;
+	private final ChannelType channelType;
+	private final String name;
+	private final String description;
 
 }

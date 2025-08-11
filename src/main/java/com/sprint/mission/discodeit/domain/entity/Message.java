@@ -20,32 +20,28 @@ public class Message implements Serializable {
 	private final Instant createdAt;
 	private Instant updatedAt;
 	private String content;
-	private String authorName; // 유저가 채널을 나가도 메시지의 작성자는 남아있어야 하므로, authorId와 authorName을 분리
 	// Foreign key
 	private final UUID authorId;
 	private final UUID channelId;
 	private final List<UUID> attachmentIds;
 
-	public Message(String content, @NonNull UUID authorId, @NonNull UUID channelId, String authorName) {
+	public Message(String content, @NonNull UUID authorId, @NonNull UUID channelId) {
 		this.id = UUID.randomUUID();
 		this.createdAt = Instant.now();
 		this.updatedAt = null;
 		this.content = content;
 		this.authorId = authorId;
 		this.channelId = channelId;
-		this.authorName = authorName;
 		this.attachmentIds = new ArrayList<>();
 	}
 
-	public Message(String content, @NonNull UUID authorId, @NonNull UUID channelId, String authorName,
-	  List<UUID> attachmentIds) {
+	public Message(String content, @NonNull UUID authorId, @NonNull UUID channelId, List<UUID> attachmentIds) {
 		this.id = UUID.randomUUID();
 		this.createdAt = Instant.now();
 		this.updatedAt = null;
 		this.content = content;
 		this.authorId = authorId;
 		this.channelId = channelId;
-		this.authorName = authorName;
 		this.attachmentIds = attachmentIds != null ? new ArrayList<>(attachmentIds) : new ArrayList<>();
 	}
 
@@ -82,7 +78,6 @@ public class Message implements Serializable {
 		  ", content='" + content + '\'' +
 		  ", authorId=" + authorId +
 		  ", channelId=" + channelId +
-		  ", authorName='" + authorName + '\'' +
 		  '}';
 	}
 
