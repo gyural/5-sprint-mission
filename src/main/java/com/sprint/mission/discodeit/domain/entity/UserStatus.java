@@ -16,6 +16,7 @@ public class UserStatus implements Serializable {
 	private final UUID id;
 	private final Instant createdAt;
 	private Instant updatedAt;
+	private Instant LastActiveAt; // 마지막 활동 시간
 
 	// Foreign key
 	private final UUID userId; // 유저 ID
@@ -30,10 +31,11 @@ public class UserStatus implements Serializable {
 
 	public boolean isOnline() {
 		return updatedAt != null &&
-		  Instant.now().minusSeconds(5 * 60).isBefore(updatedAt);
+		  Instant.now().minusSeconds(5 * 60).isBefore(LastActiveAt);
 	}
 
-	public void setUpdatedAt() {
+	public void setLastActiveAt() {
+		this.LastActiveAt = Instant.now();
 		this.updatedAt = Instant.now();
 	}
 }

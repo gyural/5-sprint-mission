@@ -1,16 +1,23 @@
 package com.sprint.mission.discodeit.service.file;
 
-import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.domain.response.GetUserAllResponse;
+import com.sprint.mission.discodeit.domain.response.UserDeleteResponse;
 import com.sprint.mission.discodeit.domain.response.UserReadResponse;
+import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserRepository;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +27,9 @@ public class FileUserService implements UserService {
 
 	private final FileUserRepository userRepository;
 	private final UserStatusRepository userStatusRepository;
+	private final BinaryContentRepository binaryContentRepository;
+
+	private final BinaryContentService binaryContentService;
 
 	@Override
 	public User create(CreateUserDTO dto) {
@@ -41,17 +51,33 @@ public class FileUserService implements UserService {
 	}
 
 	@Override
-	public void delete(UUID userId) {
+	public UserDeleteResponse delete(UUID userId) {
+		User targetUser = userRepository.find(userId)
+		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " does not exist"));
+
+		// 1. User Status 삭제
+		userStatusRepository.deleteByUserId(userId);
+		// 2. Profile Image 삭제
+		if (binaryContentRepository.find(targetUser.getProfileId()).isPresent()) {
+			binaryContentRepository.delete(targetUser.getProfileId());
+		}
+		// 3. User 삭제
 		userRepository.delete(userId);
+
+		return UserDeleteResponse.builder()
+		  .isDeleted(true)
+		  .username(targetUser.getUsername())
+		  .build();
 	}
 
 	@Override
-	public void update(UpdateUserDTO dto) {
+	public UserUpdateResponse update(UpdateUserDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateUserDTO cannot be null"));
 		UUID userId = dto.getUserId();
 		String newUsername = dto.getNewUsername();
 		String newEmail = dto.getNewEmail();
 		String newPassword = dto.getNewPassword();
+		CreateBiContentDTO newProfileImage = dto.getNewProfilePicture();
 
 		if (newUsername == null || newUsername.isEmpty()) {
 			throw new IllegalArgumentException("New username cannot be null or empty");
@@ -70,7 +96,36 @@ public class FileUserService implements UserService {
 		targetUser.setEmail(newEmail);
 		targetUser.setPassword(newPassword);
 
+		if (newProfileImage != null) {
+			// 기존 프로필이 있다면 삭제
+			if (targetUser.getProfileId() != null) {
+				binaryContentRepository.delete(targetUser.getProfileId());
+			}
+			BinaryContent newProfilePicture = binaryContentService.create(newProfileImage);
+			targetUser.setProfileId(newProfilePicture.getId());
+
+			userRepository.save(targetUser);
+			return UserUpdateResponse.builder()
+			  .id(targetUser.getId())
+			  .createdAt(targetUser.getCreatedAt())
+			  .updatedAt(targetUser.getUpdatedAt())
+			  .username(targetUser.getUsername())
+			  .email(targetUser.getEmail())
+			  .profilePicture(newProfilePicture)
+			  .build();
+		}
+
 		userRepository.save(targetUser);
+		BinaryContent profilePicture = binaryContentRepository.find(targetUser.getProfileId())
+		  .orElse(null);
+		return UserUpdateResponse.builder()
+		  .id(targetUser.getId())
+		  .createdAt(targetUser.getCreatedAt())
+		  .updatedAt(targetUser.getUpdatedAt())
+		  .username(targetUser.getUsername())
+		  .email(targetUser.getEmail())
+		  .profilePicture(profilePicture)
+		  .build();
 	}
 
 	@Override
@@ -95,8 +150,20 @@ public class FileUserService implements UserService {
 	}
 
 	@Override
-	public List<User> readAll() {
-		return userRepository.findAll();
+	public GetUserAllResponse readAll() {
+		return new GetUserAllResponse(
+		  userRepository.findAll().stream().map(u -> UserReadResponse.builder()
+			.id(u.getId())
+			.createdAt(u.getCreatedAt())
+			.updatedAt(u.getUpdatedAt())
+			.username(u.getUsername())
+			.email(u.getEmail())
+			.profileId(u.getProfileId())
+			.isOnline(
+			  userStatusRepository.findByUserId(u.getId())
+				.map(UserStatus::isOnline)
+				.orElse(false))
+			.build()).toList());
 	}
 
 	@Override
