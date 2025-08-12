@@ -30,4 +30,5 @@ public class BinaryContent implements Serializable {
 		this.contentType = contentType;
 		this.fileName = fileName;
 	}
+
 }
