@@ -140,7 +140,6 @@ public class BasicChannelService implements ChannelService {
 		Channel targetChannel = channelRepository.find(id)
 		  .orElseThrow(() -> new IllegalArgumentException("Channel with ID " + id + " not found"));
 
-		System.out.println("???" + targetChannel);
 		if (targetChannel.getChannelType() == PRIVATE) {
 			throw new RuntimeException(
 			  "Cannot update a private channel's type or members directly. Please use the appropriate service method.");
