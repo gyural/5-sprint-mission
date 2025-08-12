@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.domain.dto.CreateChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.enums.ChannelType;
@@ -27,7 +28,7 @@ public class FileChannelService implements ChannelService {
 	}
 
 	@Override
-	public Channel createPublic(CreateChannelDTO dto) {
+	public Channel createPublic(CreatePublicChannelDTO dto) {
 		String name = dto.getName();
 		String description = dto.getDescription();
 
@@ -41,7 +42,7 @@ public class FileChannelService implements ChannelService {
 		return channelRepository.save(new Channel(PUBLIC, name, description));
 	}
 
-	public Channel createPrivate(CreateChannelDTO dto) {
+	public Channel createPrivate(CreatePrivateChannelDTO dto) {
 		String name = dto.getName();
 		String description = dto.getDescription();
 
@@ -86,7 +87,7 @@ public class FileChannelService implements ChannelService {
 	}
 
 	@Override
-	public List<ReadChannelResponse> findAllByUserId(UUID userId) {
+	public List<ReadChannelResponse> readAllByUserId(UUID userId) {
 		return channelRepository.findAll().stream()
 		  .map(c -> toReadChannelResponse(c, c.getCreatedAt(), List.of()))
 		  .toList();
@@ -102,7 +103,7 @@ public class FileChannelService implements ChannelService {
 	}
 
 	@Override
-	public void update(UpdateChannelDTO dto) {
+	public Channel update(UpdateChannelDTO dto) {
 		UUID id = dto.getId();
 		ChannelType newChannelType = dto.getChannelType();
 		String newChannelName = dto.getName();
@@ -127,7 +128,7 @@ public class FileChannelService implements ChannelService {
 		channel.setName(newChannelName);
 		channel.setDescription(newDescription);
 
-		channelRepository.save(channel);
+		return channelRepository.save(channel);
 	}
 
 	@Override

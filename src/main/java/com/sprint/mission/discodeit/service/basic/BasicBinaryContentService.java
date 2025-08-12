@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
-import com.sprint.mission.discodeit.domain.enums.ContentType;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 
@@ -45,8 +44,8 @@ public class BasicBinaryContentService implements BinaryContentService {
 
 	private BinaryContent DTOtoBinaryContent(CreateBiContentDTO dto) {
 		byte[] content = dto.getContent();
-		int size = dto.getSize();
-		ContentType contentType = dto.getContentType();
+		long size = dto.getSize();
+		String contentType = dto.getContentType();
 		String filename = dto.getFileName();
 		return new BinaryContent(content, size, contentType, filename);
 	}

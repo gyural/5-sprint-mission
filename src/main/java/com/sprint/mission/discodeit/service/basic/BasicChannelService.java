@@ -6,12 +6,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.sprint.mission.discodeit.domain.dto.CreateChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.entity.Message;
@@ -34,28 +34,23 @@ public class BasicChannelService implements ChannelService {
 	private final ReadStatusRepository readStatusRepository;
 
 	@Override
-	public Channel createPublic(CreateChannelDTO dto) {
+	public Channel createPublic(CreatePublicChannelDTO dto) {
 		String name = dto.getName();
 		String description = dto.getDescription();
-
-		if (name == null || name.isEmpty()) {
-			throw new IllegalArgumentException("Channel name cannot be null or empty");
-		}
-		if (description == null || description.isEmpty()) {
-			throw new IllegalArgumentException("Channel description cannot be null or empty");
-		}
 
 		return channelRepository.save(new Channel(PUBLIC, name, description));
 	}
 
 	@Override
-	public Channel createPrivate(CreateChannelDTO dto) {
+	public Channel createPrivate(CreatePrivateChannelDTO dto) {
+		String name = dto.getName();
+		String description = dto.getDescription();
 
-		Channel newChannel = new Channel(PRIVATE, null, null);
+		Channel newChannel = new Channel(PRIVATE, name, description);
 
-		dto.getMembers().stream().forEach(
-		  member -> readStatusRepository.save(
-			new ReadStatus(member.getId(), newChannel.getId()))
+		dto.getUserIds().forEach(
+		  id -> readStatusRepository.save(
+			new ReadStatus(id, newChannel.getId()))
 		);
 
 		return channelRepository.save(newChannel);
@@ -95,7 +90,7 @@ public class BasicChannelService implements ChannelService {
 	}
 
 	@Override
-	public List<ReadChannelResponse> findAllByUserId(UUID userId) {
+	public List<ReadChannelResponse> readAllByUserId(UUID userId) {
 		return channelRepository.findAll().stream()
 		  // 필터링: PUBLIC 채널 또는 사용자가 참여한 PRIVATE 채널
 		  .filter(c -> c.getChannelType() == PUBLIC ||
@@ -135,28 +130,17 @@ public class BasicChannelService implements ChannelService {
 	}
 
 	@Override
-	public void update(UpdateChannelDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateChannelDTO cannot be null"));
-
+	public Channel update(UpdateChannelDTO dto) {
 		UUID id = dto.getId();
 		String newChannelName = dto.getName();
 		String newDescription = dto.getDescription();
 		ChannelType newChannelType = dto.getChannelType();
 
-		if (newChannelName == null || newChannelName.isEmpty()) {
-			throw new IllegalArgumentException("Channel name cannot be null or empty");
-		}
-		if (newDescription == null || newDescription.isEmpty()) {
-			throw new IllegalArgumentException("Channel description cannot be null or empty");
-		}
-		if (newChannelType == null) {
-			throw new IllegalArgumentException("Channel type cannot be null");
-		}
-
 		// 채널이 존재하는지 확인
 		Channel targetChannel = channelRepository.find(id)
 		  .orElseThrow(() -> new IllegalArgumentException("Channel with ID " + id + " not found"));
 
+		System.out.println("???" + targetChannel);
 		if (targetChannel.getChannelType() == PRIVATE) {
 			throw new RuntimeException(
 			  "Cannot update a private channel's type or members directly. Please use the appropriate service method.");
@@ -166,7 +150,7 @@ public class BasicChannelService implements ChannelService {
 		targetChannel.setName(newChannelName);
 		targetChannel.setDescription(newDescription);
 
-		channelRepository.save(targetChannel);
+		return channelRepository.save(targetChannel);
 	}
 
 	@Override

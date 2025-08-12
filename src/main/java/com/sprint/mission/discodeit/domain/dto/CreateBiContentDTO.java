@@ -1,7 +1,5 @@
 package com.sprint.mission.discodeit.domain.dto;
 
-import com.sprint.mission.discodeit.domain.enums.ContentType;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,9 +17,9 @@ public class CreateBiContentDTO {
 	private final byte[] content;
 	@NotNull
 	@Min(value = 1, message = "size must be at least 1 byte")
-	private final int size;
+	private final long size;
 	@NotNull
-	private final ContentType contentType;
+	private final String contentType;
 	@NotNull
 	@NotBlank
 	private final String fileName;
