@@ -106,35 +106,25 @@ public class BasicUserService implements UserService {
 		targetUser.setEmail(newEmail);
 		targetUser.setPassword(newPassword);
 
+		Optional<BinaryContent> profilePicture = Optional.empty();
 		if (newProfileImage != null) {
 			// 기존 프로필이 있다면 삭제
 			if (targetUser.getProfileId() != null) {
 				binaryContentRepository.delete(targetUser.getProfileId());
 			}
-			BinaryContent newProfilePicture = binaryContentService.create(newProfileImage);
-			targetUser.setProfileId(newProfilePicture.getId());
+			profilePicture = Optional.of(binaryContentService.create(newProfileImage));
+			targetUser.setProfileId(profilePicture.get().getId());
 
-			userRepository.save(targetUser);
-			return UserUpdateResponse.builder()
-			  .id(targetUser.getId())
-			  .createdAt(targetUser.getCreatedAt())
-			  .updatedAt(targetUser.getUpdatedAt())
-			  .username(targetUser.getUsername())
-			  .email(targetUser.getEmail())
-			  .profilePicture(newProfilePicture)
-			  .build();
 		}
 
 		userRepository.save(targetUser);
-		BinaryContent profilePicture = binaryContentRepository.find(targetUser.getProfileId())
-		  .orElse(null);
 		return UserUpdateResponse.builder()
 		  .id(targetUser.getId())
 		  .createdAt(targetUser.getCreatedAt())
 		  .updatedAt(targetUser.getUpdatedAt())
 		  .username(targetUser.getUsername())
 		  .email(targetUser.getEmail())
-		  .profilePicture(profilePicture)
+		  .profileId(profilePicture.map(BinaryContent::getId).orElse(null))
 		  .build();
 	}
 
