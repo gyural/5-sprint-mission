@@ -29,11 +29,11 @@ public class BasicReadStatusService implements ReadStatusService {
 		UUID channelId = dto.getChannelId();
 		UUID userId = dto.getUserId();
 
-		if (channelId == null || channelRepository.isEmpty(channelId)) {
-			throw new IllegalArgumentException("Channel ID cannot be null or empty");
+		if (channelRepository.isEmpty(channelId)) {
+			throw new IllegalArgumentException("Channel ID Not Found: " + channelId);
 		}
-		if (userId == null || userRepository.isEmpty(userId)) {
-			throw new IllegalArgumentException("User ID cannot be null or empty");
+		if (userRepository.isEmpty(userId)) {
+			throw new IllegalArgumentException("User ID Not Found: " + userId);
 		}
 		if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isPresent()) {
 			throw new IllegalArgumentException(
@@ -55,15 +55,15 @@ public class BasicReadStatusService implements ReadStatusService {
 	}
 
 	@Override
-	public void update(UpdateReadStatusDTO dto) {
+	public ReadStatus update(UpdateReadStatusDTO dto) {
 		UUID id = dto.getId();
 
 		ReadStatus targetReadStatus = readStatusRepository.find(id)
 		  .orElseThrow(() -> new IllegalArgumentException("Read status not found for ID: " + id));
 
-		targetReadStatus.setUpdatedAt();
+		targetReadStatus.setLastReadAt();
 
-		readStatusRepository.save(targetReadStatus);
+		return readStatusRepository.save(targetReadStatus);
 	}
 
 	@Override
