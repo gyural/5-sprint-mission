@@ -7,8 +7,10 @@ import java.util.UUID;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class ReadStatus implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
@@ -16,6 +18,7 @@ public class ReadStatus implements Serializable {
 	private final UUID id;
 	private final Instant createdAt;
 	private Instant updatedAt;
+	private Instant lastReadAt;
 
 	// Foreign key
 	private final UUID userId;
@@ -28,8 +31,9 @@ public class ReadStatus implements Serializable {
 		this.channelId = channelId;
 	}
 
-	public void setUpdatedAt() {
+	public void setLastReadAt() {
+		this.lastReadAt = Instant.now();
 		this.updatedAt = Instant.now();
-	}
 
+	}
 }
