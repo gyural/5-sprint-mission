@@ -115,7 +115,7 @@ public class JCFUserService implements UserService {
 			  .updatedAt(targetUser.getUpdatedAt())
 			  .username(targetUser.getUsername())
 			  .email(targetUser.getEmail())
-			  .profilePicture(newProfilePicture)
+			  .profileId(newProfilePicture.getId())
 			  .build();
 		}
 
@@ -128,7 +128,7 @@ public class JCFUserService implements UserService {
 		  .updatedAt(targetUser.getUpdatedAt())
 		  .username(targetUser.getUsername())
 		  .email(targetUser.getEmail())
-		  .profilePicture(profilePicture)
+		  .profileId(profilePicture.getId())
 		  .build();
 	}
 

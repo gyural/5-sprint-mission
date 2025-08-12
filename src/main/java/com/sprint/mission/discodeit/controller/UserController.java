@@ -3,14 +3,18 @@ package com.sprint.mission.discodeit.controller;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
+import java.io.IOException;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
 import com.sprint.mission.discodeit.domain.entity.User;
@@ -36,20 +40,37 @@ public class UserController {
 	private final UserService userService;
 	private final UserStatusService userStatusService;
 
-	@RequestMapping(value = "", method = POST)
-	public ResponseEntity<CreateUserResponse> createUser(@RequestBody @Valid CreatUsereRequest request) {
-		System.out.println(request.toString());
+	@RequestMapping(value = "", method = POST, consumes = "multipart/form-data")
+	public ResponseEntity<CreateUserResponse> createUser(
+	  @RequestPart @Valid CreatUsereRequest userCreateRequest,
+	  @RequestPart(required = false) MultipartFile profilePicture
+
+	) throws IOException {
+		Optional<CreateBiContentDTO> biContentDTO = Optional.empty();
+		if (profilePicture != null && !profilePicture.isEmpty()) {
+
+			biContentDTO = Optional.of(new CreateBiContentDTO(
+			  profilePicture.getBytes(),
+			  profilePicture.getSize(),
+			  profilePicture.getContentType(),
+			  profilePicture.getOriginalFilename()
+			));
+		}
 
 		User createdUser = userService.create(CreateUserDTO.builder()
-		  .username(request.getUsername())
-		  .email(request.getEmail())
-		  .password(request.getPassword())
-		  .binaryContent(request.getProfilePicture())
+		  .username(userCreateRequest.getUsername())
+		  .email(userCreateRequest.getEmail())
+		  .password(userCreateRequest.getPassword())
+		  .binaryContent(biContentDTO.orElse(null))
 		  .build());
 
 		return ResponseEntity.status(CREATED).body(CreateUserResponse.builder()
-		  .message("User created successfully")
 		  .username(createdUser.getUsername())
+		  .email(createdUser.getEmail())
+		  .id(createdUser.getId())
+		  .profileId(createdUser.getProfileId())
+		  .createdAt(createdUser.getCreatedAt())
+		  .updatedAt(createdUser.getUpdatedAt())
 		  .build());
 	}
 
@@ -59,14 +80,30 @@ public class UserController {
 		return ResponseEntity.ok(userService.readAll());
 	}
 
-	@RequestMapping(value = "/{id}", method = PUT)
-	public ResponseEntity<UserUpdateResponse> updateUser(@RequestBody @Valid UpdateUserRequest request,
-	  @PathVariable UUID id) {
+	@RequestMapping(value = "/{id}", method = PUT, consumes = "multipart/form-data")
+	public ResponseEntity<UserUpdateResponse> updateUser(
+	  @RequestPart @Valid UpdateUserRequest updateUserRequest,
+	  @RequestPart(required = false) MultipartFile profilePicture,
+	  @PathVariable UUID id
+	) throws IOException {
+
+		Optional<CreateBiContentDTO> biContentDTO = Optional.empty();
+		if (profilePicture != null && !profilePicture.isEmpty()) {
+
+			biContentDTO = Optional.of(new CreateBiContentDTO(
+			  profilePicture.getBytes(),
+			  profilePicture.getSize(),
+			  profilePicture.getContentType(),
+			  profilePicture.getOriginalFilename()
+			));
+		}
+
 		UserUpdateResponse response = userService.update(UpdateUserDTO.builder()
 		  .userId(id)
-		  .newUsername(request.getUsername())
-		  .newEmail(request.getEmail())
-		  .newPassword(request.getPassword())
+		  .newUsername(updateUserRequest.getUsername())
+		  .newEmail(updateUserRequest.getEmail())
+		  .newPassword(updateUserRequest.getPassword())
+		  .newProfilePicture(biContentDTO.orElse(null))
 		  .build());
 
 		return ResponseEntity.ok(response);
