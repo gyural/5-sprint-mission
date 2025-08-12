@@ -16,7 +16,7 @@ public interface MessageService {
 
 	void deleteAllByChannelId(UUID channelId);
 
-	void update(UpdateMessageDTO dto);
+	Message update(UpdateMessageDTO dto);
 
 	Message read(UUID id);
 

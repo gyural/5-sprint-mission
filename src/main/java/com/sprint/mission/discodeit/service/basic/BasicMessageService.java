@@ -33,21 +33,17 @@ public class BasicMessageService implements MessageService {
 
 	@Override
 	public Message create(CreateMessageDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("CreateMessageDTO cannot be null"));
 		String content = dto.getContent();
 		UUID channelId = dto.getChannelId();
 		UUID userId = dto.getUserId();
 		List<CreateBiContentDTO> attachmentsInMessage = dto.getAttachments();
 
-		// Validate inputs
-		if (content == null || content.isEmpty()) {
-			throw new IllegalArgumentException("Content cannot be null or empty");
+		// Validate
+		if (channelRepository.isEmpty(channelId)) {
+			throw new IllegalArgumentException("Channel ID Not Found: " + channelId);
 		}
-		if (channelId == null || channelRepository.isEmpty(channelId)) {
-			throw new IllegalArgumentException("Channel ID cannot be null or empty");
-		}
-		if (userId == null || userRepository.isEmpty(userId)) {
-			throw new IllegalArgumentException("User ID cannot be null or empty");
+		if (userRepository.isEmpty(userId)) {
+			throw new IllegalArgumentException("User ID Not Found: " + userId);
 		}
 
 		List<BinaryContent> files = new ArrayList<>();
@@ -88,10 +84,12 @@ public class BasicMessageService implements MessageService {
 	}
 
 	@Override
-	public void update(UpdateMessageDTO dto) {
+	public Message update(UpdateMessageDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateMessageDTO cannot be null"));
 		UUID id = dto.getId();
 		String newContent = dto.getNewContent();
+		List<UUID> AttachmentIdsToRemove = dto.getRemoveAttachmentIds();
+		List<CreateBiContentDTO> newAttachments = dto.getNewAttachments();
 
 		if (newContent == null || newContent.isEmpty()) {
 			throw new IllegalArgumentException("New content cannot be null or empty");
@@ -99,9 +97,27 @@ public class BasicMessageService implements MessageService {
 
 		Message targetMessage = messageRepository.find(id)
 		  .orElseThrow(() -> new IllegalArgumentException("Message with ID " + id + " not found"));
-		targetMessage.setContent(newContent);
 
-		messageRepository.save(targetMessage);
+		// 1. 내용 수정
+		targetMessage.setContent(newContent);
+		// 2. 삭제할 attachmentId가 있다면 삭제
+		if (AttachmentIdsToRemove != null && !AttachmentIdsToRemove.isEmpty()) {
+			// 기존 첨부파일 삭제
+			AttachmentIdsToRemove.forEach(binaryContentRepository::delete);
+			targetMessage.getAttachmentIds().removeAll(AttachmentIdsToRemove);
+		}
+		// 3. 새로 추가할 첨부파일이 있다면 추가
+		if (newAttachments != null && !newAttachments.isEmpty()) {
+			List<BinaryContent> newFiles = newAttachments.stream()
+			  .map(binaryContentService::create)
+			  .toList();
+			List<UUID> newAttachmentIds = newFiles.stream()
+			  .map(BinaryContent::getId)
+			  .toList();
+			targetMessage.getAttachmentIds().addAll(newAttachmentIds);
+		}
+
+		return messageRepository.save(targetMessage);
 	}
 
 	@Override
