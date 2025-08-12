@@ -1,20 +1,25 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.domain.response.GetUserAllResponse;
+import com.sprint.mission.discodeit.domain.response.UserDeleteResponse;
 import com.sprint.mission.discodeit.domain.response.UserReadResponse;
+import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +27,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
+
+	private final BinaryContentService binaryContentService;
 
 	private final UserRepository userRepository;
 	private final BinaryContentRepository binaryContentRepository;
@@ -33,17 +40,7 @@ public class BasicUserService implements UserService {
 		String username = dto.getUsername();
 		String email = dto.getEmail();
 		String password = dto.getPassword();
-		BinaryContent profileImage = dto.getBinaryContent();
-
-		if (username == null || username.isEmpty()) {
-			throw new IllegalArgumentException("Username cannot be null or empty");
-		}
-		if (email == null || email.isEmpty()) {
-			throw new IllegalArgumentException("Email cannot be null or empty");
-		}
-		if (password == null || password.isEmpty()) {
-			throw new IllegalArgumentException("Password cannot be null or empty");
-		}
+		CreateBiContentDTO profileImage = dto.getBinaryContent();
 
 		// 1. Check username 과 email 중복 여부
 		if (userRepository.findByUsername(username).isPresent() || userRepository.findByEmail(email).isPresent()) {
@@ -53,7 +50,7 @@ public class BasicUserService implements UserService {
 		// 2. Profile Image 저장
 		BinaryContent savedProfileImage = null;
 		if (profileImage != null) {
-			savedProfileImage = binaryContentRepository.save(profileImage);
+			savedProfileImage = binaryContentService.create(profileImage);
 		}
 		UUID ProfileId = savedProfileImage != null ? savedProfileImage.getId() : null;
 
@@ -65,14 +62,19 @@ public class BasicUserService implements UserService {
 		  ProfileId
 		);
 
-		// 3. 데이터 저장
+		// 4. User Status 생성
+		UserStatus userStatus = new UserStatus(newUser.getId());
+		userStatus.setLastActiveAt(); // 현재 시간을 LastActiveAt으로 설정
+		userStatusRepository.save(userStatus);
+
+		// 5. 데이터 저장
 		return userRepository.save(newUser);
 	}
 
 	@Override
-	public void delete(UUID userId) {
+	public UserDeleteResponse delete(UUID userId) {
 		User targetUser = userRepository.find(userId)
-		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " does not exist"));
+		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " does not exist"));
 
 		// 1. User Status 삭제
 		userStatusRepository.deleteByUserId(userId);
@@ -82,48 +84,64 @@ public class BasicUserService implements UserService {
 		}
 		// 3. User 삭제
 		userRepository.delete(userId);
+
+		return UserDeleteResponse.builder()
+		  .isDeleted(true)
+		  .username(targetUser.getUsername())
+		  .build();
 	}
 
 	@Override
-	public void update(UpdateUserDTO dto) {
+	public UserUpdateResponse update(UpdateUserDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateUserDTO cannot be null"));
 		UUID userId = dto.getUserId();
 		String newUsername = dto.getNewUsername();
 		String newEmail = dto.getNewEmail();
 		String newPassword = dto.getNewPassword();
-		BinaryContent newProfileImage = dto.getNewProfileImage();
-
-		if (userId == null) {
-			throw new IllegalArgumentException("User ID cannot be null");
-		}
-		if (newUsername == null || newUsername.isEmpty()) {
-			throw new IllegalArgumentException("New username cannot be null or empty");
-		}
-		if (newEmail == null || newEmail.isEmpty()) {
-			throw new IllegalArgumentException("New email cannot be null or empty");
-		}
-		if (newPassword == null || newPassword.isEmpty()) {
-			throw new IllegalArgumentException("New password cannot be null or empty");
-		}
+		CreateBiContentDTO newProfileImage = dto.getNewProfilePicture();
 
 		User targetUser = userRepository.find(userId)
-		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " does not exist"));
+		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " does not exist"));
 		targetUser.setUsername(newUsername);
 		targetUser.setEmail(newEmail);
 		targetUser.setPassword(newPassword);
 
 		if (newProfileImage != null) {
-			BinaryContent savedProfileImage = binaryContentRepository.save(newProfileImage);
-			targetUser.setProfileId(savedProfileImage.getId());
+			// 기존 프로필이 있다면 삭제
+			if (targetUser.getProfileId() != null) {
+				binaryContentRepository.delete(targetUser.getProfileId());
+			}
+			BinaryContent newProfilePicture = binaryContentService.create(newProfileImage);
+			targetUser.setProfileId(newProfilePicture.getId());
+
+			userRepository.save(targetUser);
+			return UserUpdateResponse.builder()
+			  .id(targetUser.getId())
+			  .createdAt(targetUser.getCreatedAt())
+			  .updatedAt(targetUser.getUpdatedAt())
+			  .username(targetUser.getUsername())
+			  .email(targetUser.getEmail())
+			  .profilePicture(newProfilePicture)
+			  .build();
 		}
 
 		userRepository.save(targetUser);
+		BinaryContent profilePicture = binaryContentRepository.find(targetUser.getProfileId())
+		  .orElse(null);
+		return UserUpdateResponse.builder()
+		  .id(targetUser.getId())
+		  .createdAt(targetUser.getCreatedAt())
+		  .updatedAt(targetUser.getUpdatedAt())
+		  .username(targetUser.getUsername())
+		  .email(targetUser.getEmail())
+		  .profilePicture(profilePicture)
+		  .build();
 	}
 
 	@Override
 	public UserReadResponse read(UUID userId) {
 		User user = userRepository.find(userId)
-		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
+		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
 
 		Optional<UserStatus> status = userStatusRepository.findByUserId(userId);
 
@@ -141,8 +159,21 @@ public class BasicUserService implements UserService {
 	}
 
 	@Override
-	public List<User> readAll() {
-		return userRepository.findAll();
+	public GetUserAllResponse readAll() {
+
+		return new GetUserAllResponse(
+		  userRepository.findAll().stream().map(u -> UserReadResponse.builder()
+			.id(u.getId())
+			.createdAt(u.getCreatedAt())
+			.updatedAt(u.getUpdatedAt())
+			.username(u.getUsername())
+			.email(u.getEmail())
+			.profileId(u.getProfileId())
+			.isOnline(
+			  userStatusRepository.findByUserId(u.getId())
+				.map(UserStatus::isOnline)
+				.orElse(false))
+			.build()).toList());
 	}
 
 	@Override

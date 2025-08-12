@@ -50,21 +50,21 @@ public class BasicUserStatusService implements UserStatusService {
 		UserStatus userStatus = userStatusRepository.find(id)
 		  .orElseThrow(() -> new IllegalArgumentException("User status not found for ID: " + id));
 
-		userStatus.setUpdatedAt();
+		userStatus.setLastActiveAt();
 
 		userStatusRepository.save(userStatus);
 
 	}
 
 	@Override
-	public void updateByUserId(UUID userID) {
+	public UserStatus updateByUserId(UUID userID) {
 
 		UserStatus userStatus = userStatusRepository.findByUserId(userID)
 		  .orElseThrow(() -> new IllegalArgumentException("User status not found for User ID: " + userID));
 
-		userStatus.setUpdatedAt();
+		userStatus.setLastActiveAt();
 
-		userStatusRepository.save(userStatus);
+		return userStatusRepository.save(userStatus);
 
 	}
 
