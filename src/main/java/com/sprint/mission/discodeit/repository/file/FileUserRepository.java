@@ -13,26 +13,33 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
+
+import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
+@Repository
+@ConditionalOnProperty(
+  prefix = "discodeit.repository",
+  name = "type",
+  havingValue = "file"
+)
 public class FileUserRepository implements UserRepository {
 
-	private static final String DIR_NAME = "data";
-	private static final String FILE_NAME = DIR_NAME + "/user.ser";
+	private final String FILE_NAME;
 
-	public FileUserRepository() {
+	public FileUserRepository(@Value("${discodeit.repository.file-directory}") String fileDirectory) {
+		this.FILE_NAME = fileDirectory + "/user.ser";
+
 		try {
-			Path dirPath = Paths.get(DIR_NAME);
-			if (!Files.exists(dirPath)) {
-				Files.createDirectories(dirPath);
-			}
 			Path filePath = Paths.get(FILE_NAME);
+			Files.createDirectories(filePath.getParent());
 			if (!Files.exists(filePath)) {
 				try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 					 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-					oos.writeObject(new ArrayList<Message>());
+					oos.writeObject(new ArrayList<User>());
 				}
 			}
 		} catch (IOException e) {
@@ -42,8 +49,8 @@ public class FileUserRepository implements UserRepository {
 
 	@Override
 	public User save(User user) {
-		List<User> users = findAll();
 		String username = user.getUsername();
+		List<User> users = findAll();
 
 		if (users.stream().anyMatch(u -> u.getUsername().equals(username))) {
 			throw new IllegalArgumentException("Username already exists");
@@ -122,5 +129,15 @@ public class FileUserRepository implements UserRepository {
 	@Override
 	public Long count() {
 		return findAll().isEmpty() ? 0L : (long)findAll().size();
+	}
+
+	@Override
+	public Optional<User> findByUsername(String username) {
+		return findAll().stream().filter(user -> user.getUsername().equals(username)).findFirst();
+	}
+
+	@Override
+	public Optional<User> findByEmail(String email) {
+		return findAll().stream().filter(user -> user.getEmail().equals(email)).findFirst();
 	}
 }

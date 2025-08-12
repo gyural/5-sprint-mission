@@ -3,16 +3,19 @@ package com.sprint.mission.discodeit.service;
 import java.util.List;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
+import com.sprint.mission.discodeit.domain.entity.User;
+import com.sprint.mission.discodeit.domain.response.UserReadResponse;
 
 public interface UserService {
-	User create(String username, String email, String password);
+	User create(CreateUserDTO dto);
 
 	void delete(UUID userId);
 
-	void update(UUID userId, String newUsername, String newEmail, String newPassword);
+	void update(UpdateUserDTO dto);
 
-	User read(UUID userId);
+	UserReadResponse read(UUID userId);
 
 	List<User> readAll();
 

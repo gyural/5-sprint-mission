@@ -2,9 +2,12 @@ package com.sprint.mission.discodeit.service.jsf;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.domain.dto.CreateMessageDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateMessageDTO;
+import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -26,7 +29,13 @@ public class JCFMessageService implements MessageService {
 	}
 
 	@Override
-	public Message create(String content, UUID channelId, UUID userId) {
+	public Message create(CreateMessageDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("CreateMessageDTO cannot be null"));
+
+		String content = dto.getContent();
+		UUID channelId = dto.getChannelId();
+		UUID userId = dto.getUserId();
+
 		if (content == null || content.isEmpty()) {
 			throw new IllegalArgumentException("Content cannot be null or empty");
 		}
@@ -53,8 +62,10 @@ public class JCFMessageService implements MessageService {
 	}
 
 	@Override
-	public List<Message> readAll() {
-		return messageRepository.findAll();
+	public List<Message> findAllByChannelId(UUID channelId) {
+		return messageRepository.findAll().stream().filter(
+			message -> message.getChannelId().equals(channelId))
+		  .toList();
 	}
 
 	@Override
@@ -78,7 +89,10 @@ public class JCFMessageService implements MessageService {
 	}
 
 	@Override
-	public void update(UUID id, String newContent) {
+	public void update(UpdateMessageDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateMessageDTO cannot be null"));
+		UUID id = dto.getId();
+		String newContent = dto.getNewContent();
 
 		if (newContent == null || newContent.isEmpty()) {
 			throw new IllegalArgumentException("Content cannot be null or empty");

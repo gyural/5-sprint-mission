@@ -1,23 +1,39 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.User;
+import org.springframework.stereotype.Service;
+
+import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
+import com.sprint.mission.discodeit.domain.entity.User;
+import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.domain.response.UserReadResponse;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
 public class BasicUserService implements UserService {
 
 	private final UserRepository userRepository;
-
-	public BasicUserService(UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
+	private final BinaryContentRepository binaryContentRepository;
+	private final UserStatusRepository userStatusRepository;
 
 	@Override
-	public User create(String username, String email, String password) {
+	public User create(CreateUserDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("CreateUserDTO cannot be null"));
+		String username = dto.getUsername();
+		String email = dto.getEmail();
+		String password = dto.getPassword();
+		BinaryContent profileImage = dto.getBinaryContent();
 
 		if (username == null || username.isEmpty()) {
 			throw new IllegalArgumentException("Username cannot be null or empty");
@@ -29,17 +45,57 @@ public class BasicUserService implements UserService {
 			throw new IllegalArgumentException("Password cannot be null or empty");
 		}
 
-		return userRepository.save(new User(username, email, password));
+		// 1. Check username 과 email 중복 여부
+		if (userRepository.findByUsername(username).isPresent() || userRepository.findByEmail(email).isPresent()) {
+			throw new RuntimeException("Username or email already exists");
+		}
+
+		// 2. Profile Image 저장
+		BinaryContent savedProfileImage = null;
+		if (profileImage != null) {
+			savedProfileImage = binaryContentRepository.save(profileImage);
+		}
+		UUID ProfileId = savedProfileImage != null ? savedProfileImage.getId() : null;
+
+		// 3. 인스턴스 생성
+		User newUser = new User(
+		  username,
+		  email,
+		  password,
+		  ProfileId
+		);
+
+		// 3. 데이터 저장
+		return userRepository.save(newUser);
 	}
 
 	@Override
 	public void delete(UUID userId) {
+		User targetUser = userRepository.find(userId)
+		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " does not exist"));
+
+		// 1. User Status 삭제
+		userStatusRepository.deleteByUserId(userId);
+		// 2. Profile Image 삭제
+		if (binaryContentRepository.find(targetUser.getProfileId()).isPresent()) {
+			binaryContentRepository.delete(targetUser.getProfileId());
+		}
+		// 3. User 삭제
 		userRepository.delete(userId);
 	}
 
 	@Override
-	public void update(UUID userId, String newUsername, String newEmail, String newPassword) {
+	public void update(UpdateUserDTO dto) {
+		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateUserDTO cannot be null"));
+		UUID userId = dto.getUserId();
+		String newUsername = dto.getNewUsername();
+		String newEmail = dto.getNewEmail();
+		String newPassword = dto.getNewPassword();
+		BinaryContent newProfileImage = dto.getNewProfileImage();
 
+		if (userId == null) {
+			throw new IllegalArgumentException("User ID cannot be null");
+		}
 		if (newUsername == null || newUsername.isEmpty()) {
 			throw new IllegalArgumentException("New username cannot be null or empty");
 		}
@@ -51,19 +107,37 @@ public class BasicUserService implements UserService {
 		}
 
 		User targetUser = userRepository.find(userId)
-		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
-
+		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " does not exist"));
 		targetUser.setUsername(newUsername);
 		targetUser.setEmail(newEmail);
 		targetUser.setPassword(newPassword);
+
+		if (newProfileImage != null) {
+			BinaryContent savedProfileImage = binaryContentRepository.save(newProfileImage);
+			targetUser.setProfileId(savedProfileImage.getId());
+		}
 
 		userRepository.save(targetUser);
 	}
 
 	@Override
-	public User read(UUID userId) {
-		return userRepository.find(userId)
-		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
+	public UserReadResponse read(UUID userId) {
+		User user = userRepository.find(userId)
+		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
+
+		Optional<UserStatus> status = userStatusRepository.findByUserId(userId);
+
+		boolean isOnline = status.map(UserStatus::isOnline).orElse(false);
+
+		return UserReadResponse.builder()
+		  .id(user.getId())
+		  .createdAt(user.getCreatedAt())
+		  .updatedAt(user.getUpdatedAt())
+		  .username(user.getUsername())
+		  .email(user.getEmail())
+		  .profileId(user.getProfileId())
+		  .isOnline(isOnline)
+		  .build();
 	}
 
 	@Override

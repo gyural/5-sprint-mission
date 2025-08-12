@@ -3,10 +3,12 @@ package com.sprint.mission.discodeit.service;
 import java.util.List;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.domain.dto.CreateMessageDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateMessageDTO;
+import com.sprint.mission.discodeit.domain.entity.Message;
 
 public interface MessageService {
-	Message create(String content, UUID channelId, UUID userId);
+	Message create(CreateMessageDTO dto);
 
 	void delete(UUID id);
 
@@ -14,11 +16,11 @@ public interface MessageService {
 
 	void deleteAllByChannelId(UUID channelId);
 
-	void update(UUID id, String newContent);
+	void update(UpdateMessageDTO dto);
 
 	Message read(UUID id);
 
-	List<Message> readAll();
+	List<Message> findAllByChannelId(UUID channelId);
 
 	List<Message> readAllByChannelId(UUID channelId);
 

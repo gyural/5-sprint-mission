@@ -1,77 +1,57 @@
-package com.sprint.mission.discodeit.entity;
+package com.sprint.mission.discodeit.domain.entity;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import lombok.Getter;
+import lombok.NonNull;
+
+@Getter
 public class Message implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private final UUID id;
-	private final Long createdAt;
-	private Long updatedAt;
+	private final Instant createdAt;
+	private Instant updatedAt;
 	private String content;
-	private UUID authorId; // Optinal
-	private UUID channelId;
-	private String authorName; // 유저가 채널을 나가도 메시지의 작성자는 남아있어야 하므로, authorId와 authorName을 분리
+	// Foreign key
+	private final UUID authorId;
+	private final UUID channelId;
+	private final List<UUID> attachmentIds;
 
-	public Message(String content, UUID channelId, UUID authorId) {
+	public Message(String content, @NonNull UUID authorId, @NonNull UUID channelId) {
 		this.id = UUID.randomUUID();
-		this.createdAt = System.currentTimeMillis();
+		this.createdAt = Instant.now();
 		this.updatedAt = null;
 		this.content = content;
 		this.authorId = authorId;
 		this.channelId = channelId;
+		this.attachmentIds = new ArrayList<>();
 	}
 
-	public Message(String content, UUID authorId, UUID channelId, String authorName) {
+	public Message(String content, @NonNull UUID authorId, @NonNull UUID channelId, List<UUID> attachmentIds) {
 		this.id = UUID.randomUUID();
-		this.createdAt = System.currentTimeMillis();
+		this.createdAt = Instant.now();
 		this.updatedAt = null;
 		this.content = content;
 		this.authorId = authorId;
 		this.channelId = channelId;
-		this.authorName = authorName;
+		this.attachmentIds = attachmentIds != null ? new ArrayList<>(attachmentIds) : new ArrayList<>();
 	}
 
-	public String getContent() {
-		return content;
+	public Instant getLastEditedAt() {
+		return updatedAt != null ? updatedAt : createdAt;
 	}
 
 	public void setContent(String content) {
 		this.content = content;
-		this.updatedAt = System.currentTimeMillis();
-	}
-
-	public UUID getAuthorId() {
-		return authorId;
-	}
-
-	public void setAuthorId(UUID authorId) {
-		this.authorId = authorId;
-		this.updatedAt = System.currentTimeMillis();
-	}
-
-	public UUID getChannelId() {
-		return channelId;
-	}
-
-	public UUID getId() {
-		return id;
-	}
-
-	public Long getCreatedAt() {
-		return createdAt;
-	}
-
-	public Long getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public String getAuthorName() {
-		return authorName;
+		this.updatedAt = Instant.now();
 	}
 
 	@Override
@@ -98,7 +78,6 @@ public class Message implements Serializable {
 		  ", content='" + content + '\'' +
 		  ", authorId=" + authorId +
 		  ", channelId=" + channelId +
-		  ", authorName='" + authorName + '\'' +
 		  '}';
 	}
 
