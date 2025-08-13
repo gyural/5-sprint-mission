@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,9 +23,9 @@ import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.domain.request.CreatUsereRequest;
 import com.sprint.mission.discodeit.domain.request.CreateUserResponse;
 import com.sprint.mission.discodeit.domain.request.UpdateUserRequest;
-import com.sprint.mission.discodeit.domain.response.GetUserAllResponse;
 import com.sprint.mission.discodeit.domain.response.UpdateUserStatusResponse;
 import com.sprint.mission.discodeit.domain.response.UserDeleteResponse;
+import com.sprint.mission.discodeit.domain.response.UserReadResponse;
 import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -48,11 +49,28 @@ public class UserController {
 	) throws IOException {
 		Optional<CreateBiContentDTO> biContentDTO = Optional.empty();
 		if (profilePicture != null && !profilePicture.isEmpty()) {
+			String filename = profilePicture.getOriginalFilename();
+			String contentType;
+			String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+			switch (ext) {
+				case "jpg":
+				case "jpeg":
+					contentType = "image/jpeg";
+					break;
+				case "png":
+					contentType = "image/png";
+					break;
+				case "gif":
+					contentType = "image/gif";
+					break;
+				default:
+					contentType = "application/octet-stream";
+			}
 
 			biContentDTO = Optional.of(new CreateBiContentDTO(
 			  profilePicture.getBytes(),
 			  profilePicture.getSize(),
-			  profilePicture.getContentType(),
+			  contentType,
 			  profilePicture.getOriginalFilename()
 			));
 		}
@@ -74,8 +92,8 @@ public class UserController {
 		  .build());
 	}
 
-	@RequestMapping(value = "/all", method = GET)
-	public ResponseEntity<GetUserAllResponse> getAllUser() {
+	@RequestMapping(value = "/findAll", method = GET)
+	public ResponseEntity<List<UserReadResponse>> getAllUser() {
 
 		return ResponseEntity.ok(userService.readAll());
 	}
