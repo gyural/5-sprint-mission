@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,7 +13,6 @@ import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
-import com.sprint.mission.discodeit.domain.response.GetUserAllResponse;
 import com.sprint.mission.discodeit.domain.response.UserDeleteResponse;
 import com.sprint.mission.discodeit.domain.response.UserReadResponse;
 import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
@@ -149,21 +149,19 @@ public class BasicUserService implements UserService {
 	}
 
 	@Override
-	public GetUserAllResponse readAll() {
-
-		return new GetUserAllResponse(
-		  userRepository.findAll().stream().map(u -> UserReadResponse.builder()
-			.id(u.getId())
-			.createdAt(u.getCreatedAt())
-			.updatedAt(u.getUpdatedAt())
-			.username(u.getUsername())
-			.email(u.getEmail())
-			.profileId(u.getProfileId())
-			.isOnline(
-			  userStatusRepository.findByUserId(u.getId())
-				.map(UserStatus::isOnline)
-				.orElse(false))
-			.build()).toList());
+	public List<UserReadResponse> readAll() {
+		return userRepository.findAll().stream().map(u -> UserReadResponse.builder()
+		  .id(u.getId())
+		  .createdAt(u.getCreatedAt())
+		  .updatedAt(u.getUpdatedAt())
+		  .username(u.getUsername())
+		  .email(u.getEmail())
+		  .profileId(u.getProfileId())
+		  .isOnline(
+			userStatusRepository.findByUserId(u.getId())
+			  .map(UserStatus::isOnline)
+			  .orElse(false))
+		  .build()).toList();
 	}
 
 	@Override

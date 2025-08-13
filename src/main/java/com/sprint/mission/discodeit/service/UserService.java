@@ -1,11 +1,11 @@
 package com.sprint.mission.discodeit.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
 import com.sprint.mission.discodeit.domain.entity.User;
-import com.sprint.mission.discodeit.domain.response.GetUserAllResponse;
 import com.sprint.mission.discodeit.domain.response.UserDeleteResponse;
 import com.sprint.mission.discodeit.domain.response.UserReadResponse;
 import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
@@ -19,7 +19,7 @@ public interface UserService {
 
 	UserReadResponse read(UUID userId);
 
-	GetUserAllResponse readAll();
+	List<UserReadResponse> readAll();
 
 	boolean isEmpty(UUID userId);
 
