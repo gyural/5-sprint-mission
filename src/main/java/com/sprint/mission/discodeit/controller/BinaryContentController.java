@@ -14,12 +14,13 @@ import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.response.BinaryContentResponse;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/binary-content")
+@RequestMapping("/api/binaryContent")
 public class BinaryContentController {
 
 	private final BinaryContentService binaryContentService;
@@ -35,10 +36,27 @@ public class BinaryContentController {
 			.createdAt(content.getCreatedAt())
 			.fileName(content.getFileName())
 			.contentType(content.getContentType())
-			.content(content.getContent())
+			.bytes(content.getContent())
 			.size(content.getSize())
 			.build())
 		  .toList();
+
+		return ResponseEntity.ok(response);
+	}
+
+	@RequestMapping(value = "/find", method = GET)
+	public ResponseEntity<BinaryContentResponse> getBinaryContents(@RequestParam @NotNull UUID binaryContentId) {
+
+		BinaryContent binaryContent = binaryContentService.find(binaryContentId);
+
+		BinaryContentResponse response = BinaryContentResponse.builder()
+		  .id(binaryContent.getId())
+		  .createdAt(binaryContent.getCreatedAt())
+		  .fileName(binaryContent.getFileName())
+		  .contentType(binaryContent.getContentType())
+		  .bytes(binaryContent.getContent())
+		  .size(binaryContent.getSize())
+		  .build();
 
 		return ResponseEntity.ok(response);
 	}

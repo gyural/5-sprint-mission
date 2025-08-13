@@ -15,6 +15,6 @@ public class BinaryContentResponse {
 	private final Instant createdAt;
 	private final String fileName;
 	private final String contentType;
-	private final byte[] content;
+	private final byte[] bytes;
 	private final long size;
 }
