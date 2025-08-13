@@ -66,7 +66,7 @@ public class FileMessageService implements MessageService {
 	}
 
 	@Override
-	public void update(UpdateMessageDTO dto) {
+	public Message update(UpdateMessageDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateMessageDTO cannot be null"));
 		UUID id = dto.getId();
 		String newContent = dto.getNewContent();
@@ -78,7 +78,7 @@ public class FileMessageService implements MessageService {
 		Message targetMessage = messageRepository.find(id)
 		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
 		targetMessage.setContent(newContent);
-		messageRepository.save(targetMessage);
+		return messageRepository.save(targetMessage);
 	}
 
 	@Override

@@ -27,7 +27,7 @@ public class BasicAuthService implements AuthService {
 
 		return UserLoginResponse.builder()
 		  .success(true)
-		  .user(UserLoginInfoDTO.builder().username(user.getUsername()).email(user.getEmail()).build())
+		  .user(UserLoginInfoDTO.builder().id(user.getId()).username(user.getUsername()).email(user.getEmail()).build())
 		  .build();
 	}
 

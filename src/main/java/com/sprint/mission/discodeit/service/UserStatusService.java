@@ -17,7 +17,7 @@ public interface UserStatusService {
 
 	public void update(UpdateUserStatusDTO dto);
 
-	public void updateByUserId(UUID userID);
+	public UserStatus updateByUserId(UUID userID);
 
 	public void delete(UUID id);
 }

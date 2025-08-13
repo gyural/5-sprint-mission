@@ -89,7 +89,7 @@ public class JCFMessageService implements MessageService {
 	}
 
 	@Override
-	public void update(UpdateMessageDTO dto) {
+	public Message update(UpdateMessageDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateMessageDTO cannot be null"));
 		UUID id = dto.getId();
 		String newContent = dto.getNewContent();
@@ -107,7 +107,7 @@ public class JCFMessageService implements MessageService {
 		targetMessage.setContent(newContent);
 
 		// 메시지 내용 수정
-		messageRepository.save(targetMessage);
+		return messageRepository.save(targetMessage);
 	}
 
 	@Override

@@ -51,13 +51,13 @@ public class FileUserRepository implements UserRepository {
 	public User save(User user) {
 		String username = user.getUsername();
 		List<User> users = findAll();
+		users.removeIf(u -> u.getId().equals(user.getId())); // 중복된 ID 제거
 
 		if (users.stream().anyMatch(u -> u.getUsername().equals(username))) {
 			throw new IllegalArgumentException("Username already exists");
 		}
 
 		users = new ArrayList<>(users);
-		users.removeIf(u -> u.getId().equals(user.getId())); // 중복된 ID 제거
 		users.add(user);
 
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);

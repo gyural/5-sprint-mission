@@ -1,9 +1,5 @@
 package com.sprint.mission.discodeit.domain.dto;
 
-import java.util.List;
-
-import com.sprint.mission.discodeit.domain.entity.User;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,10 +7,9 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 @Builder
-public class CreateChannelDTO {
+public class CreatePublicChannelDTO {
 
 	private final String name;
 	private final String description;
-	private final List<User> members;
 
 }

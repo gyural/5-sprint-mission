@@ -12,7 +12,7 @@ public interface ReadStatusService {
 
 	public List<ReadStatus> findAllByUserId(UUID userId);
 
-	public void update(UpdateReadStatusDTO dto);
+	public ReadStatus update(UpdateReadStatusDTO dto);
 
 	public void delete(UUID id);
 }
