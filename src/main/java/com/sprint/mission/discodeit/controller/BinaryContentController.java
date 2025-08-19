@@ -14,6 +14,7 @@ import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.response.BinaryContentResponse;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/binaryContent")
+@Tag(name = "BinaryContent", description = "첨부파일 API")
+
 public class BinaryContentController {
 
 	private final BinaryContentService binaryContentService;

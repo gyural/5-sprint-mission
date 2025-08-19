@@ -23,12 +23,14 @@ import com.sprint.mission.discodeit.domain.response.MessageResponse;
 import com.sprint.mission.discodeit.domain.response.MessagesInChannelResponse;
 import com.sprint.mission.discodeit.service.MessageService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/message")
+@Tag(name = "Message", description = "Message API")
 public class MessageController {
 
 	private final MessageService messageService;
