@@ -39,7 +39,7 @@ public class BasicMessageService implements MessageService {
 		List<CreateBiContentDTO> attachmentsInMessage = dto.getAttachments();
 
 		// Validate
-		if (channelRepository.isEmpty(channelId)) {
+		if (channelRepository.existsById(channelId)) {
 			throw new IllegalArgumentException("Channel ID Not Found: " + channelId);
 		}
 		if (userRepository.isEmpty(userId)) {
@@ -77,7 +77,7 @@ public class BasicMessageService implements MessageService {
 
 	@Override
 	public void deleteAllByChannelId(UUID channelId) {
-		if (channelRepository.isEmpty(channelId)) {
+		if (channelRepository.existsById(channelId)) {
 			throw new IllegalArgumentException("Channel ID cannot be null or empty");
 		}
 		messageRepository.deleteByChannelId(channelId);

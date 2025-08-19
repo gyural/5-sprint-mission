@@ -52,8 +52,8 @@ public class JCFChannelRepository implements ChannelRepository {
 	}
 
 	@Override
-	public boolean isEmpty(UUID id) {
-		return data.get(id) == null;
+	public boolean existsById(UUID id) {
+		return data.get(id) != null;
 	}
 
 	@Override
