@@ -15,7 +15,7 @@ public interface ChannelRepository {
 
 	public void delete(UUID id);
 
-	boolean isEmpty(UUID id);
+	boolean existsById(UUID id);
 
 	void deleteAll();
 

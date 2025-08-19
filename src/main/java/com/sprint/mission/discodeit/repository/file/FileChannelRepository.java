@@ -105,11 +105,8 @@ public class FileChannelRepository implements ChannelRepository {
 	}
 
 	@Override
-	public boolean isEmpty(UUID id) {
-		List<Channel> channels = findAll();
-		boolean isEmpty = channels.stream().anyMatch(channel -> channel.getId().equals(id));
-
-		return !isEmpty;
+	public boolean existsById(UUID id) {
+		return findAll().stream().anyMatch(channel -> channel.getId().equals(id));
 	}
 
 	@Override
