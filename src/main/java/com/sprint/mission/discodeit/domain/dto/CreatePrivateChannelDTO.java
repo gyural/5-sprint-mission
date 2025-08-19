@@ -12,8 +12,6 @@ import lombok.Getter;
 @Builder
 public class CreatePrivateChannelDTO {
 
-	private final String name;
-	private final String description;
 	private final List<UUID> UserIds;
 
 }

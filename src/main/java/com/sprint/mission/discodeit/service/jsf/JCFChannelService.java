@@ -11,7 +11,6 @@ import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
 import com.sprint.mission.discodeit.domain.entity.Channel;
-import com.sprint.mission.discodeit.domain.enums.ChannelType;
 import com.sprint.mission.discodeit.domain.response.ReadChannelResponse;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -44,17 +43,8 @@ public class JCFChannelService implements ChannelService {
 
 	@Override
 	public Channel createPrivate(CreatePrivateChannelDTO dto) {
-		String name = dto.getName();
-		String description = dto.getDescription();
 
-		if (name == null || name.isEmpty()) {
-			throw new IllegalArgumentException("Channel name cannot be null or empty");
-		}
-		if (description == null || description.isEmpty()) {
-			throw new IllegalArgumentException("Channel description cannot be null or empty");
-		}
-
-		return channelRepository.save(new Channel(PRIVATE, name, description));
+		return channelRepository.save(new Channel(PRIVATE));
 	}
 
 	@Override
@@ -64,9 +54,7 @@ public class JCFChannelService implements ChannelService {
 
 		return ReadChannelResponse.builder()
 		  .id(channel.getId())
-		  .createdAt(channel.getCreatedAt())
-		  .updatedAt(channel.getUpdatedAt())
-		  .channelType(channel.getChannelType())
+		  .type(channel.getChannelType())
 		  .name(channel.getName())
 		  .description(channel.getDescription())
 		  .build();
@@ -79,9 +67,7 @@ public class JCFChannelService implements ChannelService {
 
 		return ReadChannelResponse.builder()
 		  .id(channel.getId())
-		  .createdAt(channel.getCreatedAt())
-		  .updatedAt(channel.getUpdatedAt())
-		  .channelType(channel.getChannelType())
+		  .type(channel.getChannelType())
 		  .name(channel.getName())
 		  .description(channel.getDescription())
 		  .build();
@@ -107,7 +93,6 @@ public class JCFChannelService implements ChannelService {
 	public Channel update(UpdateChannelDTO dto) {
 		String newChannelName = dto.getName();
 		String newDescription = dto.getDescription();
-		ChannelType newChannelType = dto.getChannelType();
 		UUID id = dto.getId();
 
 		if (id == null) {
@@ -120,14 +105,10 @@ public class JCFChannelService implements ChannelService {
 		if (newDescription == null || newDescription.isEmpty()) {
 			throw new IllegalArgumentException("Channel description cannot be null or empty");
 		}
-		if (newChannelType == null) {
-			throw new IllegalArgumentException("Channel type cannot be null");
-		}
 
 		Channel targetChannel = channelRepository.find(id)
 		  .orElseThrow(() -> new NoSuchElementException("Channel with ID " + id + " not found"));
 
-		targetChannel.setChannelType(newChannelType);
 		targetChannel.setName(newChannelName);
 		targetChannel.setDescription(newDescription);
 
@@ -136,7 +117,7 @@ public class JCFChannelService implements ChannelService {
 
 	@Override
 	public boolean isEmpty(UUID id) {
-		return channelRepository.isEmpty(id);
+		return channelRepository.existsById(id);
 	}
 
 	@Override
@@ -152,13 +133,11 @@ public class JCFChannelService implements ChannelService {
 
 		return ReadChannelResponse.builder()
 		  .id(channel.getId())
-		  .createdAt(channel.getCreatedAt())
-		  .updatedAt(channel.getUpdatedAt())
-		  .channelType(channel.getChannelType())
+		  .type(channel.getChannelType())
 		  .name(channel.getName())
 		  .description(channel.getDescription())
 		  .lastMessageAt(LastMessageAt)
-		  .membersIDs(membersIDList)
+		  .participantIds(membersIDList)
 		  .build();
 	}
 }

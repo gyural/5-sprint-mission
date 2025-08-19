@@ -16,7 +16,6 @@ import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.domain.entity.ReadStatus;
-import com.sprint.mission.discodeit.domain.enums.ChannelType;
 import com.sprint.mission.discodeit.domain.response.ReadChannelResponse;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -43,10 +42,8 @@ public class BasicChannelService implements ChannelService {
 
 	@Override
 	public Channel createPrivate(CreatePrivateChannelDTO dto) {
-		String name = dto.getName();
-		String description = dto.getDescription();
 
-		Channel newChannel = new Channel(PRIVATE, name, description);
+		Channel newChannel = new Channel(PRIVATE);
 
 		dto.getUserIds().forEach(
 		  id -> readStatusRepository.save(
@@ -120,6 +117,9 @@ public class BasicChannelService implements ChannelService {
 
 	@Override
 	public void delete(UUID id) {
+		if (!channelRepository.existsById(id)) {
+			throw new NoSuchElementException("Channel with id " + id + " not found");
+		}
 		// 연관된 메시지도 삭제
 		messageRepository.deleteByChannelId(id);
 		// 연관된 유저 상태도 삭제
@@ -134,27 +134,30 @@ public class BasicChannelService implements ChannelService {
 		UUID id = dto.getId();
 		String newChannelName = dto.getName();
 		String newDescription = dto.getDescription();
-		ChannelType newChannelType = dto.getChannelType();
 
 		// 채널이 존재하는지 확인
 		Channel targetChannel = channelRepository.find(id)
-		  .orElseThrow(() -> new IllegalArgumentException("Channel with ID " + id + " not found"));
+		  .orElseThrow(() -> new NoSuchElementException("Channel with id " + id + " not found"));
 
 		if (targetChannel.getChannelType() == PRIVATE) {
-			throw new RuntimeException(
-			  "Cannot update a private channel's type or members directly. Please use the appropriate service method.");
+			throw new IllegalArgumentException(
+			  "Private channel cannot be updated");
 		}
 
-		targetChannel.setChannelType(newChannelType);
-		targetChannel.setName(newChannelName);
-		targetChannel.setDescription(newDescription);
+		if (newChannelName != null) {
+			targetChannel.setName(newChannelName);
+
+		}
+		if (newDescription != null) {
+			targetChannel.setDescription(newDescription);
+		}
 
 		return channelRepository.save(targetChannel);
 	}
 
 	@Override
 	public boolean isEmpty(UUID id) {
-		return channelRepository.isEmpty(id);
+		return channelRepository.existsById(id);
 	}
 
 	@Override
@@ -178,13 +181,11 @@ public class BasicChannelService implements ChannelService {
 
 		return ReadChannelResponse.builder()
 		  .id(channel.getId())
-		  .createdAt(channel.getCreatedAt())
-		  .updatedAt(channel.getUpdatedAt())
-		  .channelType(channel.getChannelType())
+		  .type(channel.getChannelType())
 		  .name(channel.getName())
 		  .description(channel.getDescription())
 		  .lastMessageAt(LastMessageAt)
-		  .membersIDs(membersIDList)
+		  .participantIds(membersIDList)
 		  .build();
 	}
 

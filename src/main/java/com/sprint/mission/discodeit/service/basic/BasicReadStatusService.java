@@ -29,7 +29,7 @@ public class BasicReadStatusService implements ReadStatusService {
 		UUID channelId = dto.getChannelId();
 		UUID userId = dto.getUserId();
 
-		if (channelRepository.isEmpty(channelId)) {
+		if (channelRepository.existsById(channelId)) {
 			throw new IllegalArgumentException("Channel ID Not Found: " + channelId);
 		}
 		if (userRepository.isEmpty(userId)) {

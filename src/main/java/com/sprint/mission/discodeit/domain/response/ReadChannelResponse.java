@@ -15,11 +15,9 @@ import lombok.Getter;
 @Getter
 public class ReadChannelResponse {
 	private final UUID id;
-	private final Instant createdAt;
-	private final Instant updatedAt;
-	private final ChannelType channelType;
+	private final ChannelType type;
 	private final String name;
 	private final String description;
+	private final List<UUID> participantIds;
 	private final Instant lastMessageAt;
-	private final List<UUID> membersIDs;
 }

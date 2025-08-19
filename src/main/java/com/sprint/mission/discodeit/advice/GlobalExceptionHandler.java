@@ -7,7 +7,6 @@ import java.util.NoSuchElementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -20,36 +19,33 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleException(Exception e) {
-		// Log the exception (you can use a logging framework like SLF4J)
-		logger.error("Unexpected Error 발생: {}", e.getMessage());
-
-		return ResponseEntity.internalServerError().body(ErrorResponse.builder()
+		// Log the eception (you can use a logging framework like SLF4J)
+		logger.error("Unexpected Error 발생", e);
+		return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(ErrorResponse.builder()
 		  .status(INTERNAL_SERVER_ERROR.value())
 		  .errMessage("Unexpected Error 발생: " + e.getMessage())
 		  .build());
 	}
 
-	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ErrorResponse> handleValidationException(IllegalArgumentException e) {
+		logger.error("Error 발생", e);
+
 		// 에러 메시지 추출 및 응답 생성
-		String errorMessage = ex.getBindingResult()
-		  .getFieldErrors()
-		  .stream()
-		  .map(error -> error.getField() + ": " + error.getDefaultMessage())
-		  .findFirst()
-		  .orElse("잘못된 요청입니다.");
-		return ResponseEntity.badRequest().body(ErrorResponse.builder()
+		return ResponseEntity.status(BAD_REQUEST).body(ErrorResponse.builder()
 		  .status(BAD_REQUEST.value())
-		  .errMessage(errorMessage)
+		  .errMessage(e.getMessage())
 		  .build());
 	}
 
 	@ExceptionHandler(NoSuchElementException.class)
-	public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException ex) {
+	public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException e) {
+		logger.error("Unexpected Error 발생", e);
+
 		// 에러 메시지 추출 및 응답 생성
-		String errorMessage = ex.getMessage();
-		return ResponseEntity.badRequest().body(ErrorResponse.builder()
-		  .status(BAD_REQUEST.value())
+		String errorMessage = e.getMessage();
+		return ResponseEntity.status(NOT_FOUND).body(ErrorResponse.builder()
+		  .status(NOT_FOUND.value())
 		  .errMessage(errorMessage)
 		  .build());
 	}
