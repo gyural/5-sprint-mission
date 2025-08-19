@@ -30,12 +30,14 @@ import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
+@Tag(name = "User", description = "User API")
 public class UserController {
 
 	private final UserService userService;

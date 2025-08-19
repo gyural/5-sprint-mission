@@ -11,12 +11,15 @@ import com.sprint.mission.discodeit.domain.request.UserLoginRequest;
 import com.sprint.mission.discodeit.domain.response.UserLoginResponse;
 import com.sprint.mission.discodeit.service.AuthService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
+@Tag(name = "Auth", description = "인증 API")
+
 public class AuthController {
 	private final AuthService authService;
 
