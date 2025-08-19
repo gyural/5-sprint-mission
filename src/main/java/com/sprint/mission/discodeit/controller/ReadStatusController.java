@@ -20,12 +20,14 @@ import com.sprint.mission.discodeit.domain.response.CreateReadStatusResponse;
 import com.sprint.mission.discodeit.domain.response.UpdateReadStatusResponse;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/read-status")
+@Tag(name = "ReadStatus", description = "Message 읽음 상태 API")
 public class ReadStatusController {
 
 	private final ReadStatusService readStatusService;
@@ -67,7 +69,7 @@ public class ReadStatusController {
 
 		return ResponseEntity.ok(response);
 	}
-	
+
 	@RequestMapping(value = "/user/{userId}", method = GET)
 	public ResponseEntity<List<ReadStatus>> getReadStatusesByUserId(@PathVariable UUID userId) {
 

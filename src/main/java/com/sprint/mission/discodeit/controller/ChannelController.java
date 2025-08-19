@@ -26,12 +26,14 @@ import com.sprint.mission.discodeit.domain.response.ReadChannelResponse;
 import com.sprint.mission.discodeit.domain.response.UpdateChannelResponse;
 import com.sprint.mission.discodeit.service.ChannelService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/channel/")
+@Tag(name = "Channel", description = "Channel API")
 public class ChannelController {
 
 	private final ChannelService channelService;
