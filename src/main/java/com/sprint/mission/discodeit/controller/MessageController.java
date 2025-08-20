@@ -1,10 +1,10 @@
 package com.sprint.mission.discodeit.controller;
 
 import static com.sprint.mission.discodeit.service.basic.BasicMessageService.*;
-import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -72,7 +72,8 @@ public class MessageController {
 		  .attachments(biContentDTOs)
 		  .build());
 
-		return ResponseEntity.status(CREATED).body(toCreateMessageResponse(newMessage));
+		URI location = URI.create("api/messages");
+		return ResponseEntity.created(location).body(toCreateMessageResponse(newMessage));
 	}
 
 	@PatchMapping
