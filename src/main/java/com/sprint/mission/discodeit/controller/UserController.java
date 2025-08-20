@@ -62,28 +62,11 @@ public class UserController {
 	) throws IOException {
 		Optional<CreateBiContentDTO> biContentDTO = Optional.empty();
 		if (profile != null && !profile.isEmpty()) {
-			String filename = profile.getOriginalFilename();
-			String contentType;
-			String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
-			switch (ext) {
-				case "jpg":
-				case "jpeg":
-					contentType = "image/jpeg";
-					break;
-				case "png":
-					contentType = "image/png";
-					break;
-				case "gif":
-					contentType = "image/gif";
-					break;
-				default:
-					contentType = "application/octet-stream";
-			}
 
 			biContentDTO = Optional.of(new CreateBiContentDTO(
 			  profile.getBytes(),
 			  profile.getSize(),
-			  contentType,
+			  profile.getContentType(),
 			  profile.getOriginalFilename()
 			));
 		}

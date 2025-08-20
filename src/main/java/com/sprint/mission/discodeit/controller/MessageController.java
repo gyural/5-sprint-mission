@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -50,21 +51,19 @@ public class MessageController {
 	  @RequestPart MessageCreateRequest messageCreateRequest,
 	  @RequestPart(required = false) List<MultipartFile> attachments) {
 
-		List<CreateBiContentDTO> biContentDTOs = new ArrayList<>();
-		if (attachments != null && !attachments.isEmpty()) {
-			attachments.forEach(file -> {
-				try {
-					biContentDTOs.add(new CreateBiContentDTO(
-					  file.getBytes(),
-					  file.getSize(),
-					  file.getContentType(),
-					  file.getOriginalFilename()
-					));
-				} catch (IOException e) {
-					throw new RuntimeException("Error processing file: " + file.getOriginalFilename(), e);
-				}
-			});
-		}
+		List<CreateBiContentDTO> biContentDTOs = Optional.ofNullable(attachments).orElseGet(List::of).stream()
+		  .map(file -> {
+			  try {
+				  return new CreateBiContentDTO(
+					file.getBytes(),
+					file.getSize(),
+					file.getContentType(),
+					file.getOriginalFilename()
+				  );
+			  } catch (IOException e) {
+				  throw new RuntimeException("Error processing file: " + file.getOriginalFilename(), e);
+			  }
+		  }).toList();
 
 		Message newMessage = messageService.create(CreateMessageDTO.builder()
 		  .content(messageCreateRequest.getContent())
