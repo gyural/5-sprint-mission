@@ -8,6 +8,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class UpdatePublicChannelRequest {
-	private final String name;
-	private final String description;
+	private final String newName;
+	private final String newDescription;
 }
