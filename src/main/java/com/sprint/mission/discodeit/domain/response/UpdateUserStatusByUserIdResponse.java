@@ -7,14 +7,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-@AllArgsConstructor
 @Builder
 @Getter
-public class CreateReadStatusResponse {
+@AllArgsConstructor
+public class UpdateUserStatusByUserIdResponse {
 	private final UUID id;
 	private final Instant createdAt;
-	private Instant updatedAt;
+	private final Instant updatedAt;
 	private final UUID userId;
-	private final UUID channelId;
-	private Instant lastReadAt;
+	private final Instant lastActiveAt;
+	private final boolean isOnline;
 }

@@ -10,8 +10,12 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 @Builder
-public class UpdateReadStatusDTO {
+public class UserReadResult {
 	private final UUID id;
-	private final Instant newLastReadAt;
-
+	private final Instant createdAt;
+	private final Instant updatedAt;
+	private final String username;
+	private final String email;
+	private final UUID profileId;
+	private final boolean online;
 }

@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -10,12 +11,12 @@ import org.springframework.stereotype.Service;
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UserDeleteResult;
+import com.sprint.mission.discodeit.domain.dto.UserReadResult;
+import com.sprint.mission.discodeit.domain.dto.UserUpdateResult;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
-import com.sprint.mission.discodeit.domain.response.UserDeleteResponse;
-import com.sprint.mission.discodeit.domain.response.UserReadResponse;
-import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -44,7 +45,7 @@ public class BasicUserService implements UserService {
 
 		// 1. Check username 과 email 중복 여부
 		if (userRepository.findByUsername(username).isPresent() || userRepository.findByEmail(email).isPresent()) {
-			throw new RuntimeException("Username or email already exists");
+			throw new IllegalArgumentException("Username or email already exists");
 		}
 
 		// 2. Profile Image 저장
@@ -64,7 +65,7 @@ public class BasicUserService implements UserService {
 
 		// 4. User Status 생성
 		UserStatus userStatus = new UserStatus(newUser.getId());
-		userStatus.setLastActiveAt(); // 현재 시간을 LastActiveAt으로 설정
+		userStatus.setLastActiveAt(Instant.now()); // 현재 시간을 LastActiveAt으로 설정
 		userStatusRepository.save(userStatus);
 
 		// 5. 데이터 저장
@@ -72,7 +73,7 @@ public class BasicUserService implements UserService {
 	}
 
 	@Override
-	public UserDeleteResponse delete(UUID userId) {
+	public UserDeleteResult delete(UUID userId) {
 		User targetUser = userRepository.find(userId)
 		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " does not exist"));
 
@@ -85,15 +86,14 @@ public class BasicUserService implements UserService {
 		// 3. User 삭제
 		userRepository.delete(userId);
 
-		return UserDeleteResponse.builder()
+		return UserDeleteResult.builder()
 		  .isDeleted(true)
 		  .username(targetUser.getUsername())
 		  .build();
 	}
 
 	@Override
-	public UserUpdateResponse update(UpdateUserDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateUserDTO cannot be null"));
+	public UserUpdateResult update(UpdateUserDTO dto) {
 		UUID userId = dto.getUserId();
 		String newUsername = dto.getNewUsername();
 		String newEmail = dto.getNewEmail();
@@ -118,7 +118,7 @@ public class BasicUserService implements UserService {
 		}
 
 		userRepository.save(targetUser);
-		return UserUpdateResponse.builder()
+		return UserUpdateResult.builder()
 		  .id(targetUser.getId())
 		  .createdAt(targetUser.getCreatedAt())
 		  .updatedAt(targetUser.getUpdatedAt())
@@ -129,7 +129,7 @@ public class BasicUserService implements UserService {
 	}
 
 	@Override
-	public UserReadResponse read(UUID userId) {
+	public UserReadResult read(UUID userId) {
 		User user = userRepository.find(userId)
 		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " not found"));
 
@@ -137,27 +137,27 @@ public class BasicUserService implements UserService {
 
 		boolean isOnline = status.map(UserStatus::isOnline).orElse(false);
 
-		return UserReadResponse.builder()
+		return UserReadResult.builder()
 		  .id(user.getId())
 		  .createdAt(user.getCreatedAt())
 		  .updatedAt(user.getUpdatedAt())
 		  .username(user.getUsername())
 		  .email(user.getEmail())
 		  .profileId(user.getProfileId())
-		  .isOnline(isOnline)
+		  .online(isOnline)
 		  .build();
 	}
 
 	@Override
-	public List<UserReadResponse> readAll() {
-		return userRepository.findAll().stream().map(u -> UserReadResponse.builder()
+	public List<UserReadResult> readAll() {
+		return userRepository.findAll().stream().map(u -> UserReadResult.builder()
 		  .id(u.getId())
 		  .createdAt(u.getCreatedAt())
 		  .updatedAt(u.getUpdatedAt())
 		  .username(u.getUsername())
 		  .email(u.getEmail())
 		  .profileId(u.getProfileId())
-		  .isOnline(
+		  .online(
 			userStatusRepository.findByUserId(u.getId())
 			  .map(UserStatus::isOnline)
 			  .orElse(false))

@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import java.io.IOException;
@@ -8,8 +9,13 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,7 +35,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/message")
+@RequestMapping("/api/messages")
 @Tag(name = "Message", description = "Message API")
 public class MessageController {
 
@@ -37,7 +43,7 @@ public class MessageController {
 
 	@RequestMapping(value = "", method = POST, consumes = "multipart/form-data")
 	public ResponseEntity<CreateMessageResponse> createMessage(
-	  @RequestPart @Valid CreateMessageRequest createMessageRequest,
+	  @RequestPart MessageCreateRequest messageCreateRequest,
 	  @RequestPart(required = false) List<MultipartFile> attachments) {
 
 		List<CreateBiContentDTO> biContentDTOs = new ArrayList<>();
@@ -57,13 +63,13 @@ public class MessageController {
 		}
 
 		Message newMessage = messageService.create(CreateMessageDTO.builder()
-		  .content(createMessageRequest.getContent())
-		  .channelId(createMessageRequest.getChannelId())
-		  .userId(createMessageRequest.getAuthorId())
+		  .content(messageCreateRequest.getContent())
+		  .channelId(messageCreateRequest.getChannelId())
+		  .userId(messageCreateRequest.getAuthorId())
 		  .attachments(biContentDTOs)
 		  .build());
 
-		return ResponseEntity.ok().body(
+		return ResponseEntity.status(CREATED).body(
 		  CreateMessageResponse.builder()
 			.id(newMessage.getId())
 			.createdAt(newMessage.getCreatedAt())
@@ -76,31 +82,17 @@ public class MessageController {
 		);
 	}
 
-	@RequestMapping(value = "", method = PUT, consumes = "multipart/form-data")
+	@PatchMapping
 	public ResponseEntity<CreateMessageResponse> updateMessage(
-	  @RequestPart @Valid UpdateMessageRequest updateMessageRequest,
-	  @RequestPart(required = false) List<MultipartFile> attachments) {
+	  @RequestParam UUID messageId,
+	  @RequestBody @Valid UpdateMessageRequest updateMessageRequest
+	) {
 
 		List<CreateBiContentDTO> biContentDTOs = new ArrayList<>();
-		if (attachments != null && !attachments.isEmpty()) {
-			attachments.forEach(file -> {
-				try {
-					biContentDTOs.add(new CreateBiContentDTO(
-					  file.getBytes(),
-					  file.getSize(),
-					  file.getContentType(),
-					  file.getOriginalFilename()
-					));
-				} catch (IOException e) {
-					throw new RuntimeException("Error processing file: " + file.getOriginalFilename(), e);
-				}
-			});
-		}
 
 		Message updatedMessage = messageService.update(UpdateMessageDTO.builder()
-		  .id(updateMessageRequest.getId())
-		  .newContent(updateMessageRequest.getContent())
-		  .removeAttachmentIds(updateMessageRequest.getRemoveAttachmentIds())
+		  .id(messageId)
+		  .newContent(updateMessageRequest.getNewContent())
 		  .newAttachments(biContentDTOs)
 		  .build());
 
@@ -110,21 +102,21 @@ public class MessageController {
 			.createdAt(updatedMessage.getCreatedAt())
 			.updatedAt(updatedMessage.getUpdatedAt())
 			.content(updatedMessage.getContent())
-			.authorId(updatedMessage.getAuthorId())
 			.channelId(updatedMessage.getChannelId())
+			.authorId(updatedMessage.getAuthorId())
 			.attachmentIds(updatedMessage.getAttachmentIds())
 			.build()
 		);
 	}
 
-	@RequestMapping(value = "/{id}", method = DELETE)
+	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteMessage(@PathVariable UUID id) {
 		messageService.delete(id);
 		return ResponseEntity.noContent().build();
 	}
 
-	@RequestMapping(value = "channel/{channelId}", method = GET)
-	public ResponseEntity<MessagesInChannelResponse> GetMessagesInChannel(@PathVariable UUID channelId) {
+	@GetMapping
+	public ResponseEntity<MessagesInChannelResponse> GetMessagesInChannel(@RequestParam UUID channelId) {
 		List<Message> readMessages = messageService.readAllByChannelId(channelId);
 
 		MessagesInChannelResponse response = new MessagesInChannelResponse(

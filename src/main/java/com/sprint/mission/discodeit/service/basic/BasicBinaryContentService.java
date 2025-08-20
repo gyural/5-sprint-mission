@@ -1,11 +1,14 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
+import com.sprint.mission.discodeit.domain.dto.FindBiContentIdInDTO;
+import com.sprint.mission.discodeit.domain.dto.FindBiContentsIdInDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
@@ -24,14 +27,15 @@ public class BasicBinaryContentService implements BinaryContentService {
 	}
 
 	@Override
-	public BinaryContent find(UUID id) {
+	public BinaryContent find(FindBiContentIdInDTO dto) {
+		UUID id = dto.getId();
 		return binaryContentRepository.find(id)
-		  .orElseThrow(() -> new IllegalArgumentException("Binary content not found for ID: " + id));
+		  .orElseThrow(() -> new NoSuchElementException("Binary content not found for ID: " + id));
 	}
 
 	@Override
-	public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
-		return binaryContentRepository.findAllByIdIn(ids);
+	public List<BinaryContent> findAllByIdIn(FindBiContentsIdInDTO dto) {
+		return binaryContentRepository.findAllByIdIn(dto.getIds());
 	}
 
 	@Override

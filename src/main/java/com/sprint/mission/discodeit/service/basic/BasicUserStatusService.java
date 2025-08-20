@@ -1,12 +1,14 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.sprint.mission.discodeit.domain.dto.CreateUserStatusDTO;
-import com.sprint.mission.discodeit.domain.dto.UpdateUserStatusDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateStatusByUserIdDTO;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -44,25 +46,14 @@ public class BasicUserStatusService implements UserStatusService {
 	}
 
 	@Override
-	public void update(UpdateUserStatusDTO dto) {
-		UUID id = dto.getId();
-
-		UserStatus userStatus = userStatusRepository.find(id)
-		  .orElseThrow(() -> new IllegalArgumentException("User status not found for ID: " + id));
-
-		userStatus.setLastActiveAt();
-
-		userStatusRepository.save(userStatus);
-
-	}
-
-	@Override
-	public UserStatus updateByUserId(UUID userID) {
+	public UserStatus updateStatusByUserId(UpdateStatusByUserIdDTO dto) {
+		UUID userID = dto.getUserId();
+		Instant newLastActiveAt = dto.getNewLastActiveAt();
 
 		UserStatus userStatus = userStatusRepository.findByUserId(userID)
-		  .orElseThrow(() -> new IllegalArgumentException("User status not found for User ID: " + userID));
+		  .orElseThrow(() -> new NoSuchElementException("User status not found for User ID: " + userID));
 
-		userStatus.setLastActiveAt();
+		userStatus.setLastActiveAt(newLastActiveAt);
 
 		return userStatusRepository.save(userStatus);
 

@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -28,42 +30,46 @@ public class BasicReadStatusService implements ReadStatusService {
 
 		UUID channelId = dto.getChannelId();
 		UUID userId = dto.getUserId();
+		Instant lastReadAt = dto.getLastReadAt();
 
-		if (channelRepository.existsById(channelId)) {
-			throw new IllegalArgumentException("Channel ID Not Found: " + channelId);
+		if (!channelRepository.existsById(channelId)) {
+			throw new NoSuchElementException("channel with id " + channelId + "not found");
 		}
 		if (userRepository.isEmpty(userId)) {
-			throw new IllegalArgumentException("User ID Not Found: " + userId);
+			throw new NoSuchElementException("user with id " + userId + "not found");
+
 		}
 		if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isPresent()) {
 			throw new IllegalArgumentException(
-			  "Read status already exists for user: " + userId + " in channel: " + channelId);
+			  "ReadStatus with userId " + userId + "  and channelId " + channelId + " already exists");
 		}
 
-		ReadStatus readStatus = new ReadStatus(userId, channelId);
+		ReadStatus readStatus = new ReadStatus(userId, channelId, lastReadAt);
+
+		return readStatusRepository.save(readStatus);
+	}
+
+	@Override
+	public ReadStatus update(UpdateReadStatusDTO dto) {
+
+		UUID id = dto.getId();
+		Instant newLastReadAt = dto.getNewLastReadAt();
+
+		ReadStatus readStatus = readStatusRepository.find(id)
+		  .orElseThrow(() -> new NoSuchElementException("ReadStatus with id " + id + " not found"));
+
+		readStatus.setLastReadAt(newLastReadAt);
 
 		return readStatusRepository.save(readStatus);
 	}
 
 	@Override
 	public List<ReadStatus> findAllByUserId(UUID userId) {
-		if (userId == null || userRepository.isEmpty(userId)) {
-			throw new IllegalArgumentException("User ID cannot be null or empty");
+		if (userRepository.isEmpty(userId)) {
+			throw new NoSuchElementException("user with id " + userId + "not found");
 		}
 
 		return readStatusRepository.findAllByUserId(userId);
-	}
-
-	@Override
-	public ReadStatus update(UpdateReadStatusDTO dto) {
-		UUID id = dto.getId();
-
-		ReadStatus targetReadStatus = readStatusRepository.find(id)
-		  .orElseThrow(() -> new IllegalArgumentException("Read status not found for ID: " + id));
-
-		targetReadStatus.setLastReadAt();
-
-		return readStatusRepository.save(targetReadStatus);
 	}
 
 	@Override
