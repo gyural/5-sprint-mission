@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import static com.sprint.mission.discodeit.service.basic.BasicMessageService.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
@@ -24,9 +25,11 @@ import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateMessageDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateMessageDTO;
 import com.sprint.mission.discodeit.domain.entity.Message;
+import com.sprint.mission.discodeit.domain.request.MessageCreateRequest;
+import com.sprint.mission.discodeit.domain.request.UpdateMessageRequest;
 import com.sprint.mission.discodeit.domain.response.CreateMessageResponse;
-import com.sprint.mission.discodeit.domain.response.MessageResponse;
 import com.sprint.mission.discodeit.domain.response.MessagesInChannelResponse;
+import com.sprint.mission.discodeit.domain.response.UpdateMessageResponse;
 import com.sprint.mission.discodeit.service.MessageService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -69,21 +72,11 @@ public class MessageController {
 		  .attachments(biContentDTOs)
 		  .build());
 
-		return ResponseEntity.status(CREATED).body(
-		  CreateMessageResponse.builder()
-			.id(newMessage.getId())
-			.createdAt(newMessage.getCreatedAt())
-			.updatedAt(newMessage.getUpdatedAt())
-			.content(newMessage.getContent())
-			.authorId(newMessage.getAuthorId())
-			.channelId(newMessage.getChannelId())
-			.attachmentIds(newMessage.getAttachmentIds())
-			.build()
-		);
+		return ResponseEntity.status(CREATED).body(toCreateMessageResponse(newMessage));
 	}
 
 	@PatchMapping
-	public ResponseEntity<CreateMessageResponse> updateMessage(
+	public ResponseEntity<UpdateMessageResponse> updateMessage(
 	  @RequestParam UUID messageId,
 	  @RequestBody @Valid UpdateMessageRequest updateMessageRequest
 	) {
@@ -96,17 +89,7 @@ public class MessageController {
 		  .newAttachments(biContentDTOs)
 		  .build());
 
-		return ResponseEntity.ok().body(
-		  CreateMessageResponse.builder()
-			.id(updatedMessage.getId())
-			.createdAt(updatedMessage.getCreatedAt())
-			.updatedAt(updatedMessage.getUpdatedAt())
-			.content(updatedMessage.getContent())
-			.channelId(updatedMessage.getChannelId())
-			.authorId(updatedMessage.getAuthorId())
-			.attachmentIds(updatedMessage.getAttachmentIds())
-			.build()
-		);
+		return ResponseEntity.ok().body(toUpdateMessageResponse(updatedMessage));
 	}
 
 	@DeleteMapping("/{id}")
@@ -118,21 +101,6 @@ public class MessageController {
 	@GetMapping
 	public ResponseEntity<MessagesInChannelResponse> GetMessagesInChannel(@RequestParam UUID channelId) {
 		List<Message> readMessages = messageService.readAllByChannelId(channelId);
-
-		MessagesInChannelResponse response = new MessagesInChannelResponse(
-		  readMessages.stream().map(message ->
-			new MessageResponse(
-			  message.getId(),
-			  message.getCreatedAt(),
-			  message.getUpdatedAt(),
-			  message.getContent(),
-			  message.getAuthorId(),
-			  message.getChannelId(),
-			  message.getAttachmentIds()
-			)
-		  ).toList()
-		);
-
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok((toMessagesInChannelResponse(readMessages)));
 	}
 }

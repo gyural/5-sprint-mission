@@ -1,7 +1,9 @@
 package com.sprint.mission.discodeit.service;
 
+import java.util.List;
 import java.util.UUID;
 
+import com.sprint.mission.discodeit.domain.dto.ChannelDetail;
 import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelResult;
 import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelDTO;
@@ -15,7 +17,7 @@ public interface ChannelService {
 
 	public CreatePrivateChannelResult createPrivate(CreatePrivateChannelDTO dto);
 
-	public ReadAllChannelResult readAllByUserId(UUID userId);
+	public List<ChannelDetail> readAllByUserId(UUID userId);
 
 	public boolean delete(UUID id);
 

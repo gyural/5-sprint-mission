@@ -16,7 +16,7 @@ import com.sprint.mission.discodeit.domain.response.ErrorResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-	Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+	private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleException(Exception e) {

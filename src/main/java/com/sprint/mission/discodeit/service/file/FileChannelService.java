@@ -13,7 +13,6 @@ import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelResult;
 import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelResult;
-import com.sprint.mission.discodeit.domain.dto.ReadAllChannelResult;
 import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateChannelResult;
 import com.sprint.mission.discodeit.domain.entity.Channel;
@@ -56,7 +55,7 @@ public class FileChannelService implements ChannelService {
 	}
 
 	@Override
-	public ReadAllChannelResult readAllByUserId(UUID userId) {
+	public List<ChannelDetail> readAllByUserId(UUID userId) {
 		List<Channel> channels = channelRepository.findAll().stream().toList();
 		List<ChannelDetail> channelDetails = channels.stream()
 		  .map(c -> {
@@ -71,7 +70,7 @@ public class FileChannelService implements ChannelService {
 
 		  })
 		  .toList();
-		return ReadAllChannelResult.builder().channelDetails(channelDetails).build();
+		return channelDetails;
 	}
 
 	@Override

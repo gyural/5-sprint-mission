@@ -15,12 +15,15 @@ import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelResult;
 import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelResult;
-import com.sprint.mission.discodeit.domain.dto.ReadAllChannelResult;
 import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateChannelResult;
 import com.sprint.mission.discodeit.domain.entity.Channel;
 import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.domain.entity.ReadStatus;
+import com.sprint.mission.discodeit.domain.response.CreatePrivateChannelResponse;
+import com.sprint.mission.discodeit.domain.response.CreatePublicChannelResponse;
+import com.sprint.mission.discodeit.domain.response.ReadChannelResponse;
+import com.sprint.mission.discodeit.domain.response.UpdateChannelResponse;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -62,7 +65,7 @@ public class BasicChannelService implements ChannelService {
 	}
 
 	@Override
-	public ReadAllChannelResult readAllByUserId(UUID userId) {
+	public List<ChannelDetail> readAllByUserId(UUID userId) {
 		List<Channel> filteredChannels = channelRepository.findAll().stream()
 		  // 필터링: PUBLIC 채널 또는 사용자가 참여한 PRIVATE 채널
 		  .filter(c -> c.getChannelType() == PUBLIC ||
@@ -90,7 +93,7 @@ public class BasicChannelService implements ChannelService {
 		  })
 		  .toList();
 
-		return ReadAllChannelResult.builder().channelDetails(channelDetails).build();
+		return channelDetails;
 
 	}
 
@@ -166,4 +169,49 @@ public class BasicChannelService implements ChannelService {
 		  .userIds(membersIDList)
 		  .build();
 	}
+
+	public static CreatePublicChannelResponse toCreatePublicChannelResponse(CreatePublicChannelResult result) {
+		return CreatePublicChannelResponse.builder()
+		  .id(result.getChannel().getId())
+		  .createdAt(result.getChannel().getCreatedAt())
+		  .updatedAt(result.getChannel().getUpdatedAt())
+		  .type(result.getChannel().getChannelType().toString())
+		  .name(result.getChannel().getName())
+		  .description(result.getChannel().getDescription())
+		  .build();
+	}
+
+	public static CreatePrivateChannelResponse toCreatePrivateChannelResponse(CreatePrivateChannelResult result) {
+		return CreatePrivateChannelResponse.builder()
+		  .id(result.getChannel().getId())
+		  .createdAt(result.getChannel().getCreatedAt())
+		  .updatedAt(result.getChannel().getUpdatedAt())
+		  .type(result.getChannel().getChannelType().toString())
+		  .name(result.getChannel().getName())
+		  .description(result.getChannel().getDescription())
+		  .build();
+	}
+
+	public static UpdateChannelResponse toUpdateChannelResponse(UpdateChannelResult result) {
+		return UpdateChannelResponse.builder()
+		  .id(result.getUpdatedChannel().getId())
+		  .createdAt(result.getUpdatedChannel().getCreatedAt())
+		  .updatedAt(result.getUpdatedChannel().getUpdatedAt())
+		  .type(result.getUpdatedChannel().getChannelType().toString())
+		  .name(result.getUpdatedChannel().getName())
+		  .description(result.getUpdatedChannel().getDescription())
+		  .build();
+	}
+
+	public static ReadChannelResponse channelDetailsToReadChannelResponse(ChannelDetail channelDetail) {
+		return ReadChannelResponse.builder()
+		  .id(channelDetail.getChannel().getId())
+		  .type(channelDetail.getChannel().getChannelType())
+		  .name(channelDetail.getChannel().getName())
+		  .description(channelDetail.getChannel().getDescription())
+		  .participantIds(channelDetail.getUserIds())
+		  .lastMessageAt(channelDetail.getLastMessageAt())
+		  .build();
+	}
+
 }
