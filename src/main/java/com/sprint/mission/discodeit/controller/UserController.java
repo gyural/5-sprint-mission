@@ -2,10 +2,10 @@ package com.sprint.mission.discodeit.controller;
 
 import static com.sprint.mission.discodeit.service.basic.BasicUserService.*;
 import static com.sprint.mission.discodeit.service.basic.BasicUserStatusService.*;
-import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -94,7 +94,8 @@ public class UserController {
 		  .binaryContent(biContentDTO.orElse(null))
 		  .build());
 
-		return ResponseEntity.status(CREATED).body(toCreateUserResponse(createdUser));
+		URI location = URI.create("api/users");
+		return ResponseEntity.created(location).body(toCreateUserResponse(createdUser));
 	}
 
 	@GetMapping

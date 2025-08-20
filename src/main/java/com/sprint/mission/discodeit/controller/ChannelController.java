@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.controller;
 import static com.sprint.mission.discodeit.service.basic.BasicChannelService.*;
 import static org.springframework.http.HttpStatus.*;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -69,7 +70,8 @@ public class ChannelController {
 		  .description(request.getDescription())
 		  .build());
 
-		return ResponseEntity.status(CREATED).body(toCreatePublicChannelResponse(result));
+		URI location = URI.create("api/channels");
+		return ResponseEntity.created(location).body(toCreatePublicChannelResponse(result));
 
 	}
 
@@ -88,7 +90,8 @@ public class ChannelController {
 		  .UserIds(request.getParticipantIds())
 		  .build());
 
-		return ResponseEntity.status(CREATED).body(toCreatePrivateChannelResponse(result));
+		URI location = URI.create("api/channels");
+		return ResponseEntity.created(location).body(toCreatePrivateChannelResponse(result));
 	}
 
 	@ApiResponses(value = {
