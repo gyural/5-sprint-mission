@@ -39,11 +39,12 @@ public class BasicMessageService implements MessageService {
 		List<CreateBiContentDTO> attachmentsInMessage = dto.getAttachments();
 
 		// Validate
-		if (channelRepository.existsById(channelId)) {
-			throw new IllegalArgumentException("Channel ID Not Found: " + channelId);
+		if (!channelRepository.existsById(channelId)) {
+			throw new NoSuchElementException("channel with id " + channelId + "not found");
 		}
 		if (userRepository.isEmpty(userId)) {
-			throw new IllegalArgumentException("User ID Not Found: " + userId);
+			throw new NoSuchElementException("Author with id " + userId + "not found");
+
 		}
 
 		List<BinaryContent> files = new ArrayList<>();
@@ -96,7 +97,7 @@ public class BasicMessageService implements MessageService {
 		}
 
 		Message targetMessage = messageRepository.find(id)
-		  .orElseThrow(() -> new IllegalArgumentException("Message with ID " + id + " not found"));
+		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
 
 		// 1. 내용 수정
 		targetMessage.setContent(newContent);

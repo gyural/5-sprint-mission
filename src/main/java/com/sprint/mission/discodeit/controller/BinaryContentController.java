@@ -1,15 +1,17 @@
 package com.sprint.mission.discodeit.controller;
 
-import static org.springframework.web.bind.annotation.RequestMethod.*;
-
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sprint.mission.discodeit.domain.dto.FindBiContentIdInDTO;
+import com.sprint.mission.discodeit.domain.dto.FindBiContentsIdInDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.response.BinaryContentResponse;
 import com.sprint.mission.discodeit.service.BinaryContentService;
@@ -21,17 +23,20 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/binaryContent")
+@RequestMapping("/api/binaryContents")
 @Tag(name = "BinaryContent", description = "첨부파일 API")
 
 public class BinaryContentController {
 
 	private final BinaryContentService binaryContentService;
 
-	@RequestMapping(value = "", method = GET)
-	public ResponseEntity<List<BinaryContentResponse>> getBinaryContents(@RequestParam @Size(min = 1) List<UUID> ids) {
+	@GetMapping
+	public ResponseEntity<List<BinaryContentResponse>> getBinaryContents(
+	  @RequestParam @Size(min = 1) List<UUID> binaryContentIds) {
 
-		List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(ids);
+		List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(FindBiContentsIdInDTO.builder()
+		  .ids(binaryContentIds)
+		  .build());
 
 		List<BinaryContentResponse> response = binaryContents.stream()
 		  .map(content -> BinaryContentResponse.builder()
@@ -47,10 +52,11 @@ public class BinaryContentController {
 		return ResponseEntity.ok(response);
 	}
 
-	@RequestMapping(value = "/find", method = GET)
-	public ResponseEntity<BinaryContentResponse> getBinaryContents(@RequestParam @NotNull UUID binaryContentId) {
+	@GetMapping("/{id}")
+	public ResponseEntity<BinaryContentResponse> getBinaryContents(@PathVariable @NotNull UUID id) {
 
-		BinaryContent binaryContent = binaryContentService.find(binaryContentId);
+		BinaryContent binaryContent =
+		  binaryContentService.find(FindBiContentIdInDTO.builder().id(id).build());
 
 		BinaryContentResponse response = BinaryContentResponse.builder()
 		  .id(binaryContent.getId())

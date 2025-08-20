@@ -9,7 +9,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,13 +21,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateStatusByUserIdDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UserUpdateResult;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
-import com.sprint.mission.discodeit.domain.request.CreatUsereRequest;
 import com.sprint.mission.discodeit.domain.request.CreateUserResponse;
-import com.sprint.mission.discodeit.domain.request.UpdateUserRequest;
-import com.sprint.mission.discodeit.domain.response.UpdateUserStatusResponse;
+import com.sprint.mission.discodeit.domain.request.UpdateUserStatusRequest;
+import com.sprint.mission.discodeit.domain.request.UserCreateRequest;
+import com.sprint.mission.discodeit.domain.request.UserUpdateRequest;
+import com.sprint.mission.discodeit.domain.response.UpdateUserStatusByUserIdResponse;
 import com.sprint.mission.discodeit.domain.response.UserDeleteResponse;
 import com.sprint.mission.discodeit.domain.response.UserReadResponse;
 import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
@@ -36,7 +43,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 @Tag(name = "User", description = "User API")
 public class UserController {
 
@@ -45,13 +52,13 @@ public class UserController {
 
 	@RequestMapping(value = "", method = POST, consumes = "multipart/form-data")
 	public ResponseEntity<CreateUserResponse> createUser(
-	  @RequestPart @Valid CreatUsereRequest userCreateRequest,
-	  @RequestPart(required = false) MultipartFile profilePicture
+	  @RequestPart @Valid UserCreateRequest userCreateRequest,
+	  @RequestPart(required = false) MultipartFile profile
 
 	) throws IOException {
 		Optional<CreateBiContentDTO> biContentDTO = Optional.empty();
-		if (profilePicture != null && !profilePicture.isEmpty()) {
-			String filename = profilePicture.getOriginalFilename();
+		if (profile != null && !profile.isEmpty()) {
+			String filename = profile.getOriginalFilename();
 			String contentType;
 			String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
 			switch (ext) {
@@ -70,10 +77,10 @@ public class UserController {
 			}
 
 			biContentDTO = Optional.of(new CreateBiContentDTO(
-			  profilePicture.getBytes(),
-			  profilePicture.getSize(),
+			  profile.getBytes(),
+			  profile.getSize(),
 			  contentType,
-			  profilePicture.getOriginalFilename()
+			  profile.getOriginalFilename()
 			));
 		}
 
@@ -94,51 +101,82 @@ public class UserController {
 		  .build());
 	}
 
-	@RequestMapping(value = "/findAll", method = GET)
+	@GetMapping
 	public ResponseEntity<List<UserReadResponse>> getAllUser() {
 
-		return ResponseEntity.ok(userService.readAll());
+		List<UserReadResponse> body = userService.readAll().stream()
+		  .map(user -> UserReadResponse.builder()
+			.id(user.getId())
+			.createdAt(user.getCreatedAt())
+			.updatedAt(user.getUpdatedAt())
+			.username(user.getUsername())
+			.email(user.getEmail())
+			.profileId(user.getProfileId())
+			.online(user.isOnline())
+			.build())
+		  .toList();
+
+		return ResponseEntity.ok(body);
 	}
 
-	@RequestMapping(value = "/{id}", method = PUT, consumes = "multipart/form-data")
+	@PatchMapping(value = "/{id}", consumes = "multipart/form-data")
 	public ResponseEntity<UserUpdateResponse> updateUser(
-	  @RequestPart @Valid UpdateUserRequest updateUserRequest,
-	  @RequestPart(required = false) MultipartFile profilePicture,
+	  @RequestPart @Valid UserUpdateRequest userUpdateRequest,
+	  @RequestPart(required = false) MultipartFile profile,
 	  @PathVariable UUID id
 	) throws IOException {
 
 		Optional<CreateBiContentDTO> biContentDTO = Optional.empty();
-		if (profilePicture != null && !profilePicture.isEmpty()) {
+		if (profile != null && !profile.isEmpty()) {
 
 			biContentDTO = Optional.of(new CreateBiContentDTO(
-			  profilePicture.getBytes(),
-			  profilePicture.getSize(),
-			  profilePicture.getContentType(),
-			  profilePicture.getOriginalFilename()
+			  profile.getBytes(),
+			  profile.getSize(),
+			  profile.getContentType(),
+			  profile.getOriginalFilename()
 			));
 		}
 
-		UserUpdateResponse response = userService.update(UpdateUserDTO.builder()
+		UserUpdateResult result = userService.update(UpdateUserDTO.builder()
 		  .userId(id)
-		  .newUsername(updateUserRequest.getUsername())
-		  .newEmail(updateUserRequest.getEmail())
-		  .newPassword(updateUserRequest.getPassword())
+		  .newUsername(userUpdateRequest.getNewUsername())
+		  .newEmail(userUpdateRequest.getNewEmail())
+		  .newPassword(userUpdateRequest.getNewPassword())
 		  .newProfilePicture(biContentDTO.orElse(null))
 		  .build());
 
-		return ResponseEntity.ok(response);
+		UserUpdateResponse body = UserUpdateResponse.builder()
+		  .id(result.getId())
+		  .createdAt(result.getCreatedAt())
+		  .updatedAt(result.getUpdatedAt())
+		  .username(result.getUsername())
+		  .email(result.getEmail())
+		  .profileId(result.getProfileId())
+		  .build();
+
+		return ResponseEntity.ok(body);
 	}
 
-	@RequestMapping(value = "/{id}", method = DELETE)
+	@DeleteMapping("/{id}")
 	public ResponseEntity<UserDeleteResponse> deleteUser(@PathVariable UUID id) {
-		return ResponseEntity.ok(userService.delete(id));
+		userService.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 
-	@RequestMapping(value = "/status/{userID}", method = PUT)
-	public ResponseEntity<UpdateUserStatusResponse> updateUserStatus(@PathVariable UUID userID) {
-		UserStatus newUserStatus = userStatusService.updateByUserId(userID);
+	@PatchMapping("/status/{userId}")
+	public ResponseEntity<UpdateUserStatusByUserIdResponse> updateUserStatus(
+	  @PathVariable UUID userId,
+	  @RequestBody UpdateUserStatusRequest updateUserStatusRequest) {
 
-		UpdateUserStatusResponse response = UpdateUserStatusResponse.builder()
+		UserStatus newUserStatus = userStatusService.updateStatusByUserId(UpdateStatusByUserIdDTO.builder()
+		  .userId(userId)
+		  .newLastActiveAt(updateUserStatusRequest.getNewLastActiveAt())
+		  .build());
+
+		UpdateUserStatusByUserIdResponse response = UpdateUserStatusByUserIdResponse.builder()
+		  .id(newUserStatus.getId())
+		  .createdAt(newUserStatus.getCreatedAt())
+		  .updatedAt(newUserStatus.getUpdatedAt())
 		  .userId(newUserStatus.getUserId())
 		  .lastActiveAt(newUserStatus.getLastActiveAt())
 		  .isOnline(newUserStatus.isOnline())

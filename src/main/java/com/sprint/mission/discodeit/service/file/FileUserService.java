@@ -8,12 +8,12 @@ import java.util.UUID;
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UserDeleteResult;
+import com.sprint.mission.discodeit.domain.dto.UserReadResult;
+import com.sprint.mission.discodeit.domain.dto.UserUpdateResult;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
-import com.sprint.mission.discodeit.domain.response.UserDeleteResponse;
-import com.sprint.mission.discodeit.domain.response.UserReadResponse;
-import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserRepository;
@@ -51,7 +51,7 @@ public class FileUserService implements UserService {
 	}
 
 	@Override
-	public UserDeleteResponse delete(UUID userId) {
+	public UserDeleteResult delete(UUID userId) {
 		User targetUser = userRepository.find(userId)
 		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " does not exist"));
 
@@ -64,14 +64,14 @@ public class FileUserService implements UserService {
 		// 3. User 삭제
 		userRepository.delete(userId);
 
-		return UserDeleteResponse.builder()
+		return UserDeleteResult.builder()
 		  .isDeleted(true)
 		  .username(targetUser.getUsername())
 		  .build();
 	}
 
 	@Override
-	public UserUpdateResponse update(UpdateUserDTO dto) {
+	public UserUpdateResult update(UpdateUserDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateUserDTO cannot be null"));
 		UUID userId = dto.getUserId();
 		String newUsername = dto.getNewUsername();
@@ -105,7 +105,7 @@ public class FileUserService implements UserService {
 			targetUser.setProfileId(newProfilePicture.getId());
 
 			userRepository.save(targetUser);
-			return UserUpdateResponse.builder()
+			return UserUpdateResult.builder()
 			  .id(targetUser.getId())
 			  .createdAt(targetUser.getCreatedAt())
 			  .updatedAt(targetUser.getUpdatedAt())
@@ -118,7 +118,7 @@ public class FileUserService implements UserService {
 		userRepository.save(targetUser);
 		BinaryContent profilePicture = binaryContentRepository.find(targetUser.getProfileId())
 		  .orElse(null);
-		return UserUpdateResponse.builder()
+		return UserUpdateResult.builder()
 		  .id(targetUser.getId())
 		  .createdAt(targetUser.getCreatedAt())
 		  .updatedAt(targetUser.getUpdatedAt())
@@ -130,7 +130,7 @@ public class FileUserService implements UserService {
 	}
 
 	@Override
-	public UserReadResponse read(UUID userId) {
+	public UserReadResult read(UUID userId) {
 		User user = userRepository.find(userId)
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 
@@ -139,27 +139,27 @@ public class FileUserService implements UserService {
 		boolean isOnline = status.stream()
 		  .anyMatch(UserStatus::isOnline);
 
-		return UserReadResponse.builder()
+		return UserReadResult.builder()
 		  .id(user.getId())
 		  .createdAt(user.getCreatedAt())
 		  .updatedAt(user.getUpdatedAt())
 		  .username(user.getUsername())
 		  .email(user.getEmail())
 		  .profileId(user.getProfileId())
-		  .isOnline(isOnline)
+		  .online(isOnline)
 		  .build();
 	}
 
 	@Override
-	public List<UserReadResponse> readAll() {
-		return userRepository.findAll().stream().map(u -> UserReadResponse.builder()
+	public List<UserReadResult> readAll() {
+		return userRepository.findAll().stream().map(u -> UserReadResult.builder()
 		  .id(u.getId())
 		  .createdAt(u.getCreatedAt())
 		  .updatedAt(u.getUpdatedAt())
 		  .username(u.getUsername())
 		  .email(u.getEmail())
 		  .profileId(u.getProfileId())
-		  .isOnline(
+		  .online(
 			userStatusRepository.findByUserId(u.getId())
 			  .map(UserStatus::isOnline)
 			  .orElse(false))

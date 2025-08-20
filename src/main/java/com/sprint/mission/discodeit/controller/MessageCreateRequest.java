@@ -11,7 +11,7 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class CreateMessageRequest {
+public class MessageCreateRequest {
 	@NotNull
 	@NotBlank
 	private final String content;

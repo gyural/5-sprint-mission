@@ -10,8 +10,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 @Builder
-public class UpdateReadStatusDTO {
-	private final UUID id;
-	private final Instant newLastReadAt;
-
+public class UpdateStatusByUserIdDTO {
+	private final UUID userId;
+	private final Instant newLastActiveAt;
 }
