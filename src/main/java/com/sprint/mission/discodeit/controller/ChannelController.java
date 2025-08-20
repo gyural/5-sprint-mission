@@ -1,8 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
-import static com.sprint.mission.discodeit.domain.response.CreatePrivateChannelResponse.*;
-import static com.sprint.mission.discodeit.domain.response.CreatePublicChannelResponse.*;
-import static com.sprint.mission.discodeit.domain.response.UpdateChannelResponse.*;
+import static com.sprint.mission.discodeit.service.basic.BasicChannelService.*;
 import static org.springframework.http.HttpStatus.*;
 
 import java.util.List;
@@ -19,11 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sprint.mission.discodeit.domain.dto.ChannelDetail;
 import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelResult;
 import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelResult;
-import com.sprint.mission.discodeit.domain.dto.ReadAllChannelResult;
 import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateChannelResult;
 import com.sprint.mission.discodeit.domain.request.CreatePrivateChannelRequest;
@@ -35,6 +33,7 @@ import com.sprint.mission.discodeit.domain.response.ErrorResponse;
 import com.sprint.mission.discodeit.domain.response.ReadChannelResponse;
 import com.sprint.mission.discodeit.domain.response.UpdateChannelResponse;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.basic.BasicChannelService;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -48,13 +47,12 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/channels/")
+@RequestMapping("/api/channels")
 @Tag(name = "Channel", description = "Channel API")
 public class ChannelController {
 
 	private final ChannelService channelService;
 
-	@PostMapping("public")
 	@ApiResponses(value = {
 	  @ApiResponse(
 		responseCode = "201",
@@ -62,6 +60,7 @@ public class ChannelController {
 		content = @Content(schema = @Schema(implementation = CreatePublicChannelResponse.class))
 	  )
 	})
+	@PostMapping("/public")
 	public ResponseEntity<CreatePublicChannelResponse> createPublicChannel(
 	  @RequestBody @Valid CreatePublicChannelRequest request) {
 
@@ -70,11 +69,10 @@ public class ChannelController {
 		  .description(request.getDescription())
 		  .build());
 
-		return ResponseEntity.status(CREATED).body(toCreatePublicChannelResponse(result.getChannel()));
+		return ResponseEntity.status(CREATED).body(toCreatePublicChannelResponse(result));
 
 	}
 
-	@PostMapping("private")
 	@ApiResponses(value = {
 	  @ApiResponse(
 		responseCode = "201",
@@ -82,6 +80,7 @@ public class ChannelController {
 		content = @Content(schema = @Schema(implementation = CreatePrivateChannelResponse.class))
 	  )
 	})
+	@PostMapping("/private")
 	public ResponseEntity<CreatePrivateChannelResponse> createPrivateChannel(
 	  @RequestBody @Valid CreatePrivateChannelRequest request) {
 
@@ -89,10 +88,9 @@ public class ChannelController {
 		  .UserIds(request.getParticipantIds())
 		  .build());
 
-		return ResponseEntity.status(CREATED).body(toCreatePrivateChannelResponse(result.getChannel()));
+		return ResponseEntity.status(CREATED).body(toCreatePrivateChannelResponse(result));
 	}
 
-	@DeleteMapping("{channelId}")
 	@ApiResponses(value = {
 	  @ApiResponse(
 		responseCode = "204",
@@ -111,6 +109,7 @@ public class ChannelController {
 		)
 	  )
 	})
+	@DeleteMapping("{channelId}")
 	public ResponseEntity<Void> deleteChannel(
 	  @Parameter(
 		description = "삭제할 Channel ID (UUID 형식)",
@@ -164,7 +163,7 @@ public class ChannelController {
 		  .name(request.getNewName())
 		  .description(request.getNewDescription())
 		  .build());
-		return ResponseEntity.status(OK).body(toUpdateChannelResponse(result.getUpdatedChannel()));
+		return ResponseEntity.status(OK).body(toUpdateChannelResponse(result));
 	}
 
 	@ApiResponses(value = {
@@ -178,19 +177,13 @@ public class ChannelController {
 	public ResponseEntity<List<ReadChannelResponse>> getAllByUserId(
 	  @Parameter(description = "조회할 User ID")
 	  @RequestParam UUID userId) {
-		ReadAllChannelResult channelDetails = channelService.readAllByUserId(userId);
+		List<ChannelDetail> channelDetails = channelService.readAllByUserId(userId);
 
-		List<ReadChannelResponse> body = channelDetails.getChannelDetails().stream()
-		  .map(channel -> ReadChannelResponse.builder()
-			.id(channel.getChannel().getId())
-			.type(channel.getChannel().getChannelType())
-			.name(channel.getChannel().getName())
-			.description(channel.getChannel().getDescription())
-			.participantIds(channel.getUserIds())
-			.lastMessageAt(channel.getLastMessageAt())
-			.build())
+		List<ReadChannelResponse> body = channelDetails.stream().map(
+			BasicChannelService::channelDetailsToReadChannelResponse)
 		  .toList();
 
 		return ResponseEntity.ok(body);
 	}
+
 }

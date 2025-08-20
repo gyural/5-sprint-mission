@@ -17,6 +17,9 @@ import com.sprint.mission.discodeit.domain.dto.UserUpdateResult;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.domain.request.CreateUserResponse;
+import com.sprint.mission.discodeit.domain.response.UserReadResponse;
+import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -174,4 +177,39 @@ public class BasicUserService implements UserService {
 		userRepository.deleteAll();
 
 	}
+
+	public static CreateUserResponse toCreateUserResponse(User user) {
+		return CreateUserResponse.builder()
+		  .id(user.getId())
+		  .username(user.getUsername())
+		  .email(user.getEmail())
+		  .profileId(user.getProfileId())
+		  .createdAt(user.getCreatedAt())
+		  .updatedAt(user.getUpdatedAt())
+		  .build();
+	}
+
+	public static UserReadResponse toUserReadResponse(UserReadResult user) {
+		return UserReadResponse.builder()
+		  .id(user.getId())
+		  .createdAt(user.getCreatedAt())
+		  .updatedAt(user.getUpdatedAt())
+		  .username(user.getUsername())
+		  .email(user.getEmail())
+		  .profileId(user.getProfileId())
+		  .online(user.isOnline())
+		  .build();
+	}
+
+	public static UserUpdateResponse toUserUpdateResponse(UserUpdateResult user) {
+		return UserUpdateResponse.builder()
+		  .id(user.getId())
+		  .createdAt(user.getCreatedAt())
+		  .updatedAt(user.getUpdatedAt())
+		  .username(user.getUsername())
+		  .email(user.getEmail())
+		  .profileId(user.getProfileId())
+		  .build();
+	}
+
 }

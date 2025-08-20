@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
+import static com.sprint.mission.discodeit.service.basic.BasicUserService.*;
+import static com.sprint.mission.discodeit.service.basic.BasicUserStatusService.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
@@ -36,6 +38,7 @@ import com.sprint.mission.discodeit.domain.response.UserReadResponse;
 import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import com.sprint.mission.discodeit.service.basic.BasicUserService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -91,29 +94,14 @@ public class UserController {
 		  .binaryContent(biContentDTO.orElse(null))
 		  .build());
 
-		return ResponseEntity.status(CREATED).body(CreateUserResponse.builder()
-		  .username(createdUser.getUsername())
-		  .email(createdUser.getEmail())
-		  .id(createdUser.getId())
-		  .profileId(createdUser.getProfileId())
-		  .createdAt(createdUser.getCreatedAt())
-		  .updatedAt(createdUser.getUpdatedAt())
-		  .build());
+		return ResponseEntity.status(CREATED).body(toCreateUserResponse(createdUser));
 	}
 
 	@GetMapping
 	public ResponseEntity<List<UserReadResponse>> getAllUser() {
 
 		List<UserReadResponse> body = userService.readAll().stream()
-		  .map(user -> UserReadResponse.builder()
-			.id(user.getId())
-			.createdAt(user.getCreatedAt())
-			.updatedAt(user.getUpdatedAt())
-			.username(user.getUsername())
-			.email(user.getEmail())
-			.profileId(user.getProfileId())
-			.online(user.isOnline())
-			.build())
+		  .map(BasicUserService::toUserReadResponse)
 		  .toList();
 
 		return ResponseEntity.ok(body);
@@ -145,16 +133,7 @@ public class UserController {
 		  .newProfilePicture(biContentDTO.orElse(null))
 		  .build());
 
-		UserUpdateResponse body = UserUpdateResponse.builder()
-		  .id(result.getId())
-		  .createdAt(result.getCreatedAt())
-		  .updatedAt(result.getUpdatedAt())
-		  .username(result.getUsername())
-		  .email(result.getEmail())
-		  .profileId(result.getProfileId())
-		  .build();
-
-		return ResponseEntity.ok(body);
+		return ResponseEntity.ok(toUserUpdateResponse(result));
 	}
 
 	@DeleteMapping("/{id}")
@@ -163,7 +142,7 @@ public class UserController {
 		return ResponseEntity.noContent().build();
 	}
 
-	@PatchMapping("/status/{userId}")
+	@PatchMapping("/{userId}/userStatus")
 	public ResponseEntity<UpdateUserStatusByUserIdResponse> updateUserStatus(
 	  @PathVariable UUID userId,
 	  @RequestBody UpdateUserStatusRequest updateUserStatusRequest) {
@@ -173,16 +152,7 @@ public class UserController {
 		  .newLastActiveAt(updateUserStatusRequest.getNewLastActiveAt())
 		  .build());
 
-		UpdateUserStatusByUserIdResponse response = UpdateUserStatusByUserIdResponse.builder()
-		  .id(newUserStatus.getId())
-		  .createdAt(newUserStatus.getCreatedAt())
-		  .updatedAt(newUserStatus.getUpdatedAt())
-		  .userId(newUserStatus.getUserId())
-		  .lastActiveAt(newUserStatus.getLastActiveAt())
-		  .isOnline(newUserStatus.isOnline())
-		  .build();
-
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok(toUpdateUserStatusByUserIdResponse(newUserStatus));
 	}
 
 }

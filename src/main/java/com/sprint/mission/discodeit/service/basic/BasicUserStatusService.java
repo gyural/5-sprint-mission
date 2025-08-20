@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.sprint.mission.discodeit.domain.dto.CreateUserStatusDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateStatusByUserIdDTO;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
+import com.sprint.mission.discodeit.domain.response.UpdateUserStatusByUserIdResponse;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -65,6 +66,17 @@ public class BasicUserStatusService implements UserStatusService {
 			throw new IllegalArgumentException("User status not found for ID: " + id);
 		}
 		userStatusRepository.delete(id);
+	}
+
+	public static UpdateUserStatusByUserIdResponse toUpdateUserStatusByUserIdResponse(UserStatus userStatus) {
+		return UpdateUserStatusByUserIdResponse.builder()
+		  .id(userStatus.getId())
+		  .createdAt(userStatus.getCreatedAt())
+		  .updatedAt(userStatus.getUpdatedAt())
+		  .userId(userStatus.getUserId())
+		  .lastActiveAt(userStatus.getLastActiveAt())
+		  .isOnline(userStatus.isOnline())
+		  .build();
 	}
 
 }

@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import com.sprint.mission.discodeit.domain.dto.CreateReadStatusDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateReadStatusDTO;
 import com.sprint.mission.discodeit.domain.entity.ReadStatus;
+import com.sprint.mission.discodeit.domain.response.CreateReadStatusResponse;
+import com.sprint.mission.discodeit.domain.response.GetReadStatusResponse;
+import com.sprint.mission.discodeit.domain.response.UpdateReadStatusResponse;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -79,6 +82,36 @@ public class BasicReadStatusService implements ReadStatusService {
 		}
 
 		readStatusRepository.delete(id);
+	}
+
+	public static CreateReadStatusResponse toCreateReadStatusResponse(ReadStatus readStatus) {
+		return CreateReadStatusResponse.builder()
+		  .id(readStatus.getId())
+		  .userId(readStatus.getUserId())
+		  .channelId(readStatus.getChannelId())
+		  .lastReadAt(readStatus.getLastReadAt())
+		  .build();
+	}
+
+	public static UpdateReadStatusResponse toUpdateReadStatusResponse(ReadStatus readStatus) {
+		return UpdateReadStatusResponse.builder()
+		  .id(readStatus.getId())
+		  .userId(readStatus.getUserId())
+		  .channelId(readStatus.getChannelId())
+		  .lastReadAt(readStatus.getLastReadAt())
+		  .build();
+	}
+
+	public static List<GetReadStatusResponse> toGetReadStatusResponses(List<ReadStatus> readStatuses) {
+		return readStatuses.stream()
+		  .map(rs -> GetReadStatusResponse.builder()
+			.id(rs.getId())
+			.userId(rs.getUserId())
+			.channelId(rs.getChannelId())
+			.lastReadAt(rs.getLastReadAt())
+			.build())
+		  .toList();
+
 	}
 
 }

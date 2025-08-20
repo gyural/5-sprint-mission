@@ -1,9 +1,10 @@
 package com.sprint.mission.discodeit.controller;
 
+import static com.sprint.mission.discodeit.service.basic.BasicAuthService.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,7 +27,7 @@ public class AuthController {
 	private final AuthService authService;
 
 	@RequestMapping(value = "/login", method = POST)
-	public ResponseEntity<UserLoginResponse> login(@ModelAttribute @Valid UserLoginRequest request) {
+	public ResponseEntity<UserLoginResponse> login(@Valid @RequestBody UserLoginRequest request) {
 
 		User user = authService.login(
 		  LoginParams.builder()
@@ -35,15 +36,7 @@ public class AuthController {
 			.build()
 		);
 
-		return ResponseEntity.ok(UserLoginResponse.builder()
-		  .id(user.getId())
-		  .username(user.getUsername())
-		  .email(user.getEmail())
-		  .createdAt(user.getCreatedAt())
-		  .updatedAt(user.getUpdatedAt())
-		  .id(user.getId())
-		  .profileId(user.getProfileId())
-		  .build());
+		return ResponseEntity.ok(toUserLoginResponse(user));
 	}
 
 }
