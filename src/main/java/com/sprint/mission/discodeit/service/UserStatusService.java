@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sprint.mission.discodeit.domain.dto.CreateUserStatusDTO;
-import com.sprint.mission.discodeit.domain.dto.UpdateUserStatusDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateStatusByUserIdDTO;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
 
 public interface UserStatusService {
@@ -15,9 +15,7 @@ public interface UserStatusService {
 
 	public List<UserStatus> findAll();
 
-	public void update(UpdateUserStatusDTO dto);
-
-	public UserStatus updateByUserId(UUID userID);
+	public UserStatus updateStatusByUserId(UpdateStatusByUserIdDTO dto);
 
 	public void delete(UUID id);
 }

@@ -16,7 +16,7 @@ public class MessageResponse {
 	private final Instant createdAt;
 	private final Instant updatedAt;
 	private final String content;
-	private final UUID authorId;
 	private final UUID channelId;
+	private final UUID authorId;
 	private final List<UUID> attachmentIds;
 }

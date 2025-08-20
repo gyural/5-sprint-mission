@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.domain.request;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.validation.constraints.NotNull;
@@ -15,4 +16,6 @@ public class CreateReadStatusRequest {
 	private final UUID userId;
 	@NotNull
 	private final UUID channelId;
+	@NotNull
+	private final Instant lastReadAt;
 }

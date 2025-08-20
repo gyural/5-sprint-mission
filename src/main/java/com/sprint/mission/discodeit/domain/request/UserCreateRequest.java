@@ -14,7 +14,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 @ToString
-public class CreatUsereRequest {
+public class UserCreateRequest {
 	@NotNull
 	@NotBlank
 	private final String username;

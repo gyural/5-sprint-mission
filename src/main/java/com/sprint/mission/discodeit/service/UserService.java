@@ -5,21 +5,21 @@ import java.util.UUID;
 
 import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UserDeleteResult;
+import com.sprint.mission.discodeit.domain.dto.UserReadResult;
+import com.sprint.mission.discodeit.domain.dto.UserUpdateResult;
 import com.sprint.mission.discodeit.domain.entity.User;
-import com.sprint.mission.discodeit.domain.response.UserDeleteResponse;
-import com.sprint.mission.discodeit.domain.response.UserReadResponse;
-import com.sprint.mission.discodeit.domain.response.UserUpdateResponse;
 
 public interface UserService {
 	User create(CreateUserDTO dto);
 
-	UserDeleteResponse delete(UUID userId);
+	List<UserReadResult> readAll();
 
-	UserUpdateResponse update(UpdateUserDTO dto);
+	UserDeleteResult delete(UUID userId);
 
-	UserReadResponse read(UUID userId);
+	UserUpdateResult update(UpdateUserDTO dto);
 
-	List<UserReadResponse> readAll();
+	UserReadResult read(UUID userId);
 
 	boolean isEmpty(UUID userId);
 

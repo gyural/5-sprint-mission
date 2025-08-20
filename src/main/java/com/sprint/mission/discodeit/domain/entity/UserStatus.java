@@ -7,8 +7,10 @@ import java.util.UUID;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class UserStatus implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1L;
@@ -34,8 +36,8 @@ public class UserStatus implements Serializable {
 		  Instant.now().minusSeconds(5 * 60).isBefore(LastActiveAt);
 	}
 
-	public void setLastActiveAt() {
-		this.LastActiveAt = Instant.now();
+	public void setLastActiveAt(Instant lastActiveAt) {
+		this.LastActiveAt = lastActiveAt;
 		this.updatedAt = Instant.now();
 	}
 }
