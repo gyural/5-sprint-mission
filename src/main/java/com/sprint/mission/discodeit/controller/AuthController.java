@@ -1,9 +1,9 @@
 package com.sprint.mission.discodeit.controller;
 
 import static com.sprint.mission.discodeit.service.basic.BasicAuthService.*;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 	private final AuthService authService;
 
-	@RequestMapping(value = "/login", method = POST)
+	@PostMapping("/login")
 	public ResponseEntity<UserLoginResponse> login(@Valid @RequestBody UserLoginRequest request) {
 
 		User user = authService.login(
