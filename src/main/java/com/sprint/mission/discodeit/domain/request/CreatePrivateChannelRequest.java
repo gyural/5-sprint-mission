@@ -12,13 +12,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class CreatePrivateChannelRequest {
-	// @NotNull
-	// @NotBlank
-	// private final String name;
-	// @NotNull
-	// @NotBlank
-	// private final String description;
 	@NotNull
 	// @Size(min = 1)
-	private final List<UUID> userIds;
+	private final List<UUID> participantIds;
 }
