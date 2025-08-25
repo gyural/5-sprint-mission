@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.domain.enums.ContentType;
-
 import lombok.Getter;
 import lombok.ToString;
 
@@ -16,13 +14,13 @@ public class BinaryContent implements Serializable {
 
 	private final UUID id;
 	private final String fileName;
-	private final ContentType contentType;
-	private final Integer size;
+	private final String contentType;
+	private final long size;
 	private final byte[] content;
 
 	private final Instant createdAt;
 
-	public BinaryContent(byte[] content, Integer size, ContentType contentType, String fileName) {
+	public BinaryContent(byte[] content, long size, String contentType, String fileName) {
 		this.id = UUID.randomUUID();
 		this.createdAt = Instant.now();
 		this.content = content;
@@ -30,4 +28,5 @@ public class BinaryContent implements Serializable {
 		this.contentType = contentType;
 		this.fileName = fileName;
 	}
+
 }

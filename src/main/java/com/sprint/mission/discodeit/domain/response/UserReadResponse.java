@@ -17,5 +17,5 @@ public class UserReadResponse {
 	private final String username;
 	private final String email;
 	private final UUID profileId;
-	private final Boolean isOnline;
+	private final Boolean online;
 }

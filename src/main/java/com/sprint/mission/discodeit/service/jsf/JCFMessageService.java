@@ -44,7 +44,7 @@ public class JCFMessageService implements MessageService {
 			throw new IllegalArgumentException("User ID cannot be null or empty");
 		}
 
-		if (channelId == null || channelRepository.isEmpty(channelId)) {
+		if (channelId == null || channelRepository.existsById(channelId)) {
 			throw new IllegalArgumentException("Channel ID cannot be null or empty");
 		}
 
@@ -81,7 +81,7 @@ public class JCFMessageService implements MessageService {
 
 	@Override
 	public void deleteAllByChannelId(UUID channelId) {
-		if (channelId == null || channelRepository.isEmpty(channelId)) {
+		if (channelId == null || channelRepository.existsById(channelId)) {
 			throw new IllegalArgumentException("Channel ID cannot be null or empty");
 		}
 		// 채널에 속한 모든 메시지를 삭제
@@ -89,7 +89,7 @@ public class JCFMessageService implements MessageService {
 	}
 
 	@Override
-	public void update(UpdateMessageDTO dto) {
+	public Message update(UpdateMessageDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateMessageDTO cannot be null"));
 		UUID id = dto.getId();
 		String newContent = dto.getNewContent();
@@ -107,7 +107,7 @@ public class JCFMessageService implements MessageService {
 		targetMessage.setContent(newContent);
 
 		// 메시지 내용 수정
-		messageRepository.save(targetMessage);
+		return messageRepository.save(targetMessage);
 	}
 
 	@Override

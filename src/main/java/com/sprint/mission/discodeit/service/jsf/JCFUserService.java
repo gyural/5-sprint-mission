@@ -5,13 +5,19 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateUserDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
+import com.sprint.mission.discodeit.domain.dto.UserDeleteResult;
+import com.sprint.mission.discodeit.domain.dto.UserReadResult;
+import com.sprint.mission.discodeit.domain.dto.UserUpdateResult;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
-import com.sprint.mission.discodeit.domain.response.UserReadResponse;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -21,6 +27,9 @@ public class JCFUserService implements UserService {
 
 	private final JCFUserRepository userRepository;
 	private final UserStatusRepository userStatusRepository;
+	private final BinaryContentRepository binaryContentRepository;
+
+	private final BinaryContentService binaryContentService;
 
 	@Override
 	public User create(CreateUserDTO dto) {
@@ -48,17 +57,33 @@ public class JCFUserService implements UserService {
 	}
 
 	@Override
-	public void delete(UUID userId) {
+	public UserDeleteResult delete(UUID userId) {
+		User targetUser = userRepository.find(userId)
+		  .orElseThrow(() -> new NoSuchElementException("User with ID " + userId + " does not exist"));
+
+		// 1. User Status 삭제
+		userStatusRepository.deleteByUserId(userId);
+		// 2. Profile Image 삭제
+		if (binaryContentRepository.find(targetUser.getProfileId()).isPresent()) {
+			binaryContentRepository.delete(targetUser.getProfileId());
+		}
+		// 3. User 삭제
 		userRepository.delete(userId);
+
+		return UserDeleteResult.builder()
+		  .isDeleted(true)
+		  .username(targetUser.getUsername())
+		  .build();
 	}
 
 	@Override
-	public void update(UpdateUserDTO dto) {
+	public UserUpdateResult update(UpdateUserDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateUserDTO cannot be null"));
 		UUID userId = dto.getUserId();
 		String newUsername = dto.getNewUsername();
 		String newEmail = dto.getNewEmail();
 		String newPassword = dto.getNewPassword();
+		CreateBiContentDTO newProfileImage = dto.getNewProfilePicture();
 
 		if (newUsername.isEmpty()) {
 			throw new IllegalArgumentException("Username cannot be empty");
@@ -75,11 +100,40 @@ public class JCFUserService implements UserService {
 		targetUser.setEmail(newEmail);
 		targetUser.setPassword(newPassword);
 
+		if (newProfileImage != null) {
+			// 기존 프로필이 있다면 삭제
+			if (targetUser.getProfileId() != null) {
+				binaryContentRepository.delete(targetUser.getProfileId());
+			}
+			BinaryContent newProfilePicture = binaryContentService.create(newProfileImage);
+			targetUser.setProfileId(newProfilePicture.getId());
+
+			userRepository.save(targetUser);
+			return UserUpdateResult.builder()
+			  .id(targetUser.getId())
+			  .createdAt(targetUser.getCreatedAt())
+			  .updatedAt(targetUser.getUpdatedAt())
+			  .username(targetUser.getUsername())
+			  .email(targetUser.getEmail())
+			  .profileId(newProfilePicture.getId())
+			  .build();
+		}
+
 		userRepository.save(targetUser);
+		BinaryContent profilePicture = binaryContentRepository.find(targetUser.getProfileId())
+		  .orElse(null);
+		return UserUpdateResult.builder()
+		  .id(targetUser.getId())
+		  .createdAt(targetUser.getCreatedAt())
+		  .updatedAt(targetUser.getUpdatedAt())
+		  .username(targetUser.getUsername())
+		  .email(targetUser.getEmail())
+		  .profileId(profilePicture.getId())
+		  .build();
 	}
 
 	@Override
-	public UserReadResponse read(UUID userId) {
+	public UserReadResult read(UUID userId) {
 		User user = userRepository.find(userId)
 		  .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
 
@@ -88,20 +142,31 @@ public class JCFUserService implements UserService {
 		boolean isOnline = status.stream()
 		  .anyMatch(UserStatus::isOnline);
 
-		return UserReadResponse.builder()
+		return UserReadResult.builder()
 		  .id(user.getId())
 		  .createdAt(user.getCreatedAt())
 		  .updatedAt(user.getUpdatedAt())
 		  .username(user.getUsername())
 		  .email(user.getEmail())
 		  .profileId(user.getProfileId())
-		  .isOnline(isOnline)
+		  .online(isOnline)
 		  .build();
 	}
 
 	@Override
-	public List<User> readAll() {
-		return userRepository.findAll();
+	public List<UserReadResult> readAll() {
+		return userRepository.findAll().stream().map(u -> UserReadResult.builder()
+		  .id(u.getId())
+		  .createdAt(u.getCreatedAt())
+		  .updatedAt(u.getUpdatedAt())
+		  .username(u.getUsername())
+		  .email(u.getEmail())
+		  .profileId(u.getProfileId())
+		  .online(
+			userStatusRepository.findByUserId(u.getId())
+			  .map(UserStatus::isOnline)
+			  .orElse(false))
+		  .build()).toList();
 	}
 
 	@Override

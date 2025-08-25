@@ -51,7 +51,7 @@ public class FileChannelRepository implements ChannelRepository {
 
 		List<Channel> channels = new ArrayList<>(findAll());
 		channels.removeIf(c -> c.getId().equals(channel.getId())); // 기존 id 삭제
-		channels = new java.util.ArrayList<>(channels);
+		channels = new ArrayList<>(channels);
 		channels.add(channel);
 
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
@@ -105,11 +105,8 @@ public class FileChannelRepository implements ChannelRepository {
 	}
 
 	@Override
-	public boolean isEmpty(UUID id) {
-		List<Channel> channels = findAll();
-		boolean isEmpty = channels.stream().anyMatch(channel -> channel.getId().equals(id));
-
-		return !isEmpty;
+	public boolean existsById(UUID id) {
+		return findAll().stream().anyMatch(channel -> channel.getId().equals(id));
 	}
 
 	@Override

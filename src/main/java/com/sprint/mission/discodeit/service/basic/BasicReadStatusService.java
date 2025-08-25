@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -8,6 +10,9 @@ import org.springframework.stereotype.Service;
 import com.sprint.mission.discodeit.domain.dto.CreateReadStatusDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateReadStatusDTO;
 import com.sprint.mission.discodeit.domain.entity.ReadStatus;
+import com.sprint.mission.discodeit.domain.response.CreateReadStatusResponse;
+import com.sprint.mission.discodeit.domain.response.GetReadStatusResponse;
+import com.sprint.mission.discodeit.domain.response.UpdateReadStatusResponse;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -28,42 +33,46 @@ public class BasicReadStatusService implements ReadStatusService {
 
 		UUID channelId = dto.getChannelId();
 		UUID userId = dto.getUserId();
+		Instant lastReadAt = dto.getLastReadAt();
 
-		if (channelId == null || channelRepository.isEmpty(channelId)) {
-			throw new IllegalArgumentException("Channel ID cannot be null or empty");
+		if (!channelRepository.existsById(channelId)) {
+			throw new NoSuchElementException("channel with id " + channelId + "not found");
 		}
-		if (userId == null || userRepository.isEmpty(userId)) {
-			throw new IllegalArgumentException("User ID cannot be null or empty");
+		if (userRepository.isEmpty(userId)) {
+			throw new NoSuchElementException("user with id " + userId + "not found");
+
 		}
 		if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isPresent()) {
 			throw new IllegalArgumentException(
-			  "Read status already exists for user: " + userId + " in channel: " + channelId);
+			  "ReadStatus with userId " + userId + "  and channelId " + channelId + " already exists");
 		}
 
-		ReadStatus readStatus = new ReadStatus(userId, channelId);
+		ReadStatus readStatus = new ReadStatus(userId, channelId, lastReadAt);
+
+		return readStatusRepository.save(readStatus);
+	}
+
+	@Override
+	public ReadStatus update(UpdateReadStatusDTO dto) {
+
+		UUID id = dto.getId();
+		Instant newLastReadAt = dto.getNewLastReadAt();
+
+		ReadStatus readStatus = readStatusRepository.find(id)
+		  .orElseThrow(() -> new NoSuchElementException("ReadStatus with id " + id + " not found"));
+
+		readStatus.setLastReadAt(newLastReadAt);
 
 		return readStatusRepository.save(readStatus);
 	}
 
 	@Override
 	public List<ReadStatus> findAllByUserId(UUID userId) {
-		if (userId == null || userRepository.isEmpty(userId)) {
-			throw new IllegalArgumentException("User ID cannot be null or empty");
+		if (userRepository.isEmpty(userId)) {
+			throw new NoSuchElementException("user with id " + userId + "not found");
 		}
 
 		return readStatusRepository.findAllByUserId(userId);
-	}
-
-	@Override
-	public void update(UpdateReadStatusDTO dto) {
-		UUID id = dto.getId();
-
-		ReadStatus targetReadStatus = readStatusRepository.find(id)
-		  .orElseThrow(() -> new IllegalArgumentException("Read status not found for ID: " + id));
-
-		targetReadStatus.setUpdatedAt();
-
-		readStatusRepository.save(targetReadStatus);
 	}
 
 	@Override
@@ -73,6 +82,36 @@ public class BasicReadStatusService implements ReadStatusService {
 		}
 
 		readStatusRepository.delete(id);
+	}
+
+	public static CreateReadStatusResponse toCreateReadStatusResponse(ReadStatus readStatus) {
+		return CreateReadStatusResponse.builder()
+		  .id(readStatus.getId())
+		  .userId(readStatus.getUserId())
+		  .channelId(readStatus.getChannelId())
+		  .lastReadAt(readStatus.getLastReadAt())
+		  .build();
+	}
+
+	public static UpdateReadStatusResponse toUpdateReadStatusResponse(ReadStatus readStatus) {
+		return UpdateReadStatusResponse.builder()
+		  .id(readStatus.getId())
+		  .userId(readStatus.getUserId())
+		  .channelId(readStatus.getChannelId())
+		  .lastReadAt(readStatus.getLastReadAt())
+		  .build();
+	}
+
+	public static List<GetReadStatusResponse> toGetReadStatusResponses(List<ReadStatus> readStatuses) {
+		return readStatuses.stream()
+		  .map(rs -> GetReadStatusResponse.builder()
+			.id(rs.getId())
+			.userId(rs.getUserId())
+			.channelId(rs.getChannelId())
+			.lastReadAt(rs.getLastReadAt())
+			.build())
+		  .toList();
+
 	}
 
 }

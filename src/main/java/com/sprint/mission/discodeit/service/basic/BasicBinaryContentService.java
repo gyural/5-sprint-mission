@@ -1,13 +1,16 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
+import com.sprint.mission.discodeit.domain.dto.FindBiContentResult;
+import com.sprint.mission.discodeit.domain.dto.FindBiContentsIdInDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
-import com.sprint.mission.discodeit.domain.enums.ContentType;
+import com.sprint.mission.discodeit.domain.response.BinaryContentResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 
@@ -25,14 +28,32 @@ public class BasicBinaryContentService implements BinaryContentService {
 	}
 
 	@Override
-	public BinaryContent find(UUID id) {
-		return binaryContentRepository.find(id)
-		  .orElseThrow(() -> new IllegalArgumentException("Binary content not found for ID: " + id));
+	public FindBiContentResult find(UUID id) {
+
+		BinaryContent binaryContent = binaryContentRepository.find(id)
+		  .orElseThrow(() -> new NoSuchElementException("Binary content not found for ID: " + id));
+
+		return FindBiContentResult.builder()
+		  .createdAt(binaryContent.getCreatedAt())
+		  .id(binaryContent.getId())
+		  .fileName(binaryContent.getFileName())
+		  .contentType(binaryContent.getContentType())
+		  .bytes(binaryContent.getContent())
+		  .size(binaryContent.getSize())
+		  .build();
 	}
 
 	@Override
-	public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
-		return binaryContentRepository.findAllByIdIn(ids);
+	public List<FindBiContentResult> findAllByIdIn(FindBiContentsIdInDTO dto) {
+		return binaryContentRepository.findAllByIdIn(dto.getIds()).stream().map(
+		  content -> FindBiContentResult.builder()
+			.id(content.getId())
+			.createdAt(content.getCreatedAt())
+			.fileName(content.getFileName())
+			.contentType(content.getContentType())
+			.bytes(content.getContent())
+			.size(content.getSize())
+			.build()).toList();
 	}
 
 	@Override
@@ -45,10 +66,21 @@ public class BasicBinaryContentService implements BinaryContentService {
 
 	private BinaryContent DTOtoBinaryContent(CreateBiContentDTO dto) {
 		byte[] content = dto.getContent();
-		int size = dto.getSize();
-		ContentType contentType = dto.getContentType();
+		long size = dto.getSize();
+		String contentType = dto.getContentType();
 		String filename = dto.getFileName();
 		return new BinaryContent(content, size, contentType, filename);
+	}
+
+	public static BinaryContentResponse biContentResultToResponse(FindBiContentResult result) {
+		return BinaryContentResponse.builder()
+		  .id(result.getId())
+		  .createdAt(result.getCreatedAt())
+		  .fileName(result.getFileName())
+		  .contentType(result.getContentType())
+		  .bytes(result.getBytes())
+		  .size(result.getSize())
+		  .build();
 	}
 
 }

@@ -13,6 +13,10 @@ import com.sprint.mission.discodeit.domain.dto.CreateMessageDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateMessageDTO;
 import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.Message;
+import com.sprint.mission.discodeit.domain.response.CreateMessageResponse;
+import com.sprint.mission.discodeit.domain.response.MessageResponse;
+import com.sprint.mission.discodeit.domain.response.MessagesInChannelResponse;
+import com.sprint.mission.discodeit.domain.response.UpdateMessageResponse;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -33,21 +37,18 @@ public class BasicMessageService implements MessageService {
 
 	@Override
 	public Message create(CreateMessageDTO dto) {
-		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("CreateMessageDTO cannot be null"));
 		String content = dto.getContent();
 		UUID channelId = dto.getChannelId();
 		UUID userId = dto.getUserId();
 		List<CreateBiContentDTO> attachmentsInMessage = dto.getAttachments();
 
-		// Validate inputs
-		if (content == null || content.isEmpty()) {
-			throw new IllegalArgumentException("Content cannot be null or empty");
+		// Validate
+		if (!channelRepository.existsById(channelId)) {
+			throw new NoSuchElementException("channel with id " + channelId + "not found");
 		}
-		if (channelId == null || channelRepository.isEmpty(channelId)) {
-			throw new IllegalArgumentException("Channel ID cannot be null or empty");
-		}
-		if (userId == null || userRepository.isEmpty(userId)) {
-			throw new IllegalArgumentException("User ID cannot be null or empty");
+		if (userRepository.isEmpty(userId)) {
+			throw new NoSuchElementException("Author with id " + userId + "not found");
+
 		}
 
 		List<BinaryContent> files = new ArrayList<>();
@@ -81,27 +82,47 @@ public class BasicMessageService implements MessageService {
 
 	@Override
 	public void deleteAllByChannelId(UUID channelId) {
-		if (channelRepository.isEmpty(channelId)) {
+		if (channelRepository.existsById(channelId)) {
 			throw new IllegalArgumentException("Channel ID cannot be null or empty");
 		}
 		messageRepository.deleteByChannelId(channelId);
 	}
 
 	@Override
-	public void update(UpdateMessageDTO dto) {
+	public Message update(UpdateMessageDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateMessageDTO cannot be null"));
 		UUID id = dto.getId();
 		String newContent = dto.getNewContent();
+		List<UUID> AttachmentIdsToRemove = dto.getRemoveAttachmentIds();
+		List<CreateBiContentDTO> newAttachments = dto.getNewAttachments();
 
 		if (newContent == null || newContent.isEmpty()) {
 			throw new IllegalArgumentException("New content cannot be null or empty");
 		}
 
 		Message targetMessage = messageRepository.find(id)
-		  .orElseThrow(() -> new IllegalArgumentException("Message with ID " + id + " not found"));
-		targetMessage.setContent(newContent);
+		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
 
-		messageRepository.save(targetMessage);
+		// 1. 내용 수정
+		targetMessage.setContent(newContent);
+		// 2. 삭제할 attachmentId가 있다면 삭제
+		if (AttachmentIdsToRemove != null && !AttachmentIdsToRemove.isEmpty()) {
+			// 기존 첨부파일 삭제
+			AttachmentIdsToRemove.forEach(binaryContentRepository::delete);
+			targetMessage.getAttachmentIds().removeAll(AttachmentIdsToRemove);
+		}
+		// 3. 새로 추가할 첨부파일이 있다면 추가
+		if (newAttachments != null && !newAttachments.isEmpty()) {
+			List<BinaryContent> newFiles = newAttachments.stream()
+			  .map(binaryContentService::create)
+			  .toList();
+			List<UUID> newAttachmentIds = newFiles.stream()
+			  .map(BinaryContent::getId)
+			  .toList();
+			targetMessage.getAttachmentIds().addAll(newAttachmentIds);
+		}
+
+		return messageRepository.save(targetMessage);
 	}
 
 	@Override
@@ -125,5 +146,45 @@ public class BasicMessageService implements MessageService {
 	@Override
 	public boolean isEmpty(UUID channelId) {
 		return messageRepository.isEmpty(channelId);
+	}
+
+	public static CreateMessageResponse toCreateMessageResponse(Message newMessage) {
+		return CreateMessageResponse.builder()
+		  .id(newMessage.getId())
+		  .createdAt(newMessage.getCreatedAt())
+		  .updatedAt(newMessage.getUpdatedAt())
+		  .content(newMessage.getContent())
+		  .authorId(newMessage.getAuthorId())
+		  .channelId(newMessage.getChannelId())
+		  .attachmentIds(newMessage.getAttachmentIds())
+		  .build();
+	}
+
+	public static UpdateMessageResponse toUpdateMessageResponse(Message newMessage) {
+		return UpdateMessageResponse.builder()
+		  .id(newMessage.getId())
+		  .createdAt(newMessage.getCreatedAt())
+		  .updatedAt(newMessage.getUpdatedAt())
+		  .content(newMessage.getContent())
+		  .authorId(newMessage.getAuthorId())
+		  .channelId(newMessage.getChannelId())
+		  .attachmentIds(newMessage.getAttachmentIds())
+		  .build();
+	}
+
+	public static MessagesInChannelResponse toMessagesInChannelResponse(List<Message> messages) {
+		return new MessagesInChannelResponse(
+		  messages.stream().map(message ->
+			new MessageResponse(
+			  message.getId(),
+			  message.getCreatedAt(),
+			  message.getUpdatedAt(),
+			  message.getContent(),
+			  message.getAuthorId(),
+			  message.getChannelId(),
+			  message.getAttachmentIds()
+			)
+		  ).toList()
+		);
 	}
 }

@@ -3,25 +3,25 @@ package com.sprint.mission.discodeit.service;
 import java.util.List;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.domain.dto.CreateChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.ChannelDetail;
+import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.CreatePrivateChannelResult;
+import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelDTO;
+import com.sprint.mission.discodeit.domain.dto.CreatePublicChannelResult;
+import com.sprint.mission.discodeit.domain.dto.ReadAllChannelResult;
 import com.sprint.mission.discodeit.domain.dto.UpdateChannelDTO;
-import com.sprint.mission.discodeit.domain.entity.Channel;
-import com.sprint.mission.discodeit.domain.response.ReadChannelResponse;
+import com.sprint.mission.discodeit.domain.dto.UpdateChannelResult;
 
 public interface ChannelService {
-	public Channel createPublic(CreateChannelDTO dto);
+	public CreatePublicChannelResult createPublic(CreatePublicChannelDTO dto);
 
-	public Channel createPrivate(CreateChannelDTO dto);
+	public CreatePrivateChannelResult createPrivate(CreatePrivateChannelDTO dto);
 
-	public ReadChannelResponse readPrivate(UUID id);
+	public List<ChannelDetail> readAllByUserId(UUID userId);
 
-	public ReadChannelResponse readPublic(UUID id);
+	public boolean delete(UUID id);
 
-	public List<ReadChannelResponse> findAllByUserId(UUID userId);
-
-	public void delete(UUID id);
-
-	public void update(UpdateChannelDTO dto);
+	public UpdateChannelResult update(UpdateChannelDTO dto);
 
 	boolean isEmpty(UUID id);
 
