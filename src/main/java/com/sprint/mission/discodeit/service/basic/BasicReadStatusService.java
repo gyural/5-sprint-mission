@@ -87,8 +87,8 @@ public class BasicReadStatusService implements ReadStatusService {
 	public static CreateReadStatusResponse toCreateReadStatusResponse(ReadStatus readStatus) {
 		return CreateReadStatusResponse.builder()
 		  .id(readStatus.getId())
-		  .userId(readStatus.getUserId())
-		  .channelId(readStatus.getChannelId())
+		  .userId(readStatus.getUser().getId())
+		  .channelId(readStatus.getChannel().getId())
 		  .lastReadAt(readStatus.getLastReadAt())
 		  .build();
 	}
@@ -96,8 +96,8 @@ public class BasicReadStatusService implements ReadStatusService {
 	public static UpdateReadStatusResponse toUpdateReadStatusResponse(ReadStatus readStatus) {
 		return UpdateReadStatusResponse.builder()
 		  .id(readStatus.getId())
-		  .userId(readStatus.getUserId())
-		  .channelId(readStatus.getChannelId())
+		  .userId(readStatus.getUser().getId())
+		  .channelId(readStatus.getChannel().getId())
 		  .lastReadAt(readStatus.getLastReadAt())
 		  .build();
 	}
@@ -106,8 +106,8 @@ public class BasicReadStatusService implements ReadStatusService {
 		return readStatuses.stream()
 		  .map(rs -> GetReadStatusResponse.builder()
 			.id(rs.getId())
-			.userId(rs.getUserId())
-			.channelId(rs.getChannelId())
+			.userId(rs.getUser().getId())
+			.channelId(rs.getChannel().getId())
 			.lastReadAt(rs.getLastReadAt())
 			.build())
 		  .toList();

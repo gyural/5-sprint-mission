@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateMessageDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateMessageDTO;
-import com.sprint.mission.discodeit.domain.entity.BinaryContent;
-import com.sprint.mission.discodeit.domain.entity.Message;
+import com.sprint.mission.discodeit.domain.entity.BinaryContents;
+import com.sprint.mission.discodeit.domain.entity.Messages;
 import com.sprint.mission.discodeit.domain.response.CreateMessageResponse;
 import com.sprint.mission.discodeit.domain.response.MessageResponse;
 import com.sprint.mission.discodeit.domain.response.MessagesInChannelResponse;
@@ -36,7 +36,7 @@ public class BasicMessageService implements MessageService {
 	private final BasicBinaryContentService binaryContentService;
 
 	@Override
-	public Message create(CreateMessageDTO dto) {
+	public Messages create(CreateMessageDTO dto) {
 		String content = dto.getContent();
 		UUID channelId = dto.getChannelId();
 		UUID userId = dto.getUserId();
@@ -51,25 +51,23 @@ public class BasicMessageService implements MessageService {
 
 		}
 
-		List<BinaryContent> files = new ArrayList<>();
+		List<BinaryContents> files = new ArrayList<>();
 		if (attachmentsInMessage != null && !attachmentsInMessage.isEmpty()) {
 			attachmentsInMessage.forEach((file) -> {
 				files.add(binaryContentService.create(file));
 			});
 		}
 
-		List<UUID> attachmentIds = files.stream().map(BinaryContent::getId).toList();
-
-		return messageRepository.save(new Message(content, userId, channelId, attachmentIds));
+		return messageRepository.save(new Messages(content, userId, channelId));
 	}
 
 	@Override
 	public void delete(UUID id) {
-		Message messageToDelete = messageRepository.find(id)
+		Messages messagesToDelete = messageRepository.find(id)
 		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
 
 		// 메시지 관련 Attachment 도 삭제
-		messageToDelete.getAttachmentIds().forEach(binaryContentRepository::delete);
+		// messagesToDelete.getAttachmentIds().forEach(binaryContentRepository::delete);
 
 		// 메시지 삭제
 		messageRepository.delete(id);
@@ -89,7 +87,7 @@ public class BasicMessageService implements MessageService {
 	}
 
 	@Override
-	public Message update(UpdateMessageDTO dto) {
+	public Messages update(UpdateMessageDTO dto) {
 		Optional.ofNullable(dto).orElseThrow(() -> new IllegalArgumentException("UpdateMessageDTO cannot be null"));
 		UUID id = dto.getId();
 		String newContent = dto.getNewContent();
@@ -100,46 +98,46 @@ public class BasicMessageService implements MessageService {
 			throw new IllegalArgumentException("New content cannot be null or empty");
 		}
 
-		Message targetMessage = messageRepository.find(id)
+		Messages targetMessages = messageRepository.find(id)
 		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
 
 		// 1. 내용 수정
-		targetMessage.setContent(newContent);
+		targetMessages.setContent(newContent);
 		// 2. 삭제할 attachmentId가 있다면 삭제
 		if (AttachmentIdsToRemove != null && !AttachmentIdsToRemove.isEmpty()) {
 			// 기존 첨부파일 삭제
 			AttachmentIdsToRemove.forEach(binaryContentRepository::delete);
-			targetMessage.getAttachmentIds().removeAll(AttachmentIdsToRemove);
+			// targetMessages.getAttachmentIds().removeAll(AttachmentIdsToRemove);
 		}
 		// 3. 새로 추가할 첨부파일이 있다면 추가
 		if (newAttachments != null && !newAttachments.isEmpty()) {
-			List<BinaryContent> newFiles = newAttachments.stream()
+			List<BinaryContents> newFiles = newAttachments.stream()
 			  .map(binaryContentService::create)
 			  .toList();
 			List<UUID> newAttachmentIds = newFiles.stream()
-			  .map(BinaryContent::getId)
+			  .map(BinaryContents::getId)
 			  .toList();
-			targetMessage.getAttachmentIds().addAll(newAttachmentIds);
+			// targetMessages.getAttachmentIds().addAll(newAttachmentIds);
 		}
 
-		return messageRepository.save(targetMessage);
+		return messageRepository.save(targetMessages);
 	}
 
 	@Override
-	public Message read(UUID id) {
+	public Messages read(UUID id) {
 		return messageRepository.find(id)
 		  .orElseThrow(() -> new NoSuchElementException("Message with ID " + id + " not found"));
 	}
 
 	@Override
-	public List<Message> findAllByChannelId(UUID channelId) {
+	public List<Messages> findAllByChannelId(UUID channelId) {
 		return messageRepository.findAll().stream().filter(
-			message -> message.getChannelId().equals(channelId))
+			message -> message.getChannels().getId().equals(channelId))
 		  .toList();
 	}
 
 	@Override
-	public List<Message> readAllByChannelId(UUID channelId) {
+	public List<Messages> readAllByChannelId(UUID channelId) {
 		return messageRepository.findAllByChannelId(channelId);
 	}
 
@@ -148,31 +146,31 @@ public class BasicMessageService implements MessageService {
 		return messageRepository.isEmpty(channelId);
 	}
 
-	public static CreateMessageResponse toCreateMessageResponse(Message newMessage) {
+	public static CreateMessageResponse toCreateMessageResponse(Messages newMessages) {
 		return CreateMessageResponse.builder()
-		  .id(newMessage.getId())
-		  .createdAt(newMessage.getCreatedAt())
-		  .updatedAt(newMessage.getUpdatedAt())
-		  .content(newMessage.getContent())
-		  .authorId(newMessage.getAuthorId())
-		  .channelId(newMessage.getChannelId())
-		  .attachmentIds(newMessage.getAttachmentIds())
+		  .id(newMessages.getId())
+		  .createdAt(newMessages.getCreatedAt())
+		  .updatedAt(newMessages.getUpdatedAt())
+		  .content(newMessages.getContent())
+		  .authorId(newMessages.getUser().getId())
+		  .channelId(newMessages.getChannels().getId())
+		  // .attachmentIds(newMessages.getAttachmentIds())
 		  .build();
 	}
 
-	public static UpdateMessageResponse toUpdateMessageResponse(Message newMessage) {
+	public static UpdateMessageResponse toUpdateMessageResponse(Messages newMessages) {
 		return UpdateMessageResponse.builder()
-		  .id(newMessage.getId())
-		  .createdAt(newMessage.getCreatedAt())
-		  .updatedAt(newMessage.getUpdatedAt())
-		  .content(newMessage.getContent())
-		  .authorId(newMessage.getAuthorId())
-		  .channelId(newMessage.getChannelId())
-		  .attachmentIds(newMessage.getAttachmentIds())
+		  .id(newMessages.getId())
+		  .createdAt(newMessages.getCreatedAt())
+		  .updatedAt(newMessages.getUpdatedAt())
+		  .content(newMessages.getContent())
+		  .authorId(newMessages.getUser().getId())
+		  .channelId(newMessages.getChannels().getId())
+		  // .attachmentIds(newMessages.getAttachmentIds())
 		  .build();
 	}
 
-	public static MessagesInChannelResponse toMessagesInChannelResponse(List<Message> messages) {
+	public static MessagesInChannelResponse toMessagesInChannelResponse(List<Messages> messages) {
 		return new MessagesInChannelResponse(
 		  messages.stream().map(message ->
 			new MessageResponse(
@@ -180,9 +178,9 @@ public class BasicMessageService implements MessageService {
 			  message.getCreatedAt(),
 			  message.getUpdatedAt(),
 			  message.getContent(),
-			  message.getAuthorId(),
-			  message.getChannelId(),
-			  message.getAttachmentIds()
+			  message.getUser().getId(),
+			  message.getChannels().getId(),
+			  null
 			)
 		  ).toList()
 		);

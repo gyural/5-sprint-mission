@@ -4,18 +4,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.domain.entity.BinaryContent;
+import com.sprint.mission.discodeit.domain.entity.BinaryContents;
 
 public interface BinaryContentRepository {
-	public BinaryContent save(BinaryContent binaryContent);
+	public BinaryContents save(BinaryContents binaryContents);
 
-	public List<BinaryContent> saveAll(List<BinaryContent> binaryContents);
+	public List<BinaryContents> saveAll(List<BinaryContents> binaryContents);
 
-	public Optional<BinaryContent> find(UUID id);
+	public Optional<BinaryContents> find(UUID id);
 
-	public List<BinaryContent> findAll();
+	public List<BinaryContents> findAll();
 
-	public List<BinaryContent> findAllByIdIn(List<UUID> ids);
+	public List<BinaryContents> findAllByIdIn(List<UUID> ids);
 
 	public void delete(UUID id);
 
