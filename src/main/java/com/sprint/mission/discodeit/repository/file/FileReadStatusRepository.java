@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import com.sprint.mission.discodeit.domain.entity.BinaryContents;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 
@@ -145,7 +145,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
 	public void deleteAll() {
 		try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
 			 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-			oos.writeObject(new ArrayList<BinaryContents>());
+			oos.writeObject(new ArrayList<BinaryContent>());
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

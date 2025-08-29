@@ -5,13 +5,17 @@ import java.util.UUID;
 
 import com.sprint.mission.discodeit.domain.entity.base.BaseUpdatableEntity;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@Entity
 public class User extends BaseUpdatableEntity {
 
 	@JoinColumn(nullable = false, unique = true)
@@ -24,7 +28,7 @@ public class User extends BaseUpdatableEntity {
 	// Foreign key
 	@OneToOne(orphanRemoval = true)
 	@JoinColumn(name = "profile_id")
-	private BinaryContents profileImage;
+	private BinaryContent profileImage;
 
 	public User(String username, String email, String password, UUID profileId) {
 		this.username = username;

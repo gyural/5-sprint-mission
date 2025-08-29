@@ -10,10 +10,10 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
 @Getter
 @NoArgsConstructor
-public class BinaryContents extends BaseEntity {
+@Entity
+public class BinaryContent extends BaseEntity {
 
 	@NotNull
 	private String fileName;
@@ -24,7 +24,7 @@ public class BinaryContents extends BaseEntity {
 	@NotNull
 	private byte[] bytes;
 
-	public BinaryContents(byte[] bytes, long size, String contentType, String fileName) {
+	public BinaryContent(byte[] bytes, long size, String contentType, String fileName) {
 		super(UUID.randomUUID(), Instant.now());
 		this.bytes = bytes;
 		this.size = size;

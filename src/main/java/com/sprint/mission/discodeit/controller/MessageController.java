@@ -26,7 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.CreateMessageDTO;
 import com.sprint.mission.discodeit.domain.dto.UpdateMessageDTO;
-import com.sprint.mission.discodeit.domain.entity.Messages;
+import com.sprint.mission.discodeit.domain.entity.Message;
 import com.sprint.mission.discodeit.domain.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.domain.request.UpdateMessageRequest;
 import com.sprint.mission.discodeit.domain.response.CreateMessageResponse;
@@ -65,7 +65,7 @@ public class MessageController {
 			  }
 		  }).toList();
 
-		Messages newMessages = messageService.create(CreateMessageDTO.builder()
+		Message newMessage = messageService.create(CreateMessageDTO.builder()
 		  .content(messageCreateRequest.getContent())
 		  .channelId(messageCreateRequest.getChannelId())
 		  .userId(messageCreateRequest.getAuthorId())
@@ -73,7 +73,7 @@ public class MessageController {
 		  .build());
 
 		URI location = URI.create("api/messages");
-		return ResponseEntity.created(location).body(toCreateMessageResponse(newMessages));
+		return ResponseEntity.created(location).body(toCreateMessageResponse(newMessage));
 	}
 
 	@PatchMapping
@@ -84,13 +84,13 @@ public class MessageController {
 
 		List<CreateBiContentDTO> biContentDTOs = new ArrayList<>();
 
-		Messages updatedMessages = messageService.update(UpdateMessageDTO.builder()
+		Message updatedMessage = messageService.update(UpdateMessageDTO.builder()
 		  .id(messageId)
 		  .newContent(updateMessageRequest.getNewContent())
 		  .newAttachments(biContentDTOs)
 		  .build());
 
-		return ResponseEntity.ok().body(toUpdateMessageResponse(updatedMessages));
+		return ResponseEntity.ok().body(toUpdateMessageResponse(updatedMessage));
 	}
 
 	@DeleteMapping("/{id}")
@@ -101,7 +101,7 @@ public class MessageController {
 
 	@GetMapping
 	public ResponseEntity<MessagesInChannelResponse> getMessagesInChannel(@RequestParam UUID channelId) {
-		List<Messages> readMessages = messageService.readAllByChannelId(channelId);
+		List<Message> readMessages = messageService.readAllByChannelId(channelId);
 		return ResponseEntity.ok((toMessagesInChannelResponse(readMessages)));
 	}
 }

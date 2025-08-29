@@ -6,11 +6,11 @@ import java.util.UUID;
 import com.sprint.mission.discodeit.domain.dto.CreateBiContentDTO;
 import com.sprint.mission.discodeit.domain.dto.FindBiContentResult;
 import com.sprint.mission.discodeit.domain.dto.FindBiContentsIdInDTO;
-import com.sprint.mission.discodeit.domain.entity.BinaryContents;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 
 public interface BinaryContentService {
 
-	public BinaryContents create(CreateBiContentDTO dto);
+	public BinaryContent create(CreateBiContentDTO dto);
 
 	public FindBiContentResult find(UUID id);
 

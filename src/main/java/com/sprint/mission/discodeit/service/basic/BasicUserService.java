@@ -14,7 +14,7 @@ import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
 import com.sprint.mission.discodeit.domain.dto.UserDeleteResult;
 import com.sprint.mission.discodeit.domain.dto.UserReadResult;
 import com.sprint.mission.discodeit.domain.dto.UserUpdateResult;
-import com.sprint.mission.discodeit.domain.entity.BinaryContents;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.domain.request.CreateUserResponse;
@@ -52,7 +52,7 @@ public class BasicUserService implements UserService {
 		}
 
 		// 2. Profile Image 저장
-		BinaryContents savedProfileImage = null;
+		BinaryContent savedProfileImage = null;
 		if (profileImage != null) {
 			savedProfileImage = binaryContentService.create(profileImage);
 		}
@@ -109,7 +109,7 @@ public class BasicUserService implements UserService {
 		targetUser.setEmail(newEmail);
 		targetUser.setPassword(newPassword);
 
-		Optional<BinaryContents> profilePicture = Optional.empty();
+		Optional<BinaryContent> profilePicture = Optional.empty();
 		if (newProfileImage != null) {
 			// 기존 프로필이 있다면 삭제
 			if (targetUser.getProfileImage().getId() != null) {
@@ -127,7 +127,7 @@ public class BasicUserService implements UserService {
 		  .updatedAt(targetUser.getUpdatedAt())
 		  .username(targetUser.getUsername())
 		  .email(targetUser.getEmail())
-		  .profileId(profilePicture.map(BinaryContents::getId).orElse(null))
+		  .profileId(profilePicture.map(BinaryContent::getId).orElse(null))
 		  .build();
 	}
 

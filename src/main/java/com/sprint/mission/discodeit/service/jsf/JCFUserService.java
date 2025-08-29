@@ -11,7 +11,7 @@ import com.sprint.mission.discodeit.domain.dto.UpdateUserDTO;
 import com.sprint.mission.discodeit.domain.dto.UserDeleteResult;
 import com.sprint.mission.discodeit.domain.dto.UserReadResult;
 import com.sprint.mission.discodeit.domain.dto.UserUpdateResult;
-import com.sprint.mission.discodeit.domain.entity.BinaryContents;
+import com.sprint.mission.discodeit.domain.entity.BinaryContent;
 import com.sprint.mission.discodeit.domain.entity.User;
 import com.sprint.mission.discodeit.domain.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -105,7 +105,7 @@ public class JCFUserService implements UserService {
 			if (targetUser.getProfileImage().getId() != null) {
 				binaryContentRepository.delete(targetUser.getProfileImage().getId());
 			}
-			BinaryContents newProfilePicture = binaryContentService.create(newProfileImage);
+			BinaryContent newProfilePicture = binaryContentService.create(newProfileImage);
 			targetUser.setProfileImage(newProfilePicture);
 
 			userRepository.save(targetUser);
@@ -120,7 +120,7 @@ public class JCFUserService implements UserService {
 		}
 
 		userRepository.save(targetUser);
-		BinaryContents profilePicture = binaryContentRepository.find(targetUser.getProfileImage().getId())
+		BinaryContent profilePicture = binaryContentRepository.find(targetUser.getProfileImage().getId())
 		  .orElse(null);
 		return UserUpdateResult.builder()
 		  .id(targetUser.getId())
