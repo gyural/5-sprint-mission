@@ -1,19 +1,101 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '3.5.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
+}
+
+ext {
+    springBootAdminVersion = "3.5.0"
+}
+
+test {
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 group = 'com.sprint.mission'
 version = '1.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'de.codecentric:spring-boot-admin-starter-client:3.4.5'
+
+    compileOnly 'org.projectlombok:lombok'
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    annotationProcessor 'org.projectlombok:lombok'
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.h2database:h2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // mapstruct
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+    // S3
+    implementation 'software.amazon.awssdk:s3:2.31.7'
+    // dotENV
+    implementation("io.github.cdimascio:java-dotenv:5.2.2")
+
 }
 
-test {
+dependencyManagement {
+    imports {
+        mavenBom "de.codecentric:spring-boot-admin-dependencies:$springBootAdminVersion"
+    }
+}
+
+tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.register("dockerBuildxMultiPlatform", Exec) {
+    dependsOn bootJar
+
+    group = "docker"
+    description = "Build and push multi-platform docker image using buildx"
+
+    def imageName = "gyural/spring-mission-5:latest"
+
+    commandLine "docker", "buildx", "build",
+            "--platform", "linux/amd64,linux/arm64",
+            "-t", imageName,
+            "--push",
+            "."
+
+    doFirst {
+        println "Building multi-platform Docker image: ${imageName}"
+    }
 }

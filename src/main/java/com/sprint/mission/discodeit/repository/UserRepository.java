@@ -4,20 +4,37 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-public interface UserRepository {
-	User save(User user);
+import com.sprint.mission.discodeit.domain.entity.User;
 
-	void delete(UUID userId);
+@Repository
+public interface UserRepository extends JpaRepository<User, UUID> {
 
-	Optional<User> find(UUID userId);
+	Optional<User> findByUsername(String username);
 
-	List<User> findAll();
+	@Query("SELECT u FROM User u LEFT JOIN FETCH u.profileImage WHERE u.username = :username")
+	Optional<User> findByUsernameWithProfileImage(@Param("username") String username);
 
-	boolean isEmpty(UUID userId);
+	@Query("SELECT u FROM User u LEFT JOIN FETCH u.profileImage WHERE u.id = :id")
+	Optional<User> findUserWithProfileImageByID(@Param("id") UUID id);
 
-	void deleteAll();
+	Optional<User> findByEmail(String email);
 
-	Long count(); // 추가된 메소드: 전체 사용자 수를 반환하는 메소드
+	boolean existsByUsername(String username);
+
+	boolean existsByEmail(String email);
+
+	@Query("SELECT u FROM User u LEFT JOIN FETCH u.profileImage WHERE u.id IN :ids")
+	List<User> findUsersWithProfileByIdIn(List<UUID> ids);
+
+	@Query("""
+	  	SELECT u
+	  	FROM User u
+	  	LEFT JOIN FETCH u.profileImage
+	  """)
+	List<User> findUserDetailsAll();
 }

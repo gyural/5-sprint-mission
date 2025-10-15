@@ -5,8 +5,11 @@
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
+.logs
+
 #
 data
+.discodeit
 
 .idea/**
 # User-specific stuff
@@ -205,3 +208,7 @@ gradle-app.setting
 *.hprof
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij,gradle,macos,windows
+
+.env
+*.env
+custom.sh

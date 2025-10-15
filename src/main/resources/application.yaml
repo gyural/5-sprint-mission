@@ -1,0 +1,92 @@
+discodeit:
+  repository:
+    type: file   # jcf | file
+    file-directory: .discodeit
+  storage:
+    type: ${STORAGE_TYPE:local} # local | s3 (기본값: local) # 추가
+    local:
+      root-path: ${STORAGE_LOCAL_ROOT_PATH:.discodeit/storage} # 추가
+    s3:
+      access-key: ${AWS_S3_ACCESS_KEY:AWS_S3_ACCESS_KEY} # 추가
+      secret-key: ${AWS_S3_SECRET_KEY:AWS_S3_SECRET_KEY} # 추가
+      region: ${AWS_S3_REGION:AWS_S3_REGION} # 추가
+      bucket: ${AWS_S3_BUCKET:AWS_S3_BUCKET} # 추가
+      prefix: ${AWS_S3_PREFIX:defaultPrefix}
+      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION:600} # (기본값: 10분) # 추가
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        jdbc.time_zone: UTC
+  boot:
+    admin:
+      client:
+        instance:
+          name: discodeit
+
+
+# log
+logging:
+  level:
+    root: info
+  # Hibernate SQL
+#    org.hibernate.SQL: off
+#    org.hibernate.orm.jdbc.bind: trace
+#    org.hibernate.type.descriptor.sql: trace
+
+# actuator/info 에 노출할 정보
+info:
+  app:
+    name: ${spring.application.name}
+    description: Discodeit service
+    version: 1.7.0
+    spring-boot-version: 3.4.0
+    java: ${java.runtime.version}
+  runtime:
+    profile: ${spring.profiles.active}
+  datasource: # 각 프로필마다 다르게 되기 때문에 url driver name을 가져올 방법이 없나?
+    url: ${spring.datasource.url}
+    driver-class-name: ${spring.datasource.driver-class-name}
+  jpa:
+    ddl-auto: ${spring.jpa.hibernate.ddl-auto}
+  storage:
+    type: ${discodeit.storage.type}
+    path: ${discodeit.storage.local.root-path}
+  multipart:
+    max-file-size: ${spring.servlet.multipart.max-file-size}
+    max-request-size: ${spring.servlet.multipart.max-request-size}
+
+
+# Actuator 노출 범위
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info,metrics,health, loggers
+        #        include: info,metrics,health, loggers,env,threaddump,heapdump,users
+  #  endpoint:
+  #    health:
+  #      show-details: always
+  #      probes:
+  #        enabled: true   # liveness/readiness
+  info:
+    env:
+      enabled: true     # info.* 노출
+    java:
+      enabled: true
+    os:
+      enabled: true
+    build:
+      enabled: true

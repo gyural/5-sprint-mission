@@ -1,26 +1,25 @@
 package com.sprint.mission.discodeit.service;
 
-import java.util.List;
+import java.time.Instant;
 import java.util.UUID;
 
-import com.sprint.mission.discodeit.entity.Message;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+
+import com.sprint.mission.discodeit.domain.dto.CreateMessageDTO;
+import com.sprint.mission.discodeit.domain.dto.UpdateMessageDTO;
+import com.sprint.mission.discodeit.domain.dto.message.MessageDto;
 
 public interface MessageService {
-	Message create(String content, UUID channelId, UUID userId);
+	MessageDto create(CreateMessageDTO dto);
 
 	void delete(UUID id);
 
-	void deleteAll();
+	MessageDto update(UpdateMessageDTO dto);
 
-	void deleteAllByChannelId(UUID channelId);
+	Page<MessageDto> findAllByChannelId(UUID channelId, Pageable pageable);
 
-	void update(UUID id, String newContent);
+	Slice<MessageDto> findAllCursorByChannelId(UUID channelId, Instant cursor, Pageable pageable);
 
-	Message read(UUID id);
-
-	List<Message> readAll();
-
-	List<Message> readAllByChannelId(UUID channelId);
-
-	boolean isEmpty(UUID channelId);
 }
